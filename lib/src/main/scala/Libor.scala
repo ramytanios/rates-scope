@@ -13,6 +13,8 @@ class Libor(
     val bdConvention: BusinessDayConvention
 ) extends Underlying:
 
+  val settlementRule = SettlementRule.simpleRule(spotLag)
+
   def interestPeriod(from: LocalDate) =
     val start = calendar.addBusinessDays(from, spotLag)
     val endDate = calendar.addBusinessPeriod(start, tenor)(using bdConvention)
