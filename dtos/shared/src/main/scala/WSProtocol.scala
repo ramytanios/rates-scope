@@ -3,9 +3,6 @@ package dtos
 import io.circe.Codec
 import io.circe.generic.semiauto.*
 
-import java.time as jt
-import java.util as ju
-
 object WSProtocol:
 
   enum Client:
