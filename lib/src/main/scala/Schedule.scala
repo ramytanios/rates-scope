@@ -4,8 +4,9 @@ import java.time.LocalDate
 import lib.quantities.*
 import lib.syntax.*
 
-object schedule:
+object Schedule:
 
+  /** Generated schedule is guaranteed to have `from` and `to` included */
   def generate(
       from: LocalDate,
       to: LocalDate,
