@@ -1,7 +1,8 @@
 package lib
 
-import java.time.LocalDate
 import lib.quantities.*
+
+import java.time.LocalDate
 
 class Libor(
     val tenor: Tenor,
@@ -13,8 +14,12 @@ class Libor(
 ) extends Underlying:
 
   def interestPeriod(from: LocalDate) =
-    val start   = calendar.addBusinessDays(from, spotLag)
+    val start = calendar.addBusinessDays(from, spotLag)
     val endDate = calendar.addBusinessPeriod(start, tenor)(using bdConvention)
     start -> endDate
 
-  def forward(date: LocalDate)(using Market): Either[Error, Double] = ???
+  def forward(t: LocalDate)(using market: Market): Either[Error, Double] =
+    market.yieldCurve(resetCurve).map: yieldCurve =>
+      val (_start, _end) = interestPeriod(t)
+      val dcf = dayCounter.yearFraction(_start, _end)
+      (yieldCurve.discount(_start, _end) - 1.0) / dcf.toDouble

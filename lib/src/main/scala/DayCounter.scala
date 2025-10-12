@@ -1,7 +1,9 @@
 package lib
 
-import java.time.LocalDate
 import lib.quantities.*
+
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 sealed trait DayCounter:
 
@@ -11,14 +13,16 @@ sealed trait DayCounter:
 
 case object Act360 extends DayCounter:
 
-  override def daysBetween(from: LocalDate, to: LocalDate): Long = days(from, to)
+  override def daysBetween(from: LocalDate, to: LocalDate): Long =
+    ChronoUnit.DAYS.between(from, to)
 
   override def yearFraction(from: LocalDate, to: LocalDate): YearFraction =
-    YearFraction(days(from, to) / 360.0)
+    YearFraction(daysBetween(from, to) / 360.0)
 
 case object Act365 extends DayCounter:
 
-  override def daysBetween(from: LocalDate, to: LocalDate): Long = days(from, to)
+  override def daysBetween(from: LocalDate, to: LocalDate): Long =
+    ChronoUnit.DAYS.between(from, to)
 
   override def yearFraction(from: LocalDate, to: LocalDate): YearFraction =
-    YearFraction(days(from, to) / 365.0)
+    YearFraction(daysBetween(from, to) / 365.0)

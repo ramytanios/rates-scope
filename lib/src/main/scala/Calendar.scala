@@ -1,8 +1,9 @@
 package lib
 
-import java.time.LocalDate
 import lib.quantities.*
-import lib.quantities.Tenor.*
+import lib.syntax.*
+
+import java.time.LocalDate
 
 trait Calendar:
 

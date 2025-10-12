@@ -1,3 +1,3 @@
 package frontend
 
-object Main 
+object Main

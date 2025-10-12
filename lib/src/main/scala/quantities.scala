@@ -1,7 +1,6 @@
 package lib
 
 import java.time.Period
-import java.time.LocalDate
 
 object quantities:
 
@@ -11,12 +10,12 @@ object quantities:
   object YearFraction:
     def apply(yf: Double): YearFraction = yf
 
-    val zero: YearFraction    = 0.0
-    val oneDay: YearFraction  = 1.0 / 365.0
+    val zero: YearFraction = 0.0
+    val oneDay: YearFraction = 1.0 / 365.0
     val oneYear: YearFraction = 1.0
 
     extension (yf: YearFraction)
-      def toDouble: Double       = yf
+      def toDouble: Double = yf
       def +(other: YearFraction) = yf + other
 
     given Conversion[Double, YearFraction] = YearFraction.apply
@@ -29,7 +28,7 @@ object quantities:
 
     extension (r: Rate)
       def *(yf: YearFraction): Double = r * yf
-      def unary_- : Rate              = -r
+      def unary_- : Rate = -r
 
     given Conversion[Double, Rate] = Rate.apply
 
@@ -49,6 +48,3 @@ object quantities:
       def toPeriod: Period = t
 
     given Conversion[Period, Tenor] = Tenor.apply
-
-    extension (d: LocalDate)
-      def +(t: Tenor) = d.plus(t.toPeriod)
