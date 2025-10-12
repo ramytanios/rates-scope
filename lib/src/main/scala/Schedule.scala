@@ -17,12 +17,47 @@ object schedule:
   ): Seq[LocalDate] =
 
     require(from < to, s"from date $from must be before $to")
-    throw new NotImplementedError()
+
+    direction match
+      case Direction.Backward =>
+        val init =
+          LazyList
+            .iterate(to)(calendar.addBusinessPeriod(_, -period)(using bdConvention))
+            .takeWhile(to < _)
+            .reverse
+            .toSeq
+
+        val withStub =
+          stub match
+            case StubConvention.Short => init
+            case StubConvention.Long =>
+              if calendar.addBusinessPeriod(init.head, -period)(using bdConvention) < from then
+                init.drop(1)
+              else init
+
+        from +: withStub
+
+      case Direction.Forward =>
+        val init =
+          LazyList
+            .iterate(from)(calendar.addBusinessPeriod(_, period)(using bdConvention))
+            .takeWhile(_ < to)
+            .toSeq
+
+        val withStub =
+          stub match
+            case StubConvention.Short => init
+            case StubConvention.Long =>
+              if to < calendar.addBusinessPeriod(init.last, period)(using bdConvention) then
+                init.dropRight(1)
+              else init
+
+        withStub :+ to
 
   enum StubConvention:
-    case Long
     case Short
+    case Long
 
   enum Direction:
-    case Forward
     case Backward
+    case Forward
