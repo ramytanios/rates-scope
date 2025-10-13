@@ -36,8 +36,9 @@ object bachelier:
       dvol: Double => Double
   ): Double => Double =
     (k: Double) =>
-      val d = (forward - k) / sqrt(tte) / vol(k)
-      1 - cdf(d) + sqrt(tte) * dvol(k) * pdf(d)
+      val stte = sqrt(tte)
+      val d = (forward - k) / stte / vol(k)
+      1 - cdf(d) + stte * dvol(k) * pdf(d)
 
   def impliedDensity(
       forward: Double,
@@ -47,8 +48,9 @@ object bachelier:
       ddvol: Double => Double
   ): Double => Double =
     (k: Double) =>
-      val d = (forward - k) / sqrt(tte) / vol(k)
-      pdf(d) / sqrt(tte) / vol(k) * (tte * vol(k) * ddvol(k) + pow(
+      val stte = sqrt(tte)
+      val d = (forward - k) / stte / vol(k)
+      pdf(d) / stte / vol(k) * (tte * vol(k) * ddvol(k) + pow(
         (1 + (forward - k) * dvol(k) / vol(k)),
         2
       ))

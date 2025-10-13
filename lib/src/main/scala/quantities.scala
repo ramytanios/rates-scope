@@ -48,7 +48,7 @@ object quantities:
 
     extension (t: Tenor)
       def toPeriod: Period = t
-      def unary_- : Tenor = Period.ofDays(-t.getDays)
-      def *(factor: Int): Tenor = Period.ofDays(t.getDays * factor)
+      def unary_- : Tenor = t.multipliedBy(-1)
+      def *(factor: Int): Tenor = t.multipliedBy(factor)
 
     given Conversion[Period, Tenor] = Tenor.apply

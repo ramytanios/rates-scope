@@ -1,8 +1,9 @@
 package lib
 
-import org.typelevel.literally.Literally
-import java.time.LocalDate
 import cats.syntax.all.*
+import org.typelevel.literally.Literally
+
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 object literals:

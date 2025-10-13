@@ -1,15 +1,13 @@
 package lib
 
+import cats.syntax.all.*
+import lib.Schedule.Direction
+import lib.Schedule.StubConvention
 import lib.quantities.*
 
 import java.time.LocalDate
-import lib.Schedule.StubConvention
-import lib.Schedule.Direction
-
-import cats.syntax.all.*
 import scala.collection.Searching.Found
 import scala.collection.Searching.InsertionPoint
-
 import scala.math.Ordering.Implicits.*
 
 case class CompoundingPeriod(
@@ -43,10 +41,10 @@ class CompoundedRate(
   val firstFixingDate: LocalDate = schedule.head.fixingDate
   val lastFixingDate: LocalDate = schedule.last.fixingDate
 
-  def compoundingFactor(upTo: LocalDate)(using market: Market): Either[MarketError, Double] =
+  def compoundingFactor(toInclusive: LocalDate)(using market: Market): Either[MarketError, Double] =
     schedule
       .traverseCollect:
-        case CompoundingPeriod(fixingDate, startDate, endDate) if fixingDate <= upTo =>
+        case CompoundingPeriod(fixingDate, startDate, endDate) if fixingDate <= toInclusive =>
           market.fixings(rate.name).flatMap: fixings =>
             fixings(fixingDate).map: fixing =>
               (1 + rate.dayCounter.yearFraction(startDate, endDate) * fixing.value)

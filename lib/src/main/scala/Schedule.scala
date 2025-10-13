@@ -1,13 +1,15 @@
 package lib
 
-import java.time.LocalDate
 import lib.quantities.*
 
+import java.time.LocalDate
 import scala.math.Ordering.Implicits.*
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ArrayDeque
 
 object Schedule:
 
-  def generate(
+  def apply(
       from: LocalDate,
       to: LocalDate,
       period: Tenor,
@@ -21,30 +23,40 @@ object Schedule:
 
     direction match
       case Direction.Backward =>
-        val init = Iterator
-          .from(0, -1)
-          .map(i => calendar.addBusinessPeriod(from, -period * i)(using bdConvention))
-          .takeWhile(to < _)
-          .toVector
+        val buf = new ArrayDeque[LocalDate]
+        var loop = true
+        var idx = 0
+        while loop do
+          val curr = calendar.addBusinessPeriod(from, -period * idx)(using bdConvention)
+          if curr > from then
+            curr +=: buf
+            idx -= 1
+          else
+            loop = false
 
         val withStub = stub match
-          case StubConvention.Short => init
-          case StubConvention.Long  => init.dropRight(1)
+          case StubConvention.Short => buf
+          case StubConvention.Long  => buf.dropRight(1)
 
-        (from +: withStub).reverse
+        (from +=: withStub).toVector
 
       case Direction.Forward =>
-        val init = Iterator
-          .from(0)
-          .map(i => calendar.addBusinessPeriod(from, period * i)(using bdConvention))
-          .takeWhile(_ < to)
-          .toVector
+        val buf = new ArrayBuffer[LocalDate]
+        var loop = true
+        var idx = 0
+        while loop do
+          val curr = calendar.addBusinessPeriod(from, period * idx)(using bdConvention)
+          if curr < to then
+            buf += curr
+            idx += 1
+          else
+            loop = false
 
         val withStub = stub match
-          case StubConvention.Short => init
-          case StubConvention.Long  => init.dropRight(1)
+          case StubConvention.Short => buf
+          case StubConvention.Long  => buf.dropRight(1)
 
-        (withStub :+ to).toSeq
+        (withStub += to).toVector
 
   enum StubConvention:
     case Short
