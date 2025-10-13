@@ -1,7 +1,6 @@
 package lib
 
 import lib.quantities.*
-import lib.syntax.*
 
 import java.time.LocalDate
 
@@ -24,7 +23,7 @@ case object NoHolidaysCalendar extends Calendar:
   def isBusinessDay(date: LocalDate): Boolean = true
 
   def addBusinessPeriod(date: LocalDate, period: Tenor)(using BusinessDayConvention): LocalDate =
-    date + period
+    date.plus(period.toPeriod)
 
   def addBusinessDays(date: LocalDate, days: Long): LocalDate =
     date.plusDays(days)

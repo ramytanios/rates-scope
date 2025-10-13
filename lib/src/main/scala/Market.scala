@@ -1,15 +1,17 @@
 package lib
 
-import scala.collection.immutable.HashMap
 import java.time.LocalDate
 
-enum MissingMarketError(msg: String) extends Error(msg):
+enum MarketError(msg: String) extends Error(msg):
 
   case YieldCurve(ccy: Currency, name: String)
-      extends MissingMarketError(s"missing curve $name in ccy $ccy")
+      extends MarketError(s"missing curve $name in ccy $ccy")
 
-  case Fixing(underlying: String)
-      extends MissingMarketError(s"missing fixings of $underlying")
+  case FixingOf(underlying: String)
+      extends MarketError(s"missing fixings of $underlying")
+
+  case FixingAt(underlying: String, at: LocalDate)
+      extends MarketError(s"missing fixing of $underlying at $at")
 
 case class Curve(ccy: Currency, name: String)
 
@@ -19,23 +21,28 @@ trait Market:
 
   def ref: LocalDate
 
-  def yieldCurve(curve: Curve): Either[MissingMarketError, YieldCurve]
+  def yieldCurve(curve: Curve): Either[MarketError, YieldCurve]
 
-  def fixings(rate: String): Either[MissingMarketError, Seq[Fixing]]
+  def fixings(rate: String): Either[MarketError, LocalDate => Either[MarketError, Fixing]]
 
 object Market:
 
   def apply(
-      _ref: LocalDate,
-      _curves: HashMap[Curve, YieldCurve],
-      _fixings: HashMap[String, Seq[Fixing]]
+      refDate: LocalDate,
+      curves: Map[Curve, YieldCurve],
+      fixingsByRate: Map[String, Seq[Fixing]]
   ) =
     new Market:
 
-      def ref: LocalDate = _ref
+      def ref: LocalDate = refDate
 
-      def yieldCurve(curve: Curve): Either[MissingMarketError, YieldCurve] =
-        _curves.get(curve).toRight(MissingMarketError.YieldCurve(curve.ccy, curve.name))
+      def yieldCurve(curve: Curve): Either[MarketError, YieldCurve] =
+        curves.get(curve).toRight(MarketError.YieldCurve(curve.ccy, curve.name))
 
-      def fixings(rate: String): Either[MissingMarketError, Seq[Fixing]] =
-        _fixings.get(rate).toRight(MissingMarketError.Fixing(rate))
+      def fixings(rate: String): Either[MarketError, LocalDate => Either[MarketError, Fixing]] =
+        fixingsByRate.get(rate)
+          .toRight(MarketError.FixingOf(rate))
+          .map: fixings =>
+            val map = fixings.groupBy(_.date)
+            (at: LocalDate) =>
+              map.get(at).flatMap(_.headOption).toRight(MarketError.FixingAt(rate, at))

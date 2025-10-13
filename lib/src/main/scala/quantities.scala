@@ -17,6 +17,7 @@ object quantities:
     extension (yf: YearFraction)
       def toDouble: Double = yf
       def +(other: YearFraction) = yf + other
+      def *(other: Double) = yf * other
 
     given Conversion[Double, YearFraction] = YearFraction.apply
 
@@ -27,6 +28,7 @@ object quantities:
     def apply(r: Double): Rate = r
 
     extension (r: Rate)
+      def toDouble: Double = r
       def *(yf: YearFraction): Double = r * yf
       def unary_- : Rate = -r
 
@@ -47,5 +49,6 @@ object quantities:
     extension (t: Tenor)
       def toPeriod: Period = t
       def unary_- : Tenor = Period.ofDays(-t.getDays)
+      def *(factor: Int): Tenor = Period.ofDays(t.getDays * factor)
 
     given Conversion[Period, Tenor] = Tenor.apply

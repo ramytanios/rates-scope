@@ -7,24 +7,48 @@ object bachelier:
   import normal.*
 
   def price(
-      ot: OptionType,
+      optionType: OptionType,
       forward: Double,
       strike: Double,
-      tte: Double,
+      timeToExpiry: Double,
       vol: Double,
-      df: Double
+      discountFactor: Double
   ): Double =
 
-    require(tte >= 0.0 && vol >= 0.0, "tte and vol must be positive")
+    require(timeToExpiry >= 0.0 && vol >= 0.0, "tte and vol must be positive")
 
     val call =
-      if tte == 0 || vol == 0.0 then
-        df * max(forward - strike, 0.0)
+      if timeToExpiry == 0 || vol == 0.0 then
+        discountFactor * max(forward - strike, 0.0)
       else
-        val stdv = vol * sqrt(tte)
+        val stdv = vol * sqrt(timeToExpiry)
         val d = (forward - strike) / stdv
-        df * ((forward - strike) * cdf(d) + stdv * pdf(d))
+        discountFactor * ((forward - strike) * cdf(d) + stdv * pdf(d))
 
-    ot match
+    optionType match
       case OptionType.Call => call
-      case OptionType.Put  => call - df * (forward - strike)
+      case OptionType.Put  => call - discountFactor * (forward - strike)
+
+  def impliedCumulative(
+      forward: Double,
+      tte: Double,
+      vol: Double => Double,
+      dvol: Double => Double
+  ): Double => Double =
+    (k: Double) =>
+      val d = (forward - k) / sqrt(tte) / vol(k)
+      1 - cdf(d) + sqrt(tte) * dvol(k) * pdf(d)
+
+  def impliedDensity(
+      forward: Double,
+      tte: Double,
+      vol: Double => Double,
+      dvol: Double => Double,
+      ddvol: Double => Double
+  ): Double => Double =
+    (k: Double) =>
+      val d = (forward - k) / sqrt(tte) / vol(k)
+      pdf(d) / sqrt(tte) / vol(k) * (tte * vol(k) * ddvol(k) + pow(
+        (1 + (forward - k) * dvol(k) / vol(k)),
+        2
+      ))

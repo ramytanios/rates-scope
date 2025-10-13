@@ -2,11 +2,11 @@ package lib
 
 import java.time.LocalDate
 import lib.quantities.*
-import lib.syntax.*
+
+import scala.math.Ordering.Implicits.*
 
 object Schedule:
 
-  /** Generated schedule is guaranteed to have `from` and `to` included */
   def generate(
       from: LocalDate,
       to: LocalDate,
@@ -15,45 +15,36 @@ object Schedule:
       bdConvention: BusinessDayConvention,
       stub: StubConvention,
       direction: Direction
-  ): Seq[LocalDate] =
+  ): Vector[LocalDate] =
 
     require(from < to, s"from date $from must be before $to")
 
     direction match
       case Direction.Backward =>
-        val init =
-          LazyList
-            .iterate(to)(calendar.addBusinessPeriod(_, -period)(using bdConvention))
-            .takeWhile(to < _)
-            .reverse
-            .toSeq
+        val init = Iterator
+          .from(0, -1)
+          .map(i => calendar.addBusinessPeriod(from, -period * i)(using bdConvention))
+          .takeWhile(to < _)
+          .toVector
 
-        val withStub =
-          stub match
-            case StubConvention.Short => init
-            case StubConvention.Long =>
-              if calendar.addBusinessPeriod(init.head, -period)(using bdConvention) < from then
-                init.drop(1)
-              else init
+        val withStub = stub match
+          case StubConvention.Short => init
+          case StubConvention.Long  => init.dropRight(1)
 
-        from +: withStub
+        (from +: withStub).reverse
 
       case Direction.Forward =>
-        val init =
-          LazyList
-            .iterate(from)(calendar.addBusinessPeriod(_, period)(using bdConvention))
-            .takeWhile(_ < to)
-            .toSeq
+        val init = Iterator
+          .from(0)
+          .map(i => calendar.addBusinessPeriod(from, period * i)(using bdConvention))
+          .takeWhile(_ < to)
+          .toVector
 
-        val withStub =
-          stub match
-            case StubConvention.Short => init
-            case StubConvention.Long =>
-              if to < calendar.addBusinessPeriod(init.last, period)(using bdConvention) then
-                init.dropRight(1)
-              else init
+        val withStub = stub match
+          case StubConvention.Short => init
+          case StubConvention.Long  => init.dropRight(1)
 
-        withStub :+ to
+        (withStub :+ to).toSeq
 
   enum StubConvention:
     case Short
