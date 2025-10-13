@@ -27,8 +27,7 @@ class CompoundedRate(
   val dcf: YearFraction = rate.dayCounter.yearFraction(from, to)
 
   val schedule: Vector[CompoundingPeriod] =
-    Schedule
-      .generate(from, to, rate.tenor, rate.calendar, rate.bdConvention, stub, direction)
+    Schedule(from, to, rate.tenor, rate.calendar, rate.bdConvention, stub, direction)
       .sliding(2)
       .collect:
         case Seq(from0, to0) =>

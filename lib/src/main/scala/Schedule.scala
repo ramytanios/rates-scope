@@ -3,9 +3,9 @@ package lib
 import lib.quantities.*
 
 import java.time.LocalDate
-import scala.math.Ordering.Implicits.*
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ArrayDeque
+import scala.math.Ordering.Implicits.*
 
 object Schedule:
 
