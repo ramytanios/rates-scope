@@ -25,9 +25,9 @@ object Leg:
     Schedule(from, to, period, calendar, businessDayConvention, stub, direction)
       .sliding(2)
       .collect:
-        case Vector(from0, to0) =>
-          val paymentAt = calendar.addBusinessDays(to0, paymentDelay)
-          FixedCoupon(from0, to0, paymentAt)
+        case Vector(startAt, endAt) =>
+          val paymentAt = calendar.addBusinessDays(endAt, paymentDelay)
+          FixedCoupon(startAt, endAt, paymentAt)
       .toVector
 
   def floating(
@@ -44,8 +44,8 @@ object Leg:
     Schedule(from, to, period, calendar, businessDayConvention, stub, direction)
       .sliding(2)
       .collect:
-        case Vector(from0, to0) =>
-          val paymentAt = calendar.addBusinessDays(to0, paymentDelay)
-          val fixingAt = indexSettlementRule.fixingDate(from0)
-          FloatingCoupon(fixingAt, from0, to0, paymentAt)
+        case Vector(startAt, endAt) =>
+          val paymentAt = calendar.addBusinessDays(endAt, paymentDelay)
+          val fixingAt = indexSettlementRule.fixingDate(startAt)
+          FloatingCoupon(fixingAt, startAt, endAt, paymentAt)
       .toVector

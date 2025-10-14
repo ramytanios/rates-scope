@@ -4,11 +4,12 @@ import cats.syntax.all.*
 import lib.Schedule.Direction
 import lib.Schedule.StubConvention
 import lib.quantities.*
+import lib.algorithms.*
 
 import java.time.LocalDate
-import scala.collection.Searching.Found
-import scala.collection.Searching.InsertionPoint
 import scala.math.Ordering.Implicits.*
+import lib.algorithms.BinarySearch.InsertionLoc
+import lib.algorithms.BinarySearch.Found
 
 case class CompoundingPeriod(
     fixingDate: LocalDate,
@@ -35,23 +36,24 @@ class CompoundedRate(
           CompoundingPeriod(fixingDate, from0, to0)
       .toVector
 
-  val fixingDates = schedule.map(_.fixingDate)
-
   val firstFixingDate: LocalDate = schedule.head.fixingDate
+
   val lastFixingDate: LocalDate = schedule.last.fixingDate
 
-  def compoundingFactor(toInclusive: LocalDate)(using market: Market): Either[MarketError, Double] =
+  def compoundingFactor(toInclusive: LocalDate)(using Market): Either[MarketError, Double] =
     schedule
       .traverseCollect:
         case CompoundingPeriod(fixingDate, startDate, endDate) if fixingDate <= toInclusive =>
-          market.fixings(rate.name).flatMap: fixings =>
+          summon[Market].fixings(rate.name).flatMap: fixings =>
             fixings(fixingDate).map: fixing =>
               (1 + rate.dayCounter.yearFraction(startDate, endDate) * fixing.value)
       .map(_.product)
 
   def fullCompoundingFactor(using Market) = compoundingFactor(lastFixingDate)
 
-  def forward(using market: Market): Either[Error, Double] =
+  def forward(using Market): Either[Error, Double] =
+
+    val market = summon[Market]
 
     val t = market.ref
 
@@ -65,9 +67,9 @@ class CompoundedRate(
           (1 / curve.discount(from, to)).asRight
         else if t == lastFixingDate then fullCompoundingFactor
         else
-          val obsIdx = fixingDates.search(t) match
-            case Found(i)          => i
-            case InsertionPoint(i) => i - 1
+          val obsIdx = schedule.searchBy(_.fixingDate)(t) match
+            case Found(i)        => i
+            case InsertionLoc(i) => i - 1
           val futIdx = obsIdx + 1
           compoundingFactor(schedule(obsIdx).fixingDate).map:
             _ / curve.discount(schedule(futIdx).interestStart, to)
