@@ -57,8 +57,7 @@ class SwapRate(
     val fixedLegValue = fixed.traverseCollect:
       case FixedCoupon(startAt, endAt, paymentAt) =>
         val dcf = fixedDayCounter.yearFraction(startAt, endAt)
-        summon[Market].yieldCurve(discountCurve)
-          .map(dcf * _.discount(paymentAt))
+        summon[Market].yieldCurve(discountCurve).map(dcf * _.discount(paymentAt))
     .map(_.sum)
 
     val floatingLegValue = floating.traverseCollect:
