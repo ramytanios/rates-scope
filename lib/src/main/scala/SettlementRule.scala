@@ -4,11 +4,13 @@ import java.time.LocalDate
 
 trait SettlementRule:
 
-  def fixingDate(date: LocalDate, calendar: Calendar): LocalDate
+  def calendar: Calendar
+
+  def fixingDate(date: LocalDate): LocalDate
 
 object SettlementRule:
 
-  def simpleRule(spotLag: Long): SettlementRule =
+  def simpleRule(spotLag: Long)(using cal: Calendar): SettlementRule =
     new SettlementRule:
-      override def fixingDate(date: LocalDate, calendar: Calendar): LocalDate =
-        calendar.addBusinessDays(date, -spotLag)
+      def calendar: Calendar = cal
+      def fixingDate(date: LocalDate): LocalDate = calendar.addBusinessDays(date, -spotLag)

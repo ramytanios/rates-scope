@@ -15,15 +15,15 @@ class Libor(
     val bdConvention: BusinessDayConvention
 ) extends Underlying:
 
-  val settlementRule = SettlementRule.simpleRule(spotLag)
+  val settlementRule = SettlementRule.simpleRule(spotLag)(using calendar)
 
   def interestPeriod(from: LocalDate) =
     val start = calendar.addBusinessDays(from, spotLag)
     val endDate = calendar.addBusinessPeriod(start, tenor)(using bdConvention)
     start -> endDate
 
-  def forward(t: LocalDate)(using market: Market): Either[Error, Double] =
-    market.yieldCurve(resetCurve).map: yieldCurve =>
+  def forward(t: LocalDate)(using Market): Either[Error, Double] =
+    summon[Market].yieldCurve(resetCurve).map: yieldCurve =>
       val (start, end) = interestPeriod(t)
       val dcf = dayCounter.yearFraction(start, end)
       (yieldCurve.discount(start, end) - 1.0) / dcf.toDouble

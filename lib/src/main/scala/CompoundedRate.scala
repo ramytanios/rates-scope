@@ -31,7 +31,7 @@ class CompoundedRate(
       .sliding(2)
       .collect:
         case Seq(from0, to0) =>
-          val fixingDate = rate.settlementRule.fixingDate(from0, rate.calendar)
+          val fixingDate = rate.settlementRule.fixingDate(from0)
           CompoundingPeriod(fixingDate, from0, to0)
       .toVector
 
