@@ -13,16 +13,16 @@ object algorithms:
 
   def binarySearchBy[C, A: Ordering](coll: IndexedSeq[C], by: C => A)(elem: A): BinarySearch =
     @tailrec
-    def go(low: Int, high: Int): BinarySearch =
-      val mid = (low + high) / 2
-      val midA = by(coll(mid))
-      if elem equiv midA then Found(mid)
-      else if low == high && elem < by(coll(low)) then InsertionLoc(low - 1)
-      else if low == high && elem > by(coll(low)) then InsertionLoc(low + 1)
-      else if elem < midA then go(low, mid - 1)
-      else go(mid + 1, high)
+    def go(from: Int, to: Int): BinarySearch =
+      if from == to then InsertionLoc(from)
+      else
+        val idx = from + (to - from) / 2
+        val a = by(coll(idx))
+        if elem equiv a then Found(idx)
+        else if elem < a then go(from, idx)
+        else go(idx + 1, to)
 
-    go(0, coll.size - 1)
+    go(0, coll.size)
 
   extension [C](coll: IndexedSeq[C])
     def searchBy[A: Ordering](by: C => A)(elem: A): BinarySearch = binarySearchBy(coll, by)(elem)

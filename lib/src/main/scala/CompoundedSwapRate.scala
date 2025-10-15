@@ -7,13 +7,14 @@ import lib.quantities.Tenor
 
 import java.time.LocalDate
 
-class SwapRate(
+class CompoundedSwapRate(
     val name: String,
     val tenor: Tenor,
     val spotLag: Int,
     val paymentDelay: Int,
     val fixedPeriod: Tenor,
     val floatingRate: Libor,
+    val floatingPeriod: Tenor,
     val fixedDayCounter: DayCounter,
     val calendar: Calendar,
     val bdConvention: BusinessDayConvention,
@@ -42,14 +43,14 @@ class SwapRate(
       direction
     )
 
-    val floating = Leg.floating(
+    // floating leg behaves like a fixed one's schedule
+    val floating = Leg.fixed(
       from,
       to,
-      floatingRate.tenor,
+      floatingPeriod,
       calendar,
       paymentDelay,
       bdConvention,
-      floatingRate.settlementRule,
       stub,
       direction
     )
@@ -61,12 +62,13 @@ class SwapRate(
     .map(_.sum)
 
     val floatingLegValue = floating.traverseCollect:
-      case FloatingCoupon(fixingAt, startAt, endAt, paymentAt) =>
-        val dcf = floatingRate.dayCounter.yearFraction(startAt, endAt)
+      case FixedCoupon(startAt, endAt, paymentAt) =>
         for
-          discount <- summon[Market].yieldCurve(discountCurve).map(_.discount(paymentAt))
-          floatingForward <- floatingRate.forward(fixingAt)
-        yield dcf * discount * floatingForward
+          discountCurve <- summon[Market].yieldCurve(discountCurve)
+          resetCurve <- summon[Market].yieldCurve(floatingRate.resetCurve)
+        yield discountCurve.discount(paymentAt) * (
+          resetCurve.discount(startAt) / resetCurve.discount(endAt) - 1.0
+        )
     .map(_.sum)
 
     (floatingLegValue, fixedLegValue).tupled.map(_ / _)

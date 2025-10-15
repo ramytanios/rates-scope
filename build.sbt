@@ -18,6 +18,7 @@ lazy val V = new {
   val http4s = "0.23.27"
   val monocle = "3.3.0"
   val logback = "1.5.7"
+  val test = "0.7.29"
   val `cats-effect` = "3.5.4"
   val `cats-time` = "0.5.1"
   val `scala-java-time` = "2.5.0"
@@ -49,7 +50,8 @@ lazy val lib = project.in(file("lib")).settings(
   libraryDependencies ++= Seq(
     "org.typelevel" %% "cats-core" % V.cats,
     "org.typelevel" %% "literally" % V.literally,
-    "org.apache.commons" % "commons-math3" % V.`commons-math`
+    "org.apache.commons" % "commons-math3" % V.`commons-math`,
+    "org.scalameta" %% "munit" % V.test % Test
   ),
   scalacOptions -= "-Xfatal-warnings"
 )
