@@ -27,7 +27,7 @@ object Schedule:
         var loop = true
         var idx = 0
         while loop do
-          val curr = calendar.addBusinessPeriod(from, -period * idx)(using bdConvention)
+          val curr = calendar.addBusinessPeriod(to, period * idx)(using bdConvention)
           if curr > from then
             curr +=: buf
             idx -= 1

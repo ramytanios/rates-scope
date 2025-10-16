@@ -16,16 +16,20 @@ trait YieldCurve:
 
 object YieldCurve:
 
-  def apply(ref: LocalDate, dfs: Seq[(LocalDate, Double)], dayCounter: DayCounter): YieldCurve =
+  def apply(
+      ref: LocalDate,
+      dfs: IndexedSeq[(LocalDate, Double)],
+      dayCounter: DayCounter
+  ): YieldCurve =
 
     val ts = dfs.map(_(0))
 
-    require((ts zip ts.tail).forall(_.isBefore(_)), s"pillars must be strictly increasing")
+    require(ts.isStrictlyIncreasing, s"pillars must be strictly increasing")
     require(dfs.forall((t, _) => t.isAfter(ref)), s"pillars must be strictly after ref $ref")
     require(dfs.forall((_, df) => df > 0.0), s"discount factors must be positive")
 
-    val yfs = 0.0 +: ts.map(dayCounter.yearFraction(ref, _).toDouble).toIndexedSeq
-    val rts = 0.0 +: dfs.map((_, df) => -log(df)).toIndexedSeq
+    val yfs = 0.0 +: ts.map(dayCounter.yearFraction(ref, _).toDouble)
+    val rts = 0.0 +: dfs.map((_, df) => -log(df))
 
     val interp = LinearInterpolation.withLinearExtrapolation(yfs, rts)
 

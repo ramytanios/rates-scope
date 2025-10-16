@@ -6,7 +6,7 @@ object LinearInterpolation:
 
     val n = xs.size
 
-    require((xs zip xs.tail).forall(_ < _), "xs must be strictly increasing")
+    require(xs.isStrictlyIncreasing, "xs must be strictly increasing")
     require(n == ys.length, "xs and ys size mismatch")
     require(n > 2, "need at least 2 points")
 

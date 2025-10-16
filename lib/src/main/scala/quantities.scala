@@ -46,6 +46,10 @@ object quantities:
     val `1Y`: Tenor = Period.ofYears(1)
     val `2Y`: Tenor = Period.ofYears(2)
 
+    def days(n: Int) = Period.ofDays(n)
+    def months(n: Int) = Period.ofMonths(n)
+    def years(n: Int) = Period.ofYears(n)
+
     extension (t: Tenor)
       def toPeriod: Period = t
       def unary_- : Tenor = t.multipliedBy(-1)
