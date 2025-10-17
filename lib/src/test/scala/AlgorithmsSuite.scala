@@ -1,11 +1,10 @@
 package lib
 
 import lib.algorithms.*
-import munit.FunSuite
 import lib.algorithms.BinarySearch.InsertionLoc
 import lib.algorithms.BinarySearch.Found
 
-class AlgorithmsSuite extends FunSuite:
+class AlgorithmsSuite extends munit.FunSuite:
 
   test("binary search"):
 

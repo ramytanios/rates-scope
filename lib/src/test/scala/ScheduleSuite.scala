@@ -3,9 +3,8 @@ package lib
 import lib.Schedule.*
 import lib.literals.*
 import lib.quantities.Tenor
-import munit.FunSuite
 
-class ScheduleSuite extends FunSuite:
+class ScheduleSuite extends munit.FunSuite:
 
   test("schedule generation"):
 
