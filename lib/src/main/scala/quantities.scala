@@ -55,5 +55,8 @@ object quantities:
       def toPeriod: Period = t
       def unary_- : Tenor = t.multipliedBy(-1)
       def *(factor: Int): Tenor = t.multipliedBy(factor)
+      def toYearFraction: YearFraction = t.getDays / 365.0
+
+    given Ordering[Tenor] = Ordering.by(_.toYearFraction)
 
     given Conversion[Period, Tenor] = Tenor.apply

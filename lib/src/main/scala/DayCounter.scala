@@ -11,6 +11,8 @@ sealed trait DayCounter:
 
   def yearFraction(from: LocalDate, to: LocalDate): YearFraction
 
+  final def apply(from: LocalDate, to: LocalDate): YearFraction = yearFraction(from, to)
+
 case object Act360 extends DayCounter:
 
   override def daysBetween(from: LocalDate, to: LocalDate): Long =

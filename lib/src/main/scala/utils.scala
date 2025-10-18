@@ -1,12 +1,11 @@
 package lib
 
-import lib.algorithms.BinarySearch.Found
-import lib.algorithms.BinarySearch.InsertionLoc
+import lib.utils.BinarySearch.*
 
 import scala.Ordering.Implicits.*
 import scala.annotation.tailrec
 
-object algorithms:
+object utils:
 
   enum BinarySearch:
     case Found(i: Int)
@@ -29,8 +28,7 @@ object algorithms:
     cs.indices.init.forall: i =>
       cs(i + 1) > cs(i)
 
-import algorithms as alg
-
 extension [C](cs: IndexedSeq[C])
-  def searchBy[A: Ordering](by: C => A)(elem: A): alg.BinarySearch = alg.binarySearchBy(cs, by)(elem)
-  def isStrictlyIncreasing(using Ordering[C]): Boolean = alg.isStrictlyIncreasing(cs)
+  def searchBy[A: Ordering](by: C => A)(elem: A): utils.BinarySearch =
+    utils.binarySearchBy(cs, by)(elem)
+  def isStrictlyIncreasing(using Ordering[C]): Boolean = utils.isStrictlyIncreasing(cs)

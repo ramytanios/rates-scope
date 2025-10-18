@@ -1,8 +1,10 @@
 package lib
 
+import lib.utils.BinarySearch
+
 import java.time.LocalDate
 import scala.math.Ordering.Implicits.*
-import lib.algorithms.BinarySearch
+
 import math.sqrt
 
 trait VolatilitySurface:
@@ -13,41 +15,47 @@ object VolatilitySurface:
 
   def apply(
       refDate: LocalDate,
-      skews: IndexedSeq[(LocalDate, VolatilitySkew)],
-      forward: LocalDate => Double
+      forward: LocalDate => Double,
+      skews: IndexedSeq[(LocalDate, VolatilitySkew)]
   ): VolatilitySurface =
-
     require(skews.map(_(0)).isStrictlyIncreasing, "pillar maturities must be strictly increasing")
 
-    maturity =>
-      strike =>
-        val matMin = skews.head(0)
-        val matMax = skews.last(0)
-        val moneyness = forward(maturity) - strike
+    val t0 = refDate
 
-        def linearInterp(s0: (LocalDate, VolatilitySkew), s1: (LocalDate, VolatilitySkew)) =
-          val (matL, skewL) = s0
-          val (matR, skewR) = s1
-          val w = Act365.yearFraction(matL, maturity) / Act365.yearFraction(matL, matR)
-          val dt = Act365.yearFraction(refDate, maturity).toDouble
-          val dtL = Act365.yearFraction(refDate, matL).toDouble
-          val dtR = Act365.yearFraction(refDate, matR).toDouble
+    val tMin = skews.head(0)
+    val tMax = skews.last(0)
+
+    t =>
+      k =>
+        val m = forward(t) - k
+
+        // linear interpolation in variance
+        def interpolateBetween(
+            s0: (LocalDate, VolatilitySkew),
+            s1: (LocalDate, VolatilitySkew)
+        ) =
+          val (tL, skewL) = s0
+          val (tR, skewR) = s1
+          val w = Act365(tL, t) / Act365(tL, tR)
+          val dt = Act365(t0, t).toDouble
+          val dtL = Act365(t0, tL).toDouble
+          val dtR = Act365(t0, tR).toDouble
           sqrt:
             1.0 / dt * (
-              (1.0 - w) * skewL(forward(matL) - moneyness) * dtL +
-                w * skewR(forward(matR) - moneyness) * dtR
+              (1.0 - w) * skewL(forward(tL) - m) * dtL +
+                w * skewR(forward(tR) - m) * dtR
             )
 
-        if maturity < matMin then
-          skews.head(1)(forward(matMin) - moneyness)
-        else if maturity > matMax then
-          linearInterp(skews(0), skews(1))
+        if t < tMin then
+          skews.head(1)(forward(tMin) - m)
+        else if t > tMax then
+          interpolateBetween(skews(0), skews(1))
         else
-          skews.searchBy(_(0))(maturity) match
+          skews.searchBy(_(0))(t) match
             case BinarySearch.Found(i) =>
-              val (mat, skew) = skews(i)
-              skew(forward(mat) - moneyness)
+              val (ti, skew) = skews(i)
+              skew(forward(ti) - m)
             case BinarySearch.InsertionLoc(i) =>
-              linearInterp(skews(i - 1), skews(i))
+              interpolateBetween(skews(i - 1), skews(i))
 
   def flat(vol: Double): VolatilitySurface = _ => VolatilitySkew.flat(vol)

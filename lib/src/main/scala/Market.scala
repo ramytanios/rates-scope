@@ -1,5 +1,7 @@
 package lib
 
+import lib.quantities.Tenor
+
 import java.time.LocalDate
 
 enum MarketError(msg: String) extends Error(msg):
@@ -13,6 +15,9 @@ enum MarketError(msg: String) extends Error(msg):
   case FixingAt(underlying: String, at: LocalDate)
       extends MarketError(s"missing fixing of $underlying at $at")
 
+  case MarketRate(tenor: Tenor)
+      extends MarketError(s"missing market rate of tenor $tenor")
+
 case class Curve(ccy: Currency, name: String)
 
 case class Fixing(date: LocalDate, value: Double)
@@ -25,12 +30,15 @@ trait Market:
 
   def fixings(rate: String): Either[MarketError, LocalDate => Either[MarketError, Fixing]]
 
+  def marketRates(tenor: Tenor): Either[MarketError, Underlying]
+
 object Market:
 
   def apply(
       refDate: LocalDate,
       curves: Map[Curve, YieldCurve],
-      fixingsByRate: Map[String, Seq[Fixing]]
+      fixingsByRate: Map[String, Seq[Fixing]],
+      marketRatesByTenor: Map[Tenor, Underlying]
   ) =
     new Market:
 
@@ -46,3 +54,6 @@ object Market:
             val map = fixings.groupBy(_.date)
             (at: LocalDate) =>
               map.get(at).flatMap(_.headOption).toRight(MarketError.FixingAt(rate, at))
+
+      def marketRates(tenor: Tenor): Either[MarketError, Underlying] =
+        marketRatesByTenor.get(tenor).toRight(MarketError.MarketRate(tenor))

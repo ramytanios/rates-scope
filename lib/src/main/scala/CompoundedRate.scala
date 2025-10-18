@@ -3,9 +3,9 @@ package lib
 import cats.syntax.all.*
 import lib.Schedule.Direction
 import lib.Schedule.StubConvention
-import lib.algorithms.BinarySearch.Found
-import lib.algorithms.BinarySearch.InsertionLoc
 import lib.quantities.*
+import lib.utils.BinarySearch.Found
+import lib.utils.BinarySearch.InsertionLoc
 
 import java.time.LocalDate
 import scala.math.Ordering.Implicits.*
