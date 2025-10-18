@@ -18,16 +18,15 @@ object VolatilitySkew:
 
     val w = 1.0 / 3.0
 
-    new VolatilitySkew:
-      def apply(strike: Double): Double =
-        if strike <= kMin then
-          val dL = spline.fstDerivative(kMin)
-          if dL <= 0 then dL * strike + (vL - dL * kMin)
-          else vL * (1 + w * (tanh(dL / vL / w * (strike - kMin))))
-        else if strike >= kMax then
-          val dR = spline.fstDerivative(kMax)
-          if dR >= 0 then dR * strike + (vR - dR * kMax)
-          else vR * (1 + w * tanh(dR / vR / w * (strike - kMax)))
-        else spline(strike)
+    k =>
+      if k <= kMin then
+        val dL = spline.fstDerivative(kMin)
+        if dL <= 0 then dL * k + (vL - dL * kMin)
+        else vL * (1 + w * (tanh(dL / vL / w * (k - kMin))))
+      else if k >= kMax then
+        val dR = spline.fstDerivative(kMax)
+        if dR >= 0 then dR * k + (vR - dR * kMax)
+        else vR * (1 + w * tanh(dR / vR / w * (k - kMax)))
+      else spline(k)
 
-  def flat(v: Double): VolatilitySkew = (_: Double) => v
+  def flat(v: Double): VolatilitySkew = _ => v
