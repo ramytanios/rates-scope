@@ -26,11 +26,10 @@ object VolatilityCube:
     val tenorMax = surfaces.last(0)
 
     tenor =>
-      val forward = forwards(tenor)
       t =>
-        val fwd = forward(t)
         k =>
-          val m = fwd - k
+          val forward = forwards(tenor)(t)
+          val m = forward - k
           if tenor < tenorMin then
             val surface = surfaces.head(1)
             surface(t)(forwards(tenorMin)(t) - m)
