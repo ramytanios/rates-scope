@@ -1,8 +1,8 @@
 package lib
 
 import lib.algorithms.*
-import lib.algorithms.BinarySearch.InsertionLoc
 import lib.algorithms.BinarySearch.Found
+import lib.algorithms.BinarySearch.InsertionLoc
 
 class AlgorithmsSuite extends munit.FunSuite:
 

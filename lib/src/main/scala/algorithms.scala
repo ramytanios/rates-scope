@@ -1,9 +1,10 @@
 package lib
 
-import scala.annotation.tailrec
-import scala.Ordering.Implicits.*
-import lib.algorithms.BinarySearch.InsertionLoc
 import lib.algorithms.BinarySearch.Found
+import lib.algorithms.BinarySearch.InsertionLoc
+
+import scala.Ordering.Implicits.*
+import scala.annotation.tailrec
 
 object algorithms:
 

@@ -1,7 +1,6 @@
 package lib
 
 import cats.syntax.all.*
-import munit.FunSuite
 
 class LinearInterpolationSuite extends munit.FunSuite:
 
@@ -48,3 +47,18 @@ class LinearInterpolationSuite extends munit.FunSuite:
           val sr = (ys(n - 1) - ys(n - 2)) / (xs(n - 1) - xs(n - 2))
           assertEqualsDouble(interp(xl - step), sl * (xl - step) + (yl - sl * xl), tol, s"i=$i")
           assertEqualsDouble(interp(xr + step), sr * (xr + step) + (yr - sr * xr), tol, s"i=$i")
+
+  test("should flat extrapolate"):
+    randCase
+      .view
+      .take(10)
+      .zipWithIndex
+      .foreach:
+        case (Case(xs, ys), i) =>
+          val interp = LinearInterpolation.withFlatExtrapolation(xs, ys)
+          val xMin = xs.head
+          val xMax = xs.last
+          val xRange = xMax - xMin
+          val dx = 0.1 * xRange
+          assertEqualsDouble(interp(xMin - dx), ys.head, tol, s"i=$i")
+          assertEqualsDouble(interp(xMax + dx), ys.last, tol, s"i=$i")

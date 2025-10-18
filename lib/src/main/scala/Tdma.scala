@@ -17,7 +17,7 @@ object Tdma:
     require(c.length == n - 1, "unexpected length of upper diagonal")
     require(d.length == n, "unexpected length of right hand side")
 
-    val x = new Array[Double](n)
+    val x = Array.ofDim[Double](n)
 
     c(0) = c(0) / b(0)
     d(0) = d(0) / b(0)

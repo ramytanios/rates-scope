@@ -3,13 +3,12 @@ package lib
 import cats.syntax.all.*
 import lib.Schedule.Direction
 import lib.Schedule.StubConvention
+import lib.algorithms.BinarySearch.Found
+import lib.algorithms.BinarySearch.InsertionLoc
 import lib.quantities.*
-import lib.algorithms.*
 
 import java.time.LocalDate
 import scala.math.Ordering.Implicits.*
-import lib.algorithms.BinarySearch.InsertionLoc
-import lib.algorithms.BinarySearch.Found
 
 case class CompoundingPeriod(
     fixingDate: LocalDate,
@@ -52,9 +51,7 @@ class CompoundedRate(
   def fullCompoundingFactor(using Market) = compoundingFactor(lastFixingDate)
 
   def forward(using Market): Either[Error, Double] =
-
     val market = summon[Market]
-
     val t = market.ref
 
     Either.raiseWhen(t > lastFixingDate)(
