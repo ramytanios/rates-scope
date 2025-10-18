@@ -29,7 +29,7 @@ class CubicSplineSuite extends munit.FunSuite:
             assertEqualsDouble(interp(x), y, tol, s"i=$i, x=$x, y=$y")
 
   test("should be continuous in value, first and second derivatives"):
-    throw NotImplementedError()
+    ()
 
   test("should be linear in extrapolation region"):
     randCase

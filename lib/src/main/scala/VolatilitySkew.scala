@@ -29,4 +29,4 @@ object VolatilitySkew:
         else vR * (1 + w * tanh(dR / vR / w * (k - kMax)))
       else spline(k)
 
-  def flat(v: Double): VolatilitySkew = _ => v
+  def flat(vol: Double): VolatilitySkew = _ => vol

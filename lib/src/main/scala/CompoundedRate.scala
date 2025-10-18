@@ -30,9 +30,9 @@ class CompoundedRate(
     Schedule(from, to, rate.tenor, rate.calendar, rate.bdConvention, stub, direction)
       .sliding(2)
       .collect:
-        case Seq(from0, to0) =>
-          val fixingDate = rate.settlementRule.fixingDate(from0)
-          CompoundingPeriod(fixingDate, from0, to0)
+        case Seq(t0, t1) =>
+          val fixingDate = rate.settlementRule.fixingDate(t0)
+          CompoundingPeriod(fixingDate, t0, t1)
       .toVector
 
   val firstFixingDate: LocalDate = schedule.head.fixingDate

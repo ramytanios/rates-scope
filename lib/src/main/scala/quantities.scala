@@ -18,6 +18,7 @@ object quantities:
       def toDouble: Double = yf
       def +(other: YearFraction) = yf + other
       def *(other: Double) = yf * other
+      def /(other: YearFraction) = yf / other
 
     given Conversion[Double, YearFraction] = YearFraction.apply
 
