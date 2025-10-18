@@ -2,8 +2,6 @@ package lib
 
 object Tdma:
 
-  // algorithm taken from https://www.quantstart.com/articles/Tridiagonal-Matrix-Solver-via-Thomas-Algorithm/
-
   def solve(
       a: Array[Double], // lower diag
       b: Array[Double], // main diag
