@@ -4,29 +4,25 @@ import cats.syntax.all.*
 import lib.Schedule.Direction
 import lib.Schedule.StubConvention
 import lib.quantities.*
+import lib.syntax.{ *, given }
 import lib.utils.BinarySearch.Found
 import lib.utils.BinarySearch.InsertionLoc
 
-import java.time.LocalDate
-import scala.math.Ordering.Implicits.*
+case class CompoundingPeriod[T](fixingDate: T, interestStart: T, interestEnd: T)
 
-case class CompoundingPeriod(
-    fixingDate: LocalDate,
-    interestStart: LocalDate,
-    interestEnd: LocalDate
-)
-
-class CompoundedRate(
-    val from: LocalDate,
-    val to: LocalDate,
-    val rate: Libor,
+class CompoundedRate[T: TimeLike](
+    val from: T,
+    val to: T,
+    val rate: Libor[T],
     val stub: StubConvention,
     val direction: Direction
 ):
 
-  val dcf: YearFraction = rate.dayCounter.yearFraction(from, to)
+  given DayCounter = rate.dayCounter
 
-  val schedule: Vector[CompoundingPeriod] =
+  val dcf: YearFraction = from.yearFractionTo(to)
+
+  val schedule: Vector[CompoundingPeriod[T]] =
     Schedule(from, to, rate.tenor, rate.calendar, rate.bdConvention, stub, direction)
       .sliding(2)
       .collect:
@@ -35,23 +31,22 @@ class CompoundedRate(
           CompoundingPeriod(fixingDate, t0, t1)
       .toVector
 
-  val firstFixingDate: LocalDate = schedule.head.fixingDate
+  val firstFixingDate = schedule.head.fixingDate
+  val lastFixingDate = schedule.last.fixingDate
 
-  val lastFixingDate: LocalDate = schedule.last.fixingDate
-
-  def compoundingFactor(toInclusive: LocalDate)(using Market): Either[MarketError, Double] =
+  def compoundingFactor(toInclusive: T)(using Market[T]): Either[MarketError, Double] =
     schedule
       .traverseCollect:
-        case CompoundingPeriod(fixingDate, startDate, endDate) if fixingDate <= toInclusive =>
-          summon[Market].fixings(rate.name).flatMap: fixings =>
-            fixings(fixingDate).map: fixing =>
-              (1 + rate.dayCounter.yearFraction(startDate, endDate) * fixing.value)
+        case CompoundingPeriod(fixingAt, startAt, endAt) if fixingAt <= toInclusive =>
+          summon[Market[T]].fixings(rate.name).flatMap: fixings =>
+            fixings(fixingAt).map: fixing =>
+              (1 + startAt.yearFractionTo(endAt) * fixing.value)
       .map(_.product)
 
-  def fullCompoundingFactor(using Market) = compoundingFactor(lastFixingDate)
+  def fullCompoundingFactor(using Market[T]) = compoundingFactor(lastFixingDate)
 
-  def forward(using Market): Either[Error, Double] =
-    val market = summon[Market]
+  def forward(using Market[T]): Either[Error, Double] =
+    val market = summon[Market[T]]
     val t = market.ref
 
     Either.raiseWhen(t > lastFixingDate)(

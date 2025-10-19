@@ -2,29 +2,31 @@ package lib
 
 import lib.quantities.*
 
-import java.time.LocalDate
+import lib.syntax.*
 
-class Libor(
+class Libor[T: TimeLike](
     val name: String,
     val currency: Currency,
     val tenor: Tenor,
     val spotLag: Long,
     val dayCounter: DayCounter,
-    val calendar: Calendar,
+    val calendar: Calendar[T],
     val resetCurve: Curve,
     val bdConvention: BusinessDayConvention
-) extends Underlying:
+) extends Underlying[T]:
+
+  given DayCounter = dayCounter
 
   val settlementRule = SettlementRule.simpleRule(spotLag)(using calendar)
 
-  def interestPeriod(from: LocalDate) =
+  def interestPeriod(from: T) =
     val start = calendar.addBusinessDays(from, spotLag)
     val endDate = calendar.addBusinessPeriod(start, tenor)(using bdConvention)
     start -> endDate
 
-  def forward(using Market): Either[Error, Forward] =
-    summon[Market].yieldCurve(resetCurve).map: yieldCurve =>
+  def forward(using Market[T]): Either[Error, Forward[T]] =
+    summon[Market[T]].yieldCurve(resetCurve).map: yieldCurve =>
       t =>
-        val (start, end) = interestPeriod(t)
-        val dcf = dayCounter.yearFraction(start, end)
-        (yieldCurve.discount(start, end) - 1.0) / dcf.toDouble
+        val (startAt, endAt) = interestPeriod(t)
+        val dcf = startAt.yearFractionTo(endAt)
+        (yieldCurve.discount(startAt, endAt) - 1.0) / dcf.toDouble

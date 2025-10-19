@@ -5,32 +5,30 @@ import lib.Schedule.Direction
 import lib.Schedule.StubConvention
 import lib.quantities.Tenor
 
-import java.time.LocalDate
-
-class SwapRate(
+class SwapRate[T: TimeLike](
     val name: String,
     val tenor: Tenor,
     val spotLag: Int,
     val paymentDelay: Int,
     val fixedPeriod: Tenor,
-    val floatingRate: Libor,
+    val floatingRate: Libor[T],
     val fixedDayCounter: DayCounter,
-    val calendar: Calendar,
+    val calendar: Calendar[T],
     val bdConvention: BusinessDayConvention,
     val stub: StubConvention,
     val direction: Direction,
     val discountCurve: Curve
-) extends Underlying:
+) extends Underlying[T]:
 
-  def interestPeriod(fixingAt: LocalDate): (LocalDate, LocalDate) =
+  def interestPeriod(fixingAt: T): (T, T) =
     val startAt = calendar.addBusinessDays(fixingAt, spotLag)
     val endAt = calendar.addBusinessPeriod(startAt, tenor)(using bdConvention)
     startAt -> endAt
 
-  def forward(using Market): Either[Error, Forward] =
+  def forward(using Market[T]): Either[Error, Forward[T]] =
 
     for
-      discountCurve <- summon[Market].yieldCurve(discountCurve)
+      discountCurve <- summon[Market[T]].yieldCurve(discountCurve)
       liborForward <- floatingRate.forward
     yield t =>
       val (from, to) = interestPeriod(t)
@@ -60,12 +58,12 @@ class SwapRate(
 
       val fixedLegValue = fixed.foldMap:
         case FixedCoupon(startAt, endAt, paymentAt) =>
-          val dcf = fixedDayCounter.yearFraction(startAt, endAt)
+          val dcf = TimeLike[T].yearFraction(startAt, endAt)(using fixedDayCounter)
           dcf * discountCurve.discount(paymentAt)
 
       val floatingLegValue = floating.foldMap:
         case FloatingCoupon(fixingAt, startAt, endAt, paymentAt) =>
-          val dcf = floatingRate.dayCounter.yearFraction(startAt, endAt)
+          val dcf = TimeLike[T].yearFraction(startAt, endAt)(using floatingRate.dayCounter)
           val discount = discountCurve.discount(paymentAt)
           val floatingForward = liborForward(fixingAt)
           dcf * discount * floatingForward

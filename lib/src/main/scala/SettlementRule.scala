@@ -1,16 +1,14 @@
 package lib
 
-import java.time.LocalDate
+trait SettlementRule[T]:
 
-trait SettlementRule:
+  def calendar: Calendar[T]
 
-  def calendar: Calendar
-
-  def fixingDate(date: LocalDate): LocalDate
+  def fixingDate(of: T): T
 
 object SettlementRule:
 
-  def simpleRule(spotLag: Long)(using cal: Calendar): SettlementRule =
+  def simpleRule[T](spotLag: Long)(using cal: Calendar[T]): SettlementRule[T] =
     new SettlementRule:
-      def calendar: Calendar = cal
-      def fixingDate(date: LocalDate): LocalDate = calendar.addBusinessDays(date, -spotLag)
+      def calendar: Calendar[T] = cal
+      def fixingDate(of: T): T = calendar.addBusinessDays(of, -spotLag)

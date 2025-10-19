@@ -1,9 +1,9 @@
 package lib
 
+import cats.kernel.Order
 import lib.quantities.*
 
 import java.time.LocalDate
-import cats.kernel.Order
 
 trait TimeLike[T] extends Order[T]:
 
@@ -13,11 +13,13 @@ trait TimeLike[T] extends Order[T]:
 
   def daysBetween(from: T, to: T)(using DayCounter): Long
 
+  def plusPeriod(t: T, period: Tenor): T
+
+  def plusDays(t: T, days: Long): T
+
 object TimeLike:
 
   def apply[T](using ev: TimeLike[T]) = ev
-
-  given [T: TimeLike]: Ordering[T] = TimeLike[T].toOrdering
 
   given TimeLike[LocalDate] = new TimeLike[LocalDate]:
 
@@ -32,6 +34,14 @@ object TimeLike:
     def yearFraction(from: LocalDate, to: LocalDate)(using DayCounter): YearFraction =
       summon[DayCounter].yearFraction(from, to)
 
-extension [T: TimeLike](t: T)
-  def yearFractionTo(to: T)(using DayCounter) = TimeLike[T].yearFraction(t, to)
-  def yearFractionFrom(from: T)(using DayCounter) = TimeLike[T].yearFraction(from, t)
+    def plusDays(t: LocalDate, days: Long): LocalDate = t.plusDays(days)
+
+    def plusPeriod(t: LocalDate, period: Tenor): LocalDate = t.plus(period.toPeriod)
+
+  trait Syntax:
+
+    given [T: TimeLike]: Ordering[T] = TimeLike[T].toOrdering
+
+    extension [T: TimeLike](t: T)
+      def yearFractionTo(to: T)(using DayCounter) = TimeLike[T].yearFraction(t, to)
+      def yearFractionFrom(from: T)(using DayCounter) = TimeLike[T].yearFraction(from, t)

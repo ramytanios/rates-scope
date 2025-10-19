@@ -5,16 +5,16 @@ import lib.utils.BinarySearch
 
 import scala.math.Ordering.Implicits.*
 
-trait VolatilityCube:
+trait VolatilityCube[T]:
 
-  def apply(tenor: Tenor): VolatilitySurface
+  def apply(tenor: Tenor): VolatilitySurface[T]
 
 object VolatilityCube:
 
-  def apply(
-      surfaces: IndexedSeq[(Tenor, VolatilitySurface)],
-      forwards: Map[Tenor, Forward]
-  ): VolatilityCube =
+  def apply[T](
+      surfaces: IndexedSeq[(Tenor, VolatilitySurface[T])],
+      forwards: Map[Tenor, Forward[T]]
+  ): VolatilityCube[T] =
     require(
       surfaces.map(_(0).toYearFraction.toDouble).isStrictlyIncreasing,
       "surfaces must be order by tenor"
@@ -46,4 +46,4 @@ object VolatilityCube:
                 (1 - w) * surfaceL(t)(forwards(tenorL)(t) - m) +
                   w * surfaceR(t)(forwards(tenorR)(t) - m)
 
-  def flat(vol: Double): VolatilityCube = _ => VolatilitySurface.flat(vol)
+  def flat[T](vol: Double): VolatilityCube[T] = _ => VolatilitySurface.flat(vol)

@@ -1,45 +1,44 @@
 package lib
 
+import lib.syntax.{ *, given }
 import lib.utils.BinarySearch
 
-import java.time.LocalDate
 import scala.math.Ordering.Implicits.*
 
 import math.sqrt
 
-trait VolatilitySurface:
+trait VolatilitySurface[T]:
 
-  def apply(maturity: LocalDate): VolatilitySkew
+  def apply(maturity: T): VolatilitySkew
 
 object VolatilitySurface:
 
-  def apply(
-      refDate: LocalDate,
-      forward: Forward,
-      skews: IndexedSeq[(LocalDate, VolatilitySkew)]
-  ): VolatilitySurface =
+  def apply[T: TimeLike](
+      ref: T,
+      forward: Forward[T],
+      skews: IndexedSeq[(T, VolatilitySkew)]
+  ): VolatilitySurface[T] =
     require(skews.map(_(0)).isStrictlyIncreasing, "pillar maturities must be strictly increasing")
 
-    val t0 = refDate
+    val t0 = ref
 
     val tMin = skews.head(0)
     val tMax = skews.last(0)
+
+    given DayCounter = Act365
 
     t =>
       k =>
         val m = forward(t) - k
 
         // linear interpolation in variance
-        def interpolateBetween(
-            s0: (LocalDate, VolatilitySkew),
-            s1: (LocalDate, VolatilitySkew)
-        ) =
+        def interpolateBetween(s0: (T, VolatilitySkew), s1: (T, VolatilitySkew)) =
           val (tL, skewL) = s0
           val (tR, skewR) = s1
-          val w = Act365(tL, t) / Act365(tL, tR)
-          val dt = Act365(t0, t).toDouble
-          val dtL = Act365(t0, tL).toDouble
-          val dtR = Act365(t0, tR).toDouble
+          val w = tL.yearFractionTo(t) / tL.yearFractionTo(tR)
+          val dt = t0.yearFractionTo(t).toDouble
+          val dtL = t0.yearFractionTo(tL).toDouble
+          val dtR = t0.yearFractionTo(tR).toDouble
           sqrt:
             1.0 / dt * (
               (1.0 - w) * skewL(forward(tL) - m) * dtL +
@@ -58,4 +57,4 @@ object VolatilitySurface:
             case BinarySearch.InsertionLoc(i) =>
               interpolateBetween(skews(i - 1), skews(i))
 
-  def flat(vol: Double): VolatilitySurface = _ => VolatilitySkew.flat(vol)
+  def flat[T](vol: Double): VolatilitySurface[T] = _ => VolatilitySkew.flat(vol)

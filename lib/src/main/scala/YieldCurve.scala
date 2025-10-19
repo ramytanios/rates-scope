@@ -1,6 +1,6 @@
 package lib
 
-import lib.TimeLike.given_Ordering_T
+import lib.syntax.{ *, given }
 import lib.quantities.*
 
 import scala.math.Ordering.Implicits.*
