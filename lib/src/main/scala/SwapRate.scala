@@ -27,46 +27,47 @@ class SwapRate(
     val endAt = calendar.addBusinessPeriod(startAt, tenor)(using bdConvention)
     startAt -> endAt
 
-  def forward(t: LocalDate)(using Market): Either[Error, Double] =
+  def forward(using Market): Either[Error, Forward] =
 
-    val (from, to) = interestPeriod(t)
+    for
+      discountCurve <- summon[Market].yieldCurve(discountCurve)
+      liborForward <- floatingRate.forward
+    yield t =>
+      val (from, to) = interestPeriod(t)
 
-    val fixed = Leg.fixed(
-      from,
-      to,
-      fixedPeriod,
-      calendar,
-      paymentDelay,
-      bdConvention,
-      stub,
-      direction
-    )
+      val fixed = Leg.fixed(
+        from,
+        to,
+        fixedPeriod,
+        calendar,
+        paymentDelay,
+        bdConvention,
+        stub,
+        direction
+      )
 
-    val floating = Leg.floating(
-      from,
-      to,
-      floatingRate.tenor,
-      calendar,
-      paymentDelay,
-      bdConvention,
-      floatingRate.settlementRule,
-      stub,
-      direction
-    )
+      val floating = Leg.floating(
+        from,
+        to,
+        floatingRate.tenor,
+        calendar,
+        paymentDelay,
+        bdConvention,
+        floatingRate.settlementRule,
+        stub,
+        direction
+      )
 
-    val fixedLegValue = fixed.traverseCollect:
-      case FixedCoupon(startAt, endAt, paymentAt) =>
-        val dcf = fixedDayCounter.yearFraction(startAt, endAt)
-        summon[Market].yieldCurve(discountCurve).map(dcf * _.discount(paymentAt))
-    .map(_.sum)
+      val fixedLegValue = fixed.foldMap:
+        case FixedCoupon(startAt, endAt, paymentAt) =>
+          val dcf = fixedDayCounter.yearFraction(startAt, endAt)
+          dcf * discountCurve.discount(paymentAt)
 
-    val floatingLegValue = floating.traverseCollect:
-      case FloatingCoupon(fixingAt, startAt, endAt, paymentAt) =>
-        val dcf = floatingRate.dayCounter.yearFraction(startAt, endAt)
-        for
-          discount <- summon[Market].yieldCurve(discountCurve).map(_.discount(paymentAt))
-          floatingForward <- floatingRate.forward(fixingAt)
-        yield dcf * discount * floatingForward
-    .map(_.sum)
+      val floatingLegValue = floating.foldMap:
+        case FloatingCoupon(fixingAt, startAt, endAt, paymentAt) =>
+          val dcf = floatingRate.dayCounter.yearFraction(startAt, endAt)
+          val discount = discountCurve.discount(paymentAt)
+          val floatingForward = liborForward(fixingAt)
+          dcf * discount * floatingForward
 
-    (floatingLegValue, fixedLegValue).tupled.map(_ / _)
+      floatingLegValue / fixedLegValue

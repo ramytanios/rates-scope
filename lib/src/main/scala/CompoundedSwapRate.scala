@@ -28,47 +28,45 @@ class CompoundedSwapRate(
     val endAt = calendar.addBusinessPeriod(startAt, tenor)(using bdConvention)
     startAt -> endAt
 
-  def forward(t: LocalDate)(using Market): Either[Error, Double] =
+  def forward(using Market): Either[Error, Forward] =
+    for
+      discountCurve <- summon[Market].yieldCurve(discountCurve)
+      resetCurve <- summon[Market].yieldCurve(floatingRate.resetCurve)
+    yield t =>
+      val (from, to) = interestPeriod(t)
 
-    val (from, to) = interestPeriod(t)
+      val fixed = Leg.fixed(
+        from,
+        to,
+        fixedPeriod,
+        calendar,
+        paymentDelay,
+        bdConvention,
+        stub,
+        direction
+      )
 
-    val fixed = Leg.fixed(
-      from,
-      to,
-      fixedPeriod,
-      calendar,
-      paymentDelay,
-      bdConvention,
-      stub,
-      direction
-    )
+      // floating leg behaves like a fixed one's schedule
+      val floating = Leg.fixed(
+        from,
+        to,
+        floatingPeriod,
+        calendar,
+        paymentDelay,
+        bdConvention,
+        stub,
+        direction
+      )
 
-    // floating leg behaves like a fixed one's schedule
-    val floating = Leg.fixed(
-      from,
-      to,
-      floatingPeriod,
-      calendar,
-      paymentDelay,
-      bdConvention,
-      stub,
-      direction
-    )
+      val fixedLegValue = fixed.foldMap:
+        case FixedCoupon(startAt, endAt, paymentAt) =>
+          val dcf = fixedDayCounter.yearFraction(startAt, endAt)
+          dcf * discountCurve.discount(paymentAt)
 
-    val fixedLegValue = fixed.traverseCollect:
-      case FixedCoupon(startAt, endAt, paymentAt) =>
-        val dcf = fixedDayCounter.yearFraction(startAt, endAt)
-        summon[Market].yieldCurve(discountCurve).map(dcf * _.discount(paymentAt))
-    .map(_.sum)
+      val floatingLegValue = floating.foldMap:
+        case FixedCoupon(startAt, endAt, paymentAt) =>
+          discountCurve.discount(paymentAt) * (
+            resetCurve.discount(startAt) / resetCurve.discount(endAt) - 1.0
+          )
 
-    val floatingLegValue = floating.traverseCollect:
-      case FixedCoupon(startAt, endAt, paymentAt) =>
-        for
-          discountCurve <- summon[Market].yieldCurve(discountCurve)
-          resetCurve <- summon[Market].yieldCurve(floatingRate.resetCurve)
-        yield discountCurve.discount(paymentAt) * (
-          resetCurve.discount(startAt) / resetCurve.discount(endAt) - 1.0
-        )
-    .map(_.sum)
-
-    (floatingLegValue, fixedLegValue).tupled.map(_ / _)
+      floatingLegValue / fixedLegValue

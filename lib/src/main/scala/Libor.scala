@@ -22,8 +22,9 @@ class Libor(
     val endDate = calendar.addBusinessPeriod(start, tenor)(using bdConvention)
     start -> endDate
 
-  def forward(t: LocalDate)(using Market): Either[Error, Double] =
+  def forward(using Market): Either[Error, Forward] =
     summon[Market].yieldCurve(resetCurve).map: yieldCurve =>
-      val (start, end) = interestPeriod(t)
-      val dcf = dayCounter.yearFraction(start, end)
-      (yieldCurve.discount(start, end) - 1.0) / dcf.toDouble
+      t =>
+        val (start, end) = interestPeriod(t)
+        val dcf = dayCounter.yearFraction(start, end)
+        (yieldCurve.discount(start, end) - 1.0) / dcf.toDouble

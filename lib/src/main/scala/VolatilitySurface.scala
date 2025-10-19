@@ -15,7 +15,7 @@ object VolatilitySurface:
 
   def apply(
       refDate: LocalDate,
-      forward: LocalDate => Double,
+      forward: Forward,
       skews: IndexedSeq[(LocalDate, VolatilitySkew)]
   ): VolatilitySurface =
     require(skews.map(_(0)).isStrictlyIncreasing, "pillar maturities must be strictly increasing")

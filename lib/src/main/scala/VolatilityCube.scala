@@ -3,7 +3,6 @@ package lib
 import lib.quantities.Tenor
 import lib.utils.BinarySearch
 
-import java.time.LocalDate
 import scala.math.Ordering.Implicits.*
 
 trait VolatilityCube:
@@ -14,9 +13,8 @@ object VolatilityCube:
 
   def apply(
       surfaces: IndexedSeq[(Tenor, VolatilitySurface)],
-      forwards: Map[Tenor, LocalDate => Double]
+      forwards: Map[Tenor, Forward]
   ): VolatilityCube =
-
     require(
       surfaces.map(_(0).toYearFraction.toDouble).isStrictlyIncreasing,
       "surfaces must be order by tenor"
@@ -28,8 +26,7 @@ object VolatilityCube:
     tenor =>
       t =>
         k =>
-          val forward = forwards(tenor)(t)
-          val m = forward - k
+          val m = forwards(tenor)(t) - k
           if tenor < tenorMin then
             val surface = surfaces.head(1)
             surface(t)(forwards(tenorMin)(t) - m)
