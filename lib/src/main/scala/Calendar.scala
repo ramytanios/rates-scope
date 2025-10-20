@@ -2,28 +2,26 @@ package lib
 
 import lib.quantities.*
 
-import java.time.LocalDate
+trait Calendar[T]:
 
-trait Calendar:
+  def isBusinessDay(t: T): Boolean
 
-  def isBusinessDay(date: LocalDate): Boolean
+  def addBusinessDays(t: T, days: Long): T
 
-  def addBusinessDays(date: LocalDate, days: Long): LocalDate
+  def addBusinessPeriod(t: T, period: Tenor)(using BusinessDayConvention): T
 
-  def addBusinessPeriod(date: LocalDate, period: Tenor)(using BusinessDayConvention): LocalDate
-
-  final def isHoliday(date: LocalDate) = !isBusinessDay(date)
+  final def isHoliday(t: T) = !isBusinessDay(t)
 
 object Calendar:
 
-  def apply(): Calendar = NoHolidaysCalendar
+  def apply[T: TimeLike](): Calendar[T] = noHolidays[T]
 
-case object NoHolidaysCalendar extends Calendar:
+  def noHolidays[T: TimeLike] = new Calendar[T]:
 
-  def isBusinessDay(date: LocalDate): Boolean = true
+    def isBusinessDay(t: T): Boolean = true
 
-  def addBusinessPeriod(date: LocalDate, period: Tenor)(using BusinessDayConvention): LocalDate =
-    date.plus(period.toPeriod)
+    def addBusinessPeriod(t: T, period: Tenor)(using BusinessDayConvention): T =
+      TimeLike[T].plusPeriod(t, period.toPeriod)
 
-  def addBusinessDays(date: LocalDate, days: Long): LocalDate =
-    date.plusDays(days)
+    def addBusinessDays(t: T, days: Long): T =
+      TimeLike[T].plusDays(t, days)

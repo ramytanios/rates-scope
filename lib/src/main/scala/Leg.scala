@@ -4,24 +4,22 @@ import lib.Schedule.Direction
 import lib.Schedule.StubConvention
 import lib.quantities.Tenor
 
-import java.time.LocalDate
+case class FixedCoupon[T](from: T, to: T, paymentAt: T)
 
-case class FixedCoupon(from: LocalDate, to: LocalDate, paymentAt: LocalDate)
-
-case class FloatingCoupon(fixingAt: LocalDate, from: LocalDate, to: LocalDate, paymentAt: LocalDate)
+case class FloatingCoupon[T](fixingAt: T, from: T, to: T, paymentAt: T)
 
 object Leg:
 
-  def fixed(
-      from: LocalDate,
-      to: LocalDate,
+  def fixed[T: TimeLike](
+      from: T,
+      to: T,
       period: Tenor,
-      calendar: Calendar,
+      calendar: Calendar[T],
       paymentDelay: Int,
       businessDayConvention: BusinessDayConvention,
       stub: StubConvention,
       direction: Direction
-  ): Vector[FixedCoupon] =
+  ): Vector[FixedCoupon[T]] =
     Schedule(from, to, period, calendar, businessDayConvention, stub, direction)
       .sliding(2)
       .collect:
@@ -30,17 +28,17 @@ object Leg:
           FixedCoupon(startAt, endAt, paymentAt)
       .toVector
 
-  def floating(
-      from: LocalDate,
-      to: LocalDate,
+  def floating[T: TimeLike](
+      from: T,
+      to: T,
       period: Tenor,
-      calendar: Calendar,
+      calendar: Calendar[T],
       paymentDelay: Int,
       businessDayConvention: BusinessDayConvention,
-      indexSettlementRule: SettlementRule,
+      indexSettlementRule: SettlementRule[T],
       stub: StubConvention,
       direction: Direction
-  ): Vector[FloatingCoupon] =
+  ): Vector[FloatingCoupon[T]] =
     Schedule(from, to, period, calendar, businessDayConvention, stub, direction)
       .sliding(2)
       .collect:
