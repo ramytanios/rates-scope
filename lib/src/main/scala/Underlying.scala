@@ -1,5 +1,5 @@
 package lib
 
-trait Underlying:
+trait Underlying[T]:
 
-  def forward(using Market): Either[Error, Forward]
+  def forward(using Market[T]): Either[Error, Forward[T]]

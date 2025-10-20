@@ -1,7 +1,5 @@
 package lib
 
-import java.time.LocalDate
+trait Forward[T]:
 
-trait Forward:
-
-  def apply(t: LocalDate): Double
+  def apply(t: T): Double

@@ -1,57 +1,65 @@
 package lib
 
+import lib.syntax.{ *, given }
 import lib.quantities.*
 
-import java.time.LocalDate
+import scala.math.Ordering.Implicits.*
 import scala.math.exp
 import scala.math.log
 
-trait YieldCurve:
+trait YieldCurve[T]:
 
-  def spotRate(t: LocalDate): Rate
+  def spotRate(t: T): Rate
 
-  def discount(to: LocalDate): Double
+  def discount(to: T): Double
 
-  def discount(from: LocalDate, to: LocalDate): Double = discount(to) / discount(from)
+  def discount(from: T, to: T): Double = discount(to) / discount(from)
 
 object YieldCurve:
 
-  def apply(
-      ref: LocalDate,
-      dfs: IndexedSeq[(LocalDate, Double)],
+  def apply[T: TimeLike](
+      ref: T,
+      dfs: IndexedSeq[(T, Double)],
       dayCounter: DayCounter
-  ): YieldCurve =
+  ): YieldCurve[T] =
+
+    given DayCounter = dayCounter
 
     val ts = dfs.map(_(0))
 
     require(ts.isStrictlyIncreasing, s"pillars must be strictly increasing")
-    require(dfs.forall((t, _) => t.isAfter(ref)), s"pillars must be strictly after ref $ref")
+    require(dfs.forall((t, _) => t > ref), s"pillars must be strictly after ref $ref")
     require(dfs.forall((_, df) => df > 0.0), s"discount factors must be positive")
 
-    val yfs = 0.0 +: ts.map(dayCounter.yearFraction(ref, _).toDouble)
+    val yfs = 0.0 +: ts.map(ref.yearFractionTo(_).toDouble)
     val rts = 0.0 +: dfs.map((_, df) => -log(df))
 
     val interp = LinearInterpolation.withLinearExtrapolation(yfs, rts)
 
-    new YieldCurve:
-      def spotRate(t: LocalDate): Rate =
-        val yf = dayCounter.yearFraction(ref, t)
+    new YieldCurve[T]:
+      def spotRate(t: T): Rate =
+        val yf = ref.yearFractionTo(t)
         interp(yf.toDouble) / yf.toDouble
-      def discount(to: LocalDate): Double =
-        val yf = dayCounter.yearFraction(ref, to)
+      def discount(to: T): Double =
+        val yf = ref.yearFractionTo(to)
         val rt = interp(yf.toDouble)
         exp(-rt)
 
-  def continousCompounding(ref: LocalDate, rate: Rate, dayCounter: DayCounter): YieldCurve =
+  def continousCompounding[T: TimeLike](
+      ref: T,
+      rate: Rate,
+      dayCounter: DayCounter
+  ): YieldCurve[T] =
+    given DayCounter = dayCounter
     new YieldCurve:
-      def spotRate(t: LocalDate): Rate = rate
-      def discount(to: LocalDate): Double = discount(ref, to)
-      override def discount(from: LocalDate, to: LocalDate): Double =
-        val dt = dayCounter.yearFraction(from, to)
+      def spotRate(t: T): Rate = rate
+      def discount(to: T): Double = discount(ref, to)
+      override def discount(from: T, to: T): Double =
+        val dt = from.yearFractionTo(to)
         exp(-rate * dt)
 
-  def zero: YieldCurve =
-    new YieldCurve:
-      def spotRate(t: LocalDate): Rate = Rate(0.0)
-      def discount(to: LocalDate): Double = 1.0
-      override def discount(from: LocalDate, to: LocalDate): Double = 1.0
+  def zero[T]: YieldCurve[T] =
+    new YieldCurve[T]:
+      def spotRate(t: T): Rate = Rate(0.0)
+      def discount(to: T): Double = 1.0
+      override def discount(from: T, to: T): Double = 1.0

@@ -1,29 +1,29 @@
 package lib
 
 import lib.quantities.*
+import lib.syntax.given
 
-import java.time.LocalDate
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ArrayDeque
 import scala.math.Ordering.Implicits.*
 
 object Schedule:
 
-  def apply(
-      from: LocalDate,
-      to: LocalDate,
+  def apply[T: TimeLike](
+      from: T,
+      to: T,
       period: Tenor,
-      calendar: Calendar,
+      calendar: Calendar[T],
       bdConvention: BusinessDayConvention,
       stub: StubConvention,
       direction: Direction
-  ): Vector[LocalDate] =
+  ): Vector[T] =
 
     require(from < to, s"from date $from must be before $to")
 
     direction match
       case Direction.Backward =>
-        val buf = new ArrayDeque[LocalDate]
+        val buf = new ArrayDeque[T]
         var loop = true
         var idx = 0
         while loop do
@@ -41,7 +41,7 @@ object Schedule:
         (from +=: withStub).toVector
 
       case Direction.Forward =>
-        val buf = new ArrayBuffer[LocalDate]
+        val buf = new ArrayBuffer[T]
         var loop = true
         var idx = 0
         while loop do
