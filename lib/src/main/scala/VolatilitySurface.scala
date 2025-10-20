@@ -26,7 +26,7 @@ object VolatilitySurface:
     val tMin = skews.head(0)
     val tMax = skews.last(0)
 
-    given DayCounter = Act365
+    given DayCounter[T] = DayCounter.Act365[T]()
 
     t =>
       k =>

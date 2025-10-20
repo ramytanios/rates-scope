@@ -9,13 +9,13 @@ class Libor[T: TimeLike](
     val currency: Currency,
     val tenor: Tenor,
     val spotLag: Long,
-    val dayCounter: DayCounter,
+    val dayCounter: DayCounter[T],
     val calendar: Calendar[T],
     val resetCurve: Curve,
     val bdConvention: BusinessDayConvention
 ) extends Underlying[T]:
 
-  given DayCounter = dayCounter
+  given DayCounter[T] = dayCounter
 
   val settlementRule = SettlementRule.simpleRule(spotLag)(using calendar)
 

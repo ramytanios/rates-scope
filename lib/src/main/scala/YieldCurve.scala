@@ -20,10 +20,10 @@ object YieldCurve:
   def apply[T: TimeLike](
       ref: T,
       dfs: IndexedSeq[(T, Double)],
-      dayCounter: DayCounter
+      dayCounter: DayCounter[T]
   ): YieldCurve[T] =
 
-    given DayCounter = dayCounter
+    given DayCounter[T] = dayCounter
 
     val ts = dfs.map(_(0))
 
@@ -45,8 +45,12 @@ object YieldCurve:
         val rt = interp(yf.toDouble)
         exp(-rt)
 
-  def continousCompounding[T: TimeLike](ref: T, rate: Rate, dayCounter: DayCounter): YieldCurve[T] =
-    given DayCounter = dayCounter
+  def continousCompounding[T: TimeLike](
+      ref: T,
+      rate: Rate,
+      dayCounter: DayCounter[T]
+  ): YieldCurve[T] =
+    given DayCounter[T] = dayCounter
     new YieldCurve:
       def spotRate(t: T): Rate = rate
       def discount(to: T): Double = discount(ref, to)

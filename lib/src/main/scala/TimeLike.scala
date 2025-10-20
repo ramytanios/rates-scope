@@ -4,14 +4,15 @@ import cats.kernel.Order
 import lib.quantities.*
 
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 trait TimeLike[T] extends Order[T]:
 
-  final def apply(from: T, to: T)(using DayCounter): YearFraction = this.yearFraction(from, to)
+  final def yearFraction(from: T, to: T)(using DayCounter[T]): YearFraction =
+    summon[DayCounter[T]].yearFraction(from, to)
 
-  def yearFraction(from: T, to: T)(using DayCounter): YearFraction
-
-  def daysBetween(from: T, to: T)(using DayCounter): Long
+  // TODO is this the responsibility of the day counter?
+  def daysBetween(from: T, to: T): Long
 
   def plusPeriod(t: T, period: Tenor): T
 
@@ -28,11 +29,7 @@ object TimeLike:
       else if x.isBefore(y) then -1
       else 1
 
-    def daysBetween(from: LocalDate, to: LocalDate)(using DayCounter): Long =
-      summon[DayCounter].daysBetween(from, to)
-
-    def yearFraction(from: LocalDate, to: LocalDate)(using DayCounter): YearFraction =
-      summon[DayCounter].yearFraction(from, to)
+    def daysBetween(from: LocalDate, to: LocalDate): Long = ChronoUnit.DAYS.between(from, to)
 
     def plusDays(t: LocalDate, days: Long): LocalDate = t.plusDays(days)
 
@@ -43,5 +40,5 @@ object TimeLike:
     given [T: TimeLike]: Ordering[T] = TimeLike[T].toOrdering
 
     extension [T: TimeLike](t: T)
-      def yearFractionTo(to: T)(using DayCounter) = TimeLike[T].yearFraction(t, to)
-      def yearFractionFrom(from: T)(using DayCounter) = TimeLike[T].yearFraction(from, t)
+      def yearFractionTo(to: T)(using DayCounter[T]) = TimeLike[T].yearFraction(t, to)
+      def yearFractionFrom(from: T)(using DayCounter[T]) = TimeLike[T].yearFraction(from, t)

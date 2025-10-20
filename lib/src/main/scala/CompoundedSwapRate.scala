@@ -13,7 +13,7 @@ class CompoundedSwapRate[T: TimeLike](
     val fixedPeriod: Tenor,
     val floatingRate: Libor[T],
     val floatingPeriod: Tenor,
-    val fixedDayCounter: DayCounter,
+    val fixedDayCounter: DayCounter[T],
     val calendar: Calendar[T],
     val bdConvention: BusinessDayConvention,
     val stub: StubConvention,
