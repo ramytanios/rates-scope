@@ -17,6 +17,7 @@ object quantities:
     extension (yf: YearFraction)
       def toDouble: Double = yf
       def +(other: YearFraction) = yf + other
+      def -(other: YearFraction) = yf - other
       def *(other: Double) = yf * other
       def /(other: YearFraction) = yf / other
 

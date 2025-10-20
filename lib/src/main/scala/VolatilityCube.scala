@@ -41,8 +41,8 @@ object VolatilityCube:
               case BinarySearch.InsertionLoc(i) =>
                 val (tenorL, surfaceL) = surfaces(i - 1)
                 val (tenorR, surfaceR) = surfaces(i)
-                val w = (tenor.toYearFraction.toDouble - tenorL.toYearFraction.toDouble) /
-                  (tenorR.toYearFraction.toDouble - tenorL.toYearFraction.toDouble)
+                val w = (tenor.toYearFraction - tenorL.toYearFraction) /
+                  (tenorR.toYearFraction - tenorL.toYearFraction)
                 (1 - w) * surfaceL(t)(forwards(tenorL)(t) - m) +
                   w * surfaceR(t)(forwards(tenorR)(t) - m)
 
