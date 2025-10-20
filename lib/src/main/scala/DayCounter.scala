@@ -1,27 +1,29 @@
 package lib
 
 import lib.quantities.*
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
-trait DayCounter[T]:
+trait DayCounter:
 
-  def yearFraction(from: T, to: T): YearFraction
+  def daysBetween(from: LocalDate, to: LocalDate): Long
+
+  def yearFraction(from: LocalDate, to: LocalDate): YearFraction
 
 object DayCounter:
 
-  enum Method:
-    case Act360, Act365
+  val Act360: DayCounter = new DayCounter:
 
-  def apply[T: TimeLike](method: Method): DayCounter[T] =
-    method match
-      case Method.Act360 => Act360[T]()
-      case Method.Act365 => Act365[T]()
+    def daysBetween(from: LocalDate, to: LocalDate): Long =
+      ChronoUnit.DAYS.between(from, to)
 
-  def Act360[T: TimeLike](): DayCounter[T] = new DayCounter[T]:
+    def yearFraction(from: LocalDate, to: LocalDate): YearFraction =
+      YearFraction(daysBetween(from, to) / 360.0)
 
-    def yearFraction(from: T, to: T): YearFraction =
-      YearFraction(TimeLike[T].daysBetween(from, to) / 360.0)
+  val Act365: DayCounter = new DayCounter:
 
-  def Act365[T: TimeLike](): DayCounter[T] = new DayCounter[T]:
+    def daysBetween(from: LocalDate, to: LocalDate): Long =
+      ChronoUnit.DAYS.between(from, to)
 
-    def yearFraction(from: T, to: T): YearFraction =
-      YearFraction(TimeLike[T].daysBetween(from, to) / 365.0)
+    def yearFraction(from: LocalDate, to: LocalDate): YearFraction =
+      YearFraction(daysBetween(from, to) / 365.0)

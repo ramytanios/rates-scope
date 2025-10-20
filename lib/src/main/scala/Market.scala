@@ -55,3 +55,6 @@ object Market:
 
       def marketRates(tenor: Tenor): Either[MarketError, Underlying[T]] =
         marketRatesByTenor.get(tenor).toRight(MarketError.MarketRate(tenor))
+
+  def fromSingleCurve[T](ref: T, currency: Currency, name: String, curve: YieldCurve[T]) =
+    apply[T](ref, Map(Curve(currency, name) -> curve), Map.empty, Map.empty)

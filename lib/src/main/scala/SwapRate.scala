@@ -12,7 +12,7 @@ class SwapRate[T: TimeLike](
     val paymentDelay: Int,
     val fixedPeriod: Tenor,
     val floatingRate: Libor[T],
-    val fixedDayCounter: DayCounter[T],
+    val fixedDayCounter: DayCounter,
     val calendar: Calendar[T],
     val bdConvention: BusinessDayConvention,
     val stub: StubConvention,

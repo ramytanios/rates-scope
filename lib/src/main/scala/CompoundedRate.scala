@@ -18,7 +18,7 @@ class CompoundedRate[T: TimeLike](
     val direction: Direction
 ):
 
-  given DayCounter[T] = rate.dayCounter
+  given DayCounter = rate.dayCounter
 
   val dcf: YearFraction = from.yearFractionTo(to)
 

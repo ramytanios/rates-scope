@@ -9,13 +9,13 @@ class Libor[T: TimeLike](
     val currency: Currency,
     val tenor: Tenor,
     val spotLag: Long,
-    val dayCounter: DayCounter[T],
+    val dayCounter: DayCounter,
     val calendar: Calendar[T],
     val resetCurve: Curve,
     val bdConvention: BusinessDayConvention
 ) extends Underlying[T]:
 
-  given DayCounter[T] = dayCounter
+  given DayCounter = dayCounter
 
   val settlementRule = SettlementRule.simpleRule(spotLag)(using calendar)
 
@@ -29,4 +29,4 @@ class Libor[T: TimeLike](
       t =>
         val (startAt, endAt) = interestPeriod(t)
         val dcf = startAt.yearFractionTo(endAt)
-        (yieldCurve.discount(startAt, endAt) - 1.0) / dcf.toDouble
+        (1.0 / yieldCurve.discount(startAt, endAt) - 1.0) / dcf.toDouble
