@@ -21,6 +21,7 @@ object VolatilitySurface:
     require(skews.map(_(0)).isStrictlyIncreasing, "pillar maturities must be strictly increasing")
 
     val t0 = ref
+    val n = skews.length
 
     val tMin = skews.head(0)
     val tMax = skews.last(0)
@@ -48,7 +49,7 @@ object VolatilitySurface:
         if t < tMin then
           skews.head(1)(forward(tMin) - m)
         else if t > tMax then
-          interpolateBetween(skews(0), skews(1))
+          interpolateBetween(skews(n - 2), skews(n - 1))
         else
           skews.searchBy(_(0))(t) match
             case BinarySearch.Found(i) =>

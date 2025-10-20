@@ -2,29 +2,31 @@ package lib
 
 import lib.quantities.*
 
-import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.time.temporal.Temporal
 
-sealed trait DayCounter: // TODO: also parametrize by T
+trait DayCounter[T]:
 
-  def daysBetween(from: LocalDate, to: LocalDate): Long
+  def daysBetween(from: T, to: T): Long
 
-  def yearFraction(from: LocalDate, to: LocalDate): YearFraction
+  def yearFraction(from: T, to: T): YearFraction
 
-  final def apply(from: LocalDate, to: LocalDate): YearFraction = yearFraction(from, to)
+  final def apply(from: T, to: T): YearFraction = yearFraction(from, to)
 
-case object Act360 extends DayCounter:
+object DayCounter: // or givens [LocalDate, Act360], [LocalDate, Act365]
 
-  override def daysBetween(from: LocalDate, to: LocalDate): Long =
-    ChronoUnit.DAYS.between(from, to)
+  def Act360[T <: Temporal] = new DayCounter[T]:
 
-  override def yearFraction(from: LocalDate, to: LocalDate): YearFraction =
-    YearFraction(daysBetween(from, to) / 360.0)
+    override def daysBetween(from: T, to: T): Long =
+      ChronoUnit.DAYS.between(from, to)
 
-case object Act365 extends DayCounter:
+    override def yearFraction(from: T, to: T): YearFraction =
+      YearFraction(daysBetween(from, to) / 360.0)
 
-  override def daysBetween(from: LocalDate, to: LocalDate): Long =
-    ChronoUnit.DAYS.between(from, to)
+  def Act365[T <: Temporal] = new DayCounter[T]:
 
-  override def yearFraction(from: LocalDate, to: LocalDate): YearFraction =
-    YearFraction(daysBetween(from, to) / 365.0)
+    def daysBetween(from: T, to: T): Long =
+      ChronoUnit.DAYS.between(from, to)
+
+    def yearFraction(from: T, to: T): YearFraction =
+      YearFraction(daysBetween(from, to) / 365.0)
