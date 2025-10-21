@@ -11,10 +11,12 @@ class LiborSuite() extends munit.FunSuite:
 
   val ref = d"2025-10-12"
 
+  val rate = MarketRate.SOFR
+
   val libor = new Libor(
-    "SOFR",
-    Currency.USD,
-    Tenor.`1D`,
+    rate,
+    rate.currency,
+    rate.tenor,
     0,
     DayCounter.Act360,
     Calendar(),
@@ -22,9 +24,9 @@ class LiborSuite() extends munit.FunSuite:
     ModifiedFollowing
   )
 
-  val SOFRYieldCurve = YieldCurve.continousCompounding(ref, 0.02, DayCounter.Act365)
+  val yieldCurve = YieldCurve.continousCompounding(ref, 0.02, DayCounter.Act365)
 
-  given Market[LocalDate] = Market.fromSingleCurve(ref, Currency.USD, "SOFR", SOFRYieldCurve)
+  given Market[LocalDate] = Market.fromSingleCurve(ref, Currency.USD, "SOFR", yieldCurve)
 
   libor.forward.foreach: forward =>
     val t = Calendar().addBusinessPeriod(ref, Tenor.`1Y`)(using ModifiedFollowing)

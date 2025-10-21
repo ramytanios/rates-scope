@@ -1,7 +1,7 @@
 package lib
 
-import lib.syntax.{ *, given }
 import lib.quantities.*
+import lib.syntax.{ *, given }
 
 import scala.math.Ordering.Implicits.*
 import scala.math.exp

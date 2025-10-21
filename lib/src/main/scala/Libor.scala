@@ -1,7 +1,6 @@
 package lib
 
 import lib.quantities.*
-
 import lib.syntax.*
 
 class Libor[T: TimeLike](
