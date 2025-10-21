@@ -14,14 +14,14 @@ trait Calendar[T]:
 
 object Calendar:
 
-  def apply[T: TimeLike](): Calendar[T] = noHolidays[T]
+  def apply[T: DateLike](): Calendar[T] = noHolidays[T]
 
-  def noHolidays[T: TimeLike] = new Calendar[T]:
+  def noHolidays[T: DateLike] = new Calendar[T]:
 
     def isBusinessDay(t: T): Boolean = true
 
     def addBusinessPeriod(t: T, period: Tenor)(using BusinessDayConvention): T =
-      TimeLike[T].plusPeriod(t, period.toPeriod)
+      DateLike[T].plusPeriod(t, period.toPeriod)
 
     def addBusinessDays(t: T, days: Long): T =
-      TimeLike[T].plusDays(t, days)
+      DateLike[T].plusDays(t, days)

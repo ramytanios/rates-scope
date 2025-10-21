@@ -5,7 +5,7 @@ import lib.Schedule.Direction
 import lib.Schedule.StubConvention
 import lib.quantities.Tenor
 
-class CompoundedSwapRate[T: TimeLike](
+class CompoundedSwapRate[T: DateLike](
     val name: String,
     val tenor: Tenor,
     val spotLag: Int,
@@ -58,7 +58,7 @@ class CompoundedSwapRate[T: TimeLike](
 
       val fixedLegValue = fixed.foldMap:
         case FixedCoupon(startAt, endAt, paymentAt) =>
-          val dcf = TimeLike[T].yearFraction(startAt, endAt)(using fixedDayCounter)
+          val dcf = DateLike[T].yearFraction(startAt, endAt)(using fixedDayCounter)
           dcf * discountCurve.discount(paymentAt)
 
       val floatingLegValue = floating.foldMap:

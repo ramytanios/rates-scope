@@ -3,7 +3,7 @@ package lib
 import lib.quantities.*
 import lib.syntax.*
 
-class Libor[T: TimeLike](
+class Libor[T: DateLike](
     val name: String,
     val currency: Currency,
     val tenor: Tenor,

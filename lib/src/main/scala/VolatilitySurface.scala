@@ -13,7 +13,7 @@ trait VolatilitySurface[T]:
 
 object VolatilitySurface:
 
-  def apply[T: TimeLike](
+  def apply[T: DateLike](
       ref: T,
       forward: Forward[T],
       skews: IndexedSeq[(T, VolatilitySkew)]

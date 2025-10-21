@@ -1,3 +1,3 @@
 package lib 
 
-object syntax extends TimeLike.Syntax
+object syntax extends DateLike.Syntax

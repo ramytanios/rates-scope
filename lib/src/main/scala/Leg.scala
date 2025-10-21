@@ -10,7 +10,7 @@ case class FloatingCoupon[T](fixingAt: T, from: T, to: T, paymentAt: T)
 
 object Leg:
 
-  def fixed[T: TimeLike](
+  def fixed[T: DateLike](
       from: T,
       to: T,
       period: Tenor,
@@ -28,7 +28,7 @@ object Leg:
           FixedCoupon(startAt, endAt, paymentAt)
       .toVector
 
-  def floating[T: TimeLike](
+  def floating[T: DateLike](
       from: T,
       to: T,
       period: Tenor,

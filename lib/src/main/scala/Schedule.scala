@@ -9,7 +9,7 @@ import scala.math.Ordering.Implicits.*
 
 object Schedule:
 
-  def apply[T: TimeLike](
+  def apply[T: DateLike](
       from: T,
       to: T,
       period: Tenor,

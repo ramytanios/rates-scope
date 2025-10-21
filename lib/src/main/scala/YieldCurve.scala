@@ -17,7 +17,7 @@ trait YieldCurve[T]:
 
 object YieldCurve:
 
-  def apply[T: TimeLike](
+  def apply[T: DateLike](
       ref: T,
       dfs: IndexedSeq[(T, Double)],
       dayCounter: DayCounter
@@ -45,7 +45,7 @@ object YieldCurve:
         val rt = interp(yf.toDouble)
         exp(-rt)
 
-  def continousCompounding[T: TimeLike](
+  def continousCompounding[T: DateLike](
       ref: T,
       rate: Rate,
       dayCounter: DayCounter

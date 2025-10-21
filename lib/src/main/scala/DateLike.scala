@@ -5,7 +5,7 @@ import lib.quantities.*
 
 import java.time.LocalDate
 
-trait TimeLike[T] extends Order[T]:
+trait DateLike[T] extends Order[T]:
 
   final def yearFraction(from: T, to: T)(using DayCounter): YearFraction =
     summon[DayCounter].yearFraction(toLocalDate(from), toLocalDate(to))
@@ -18,11 +18,11 @@ trait TimeLike[T] extends Order[T]:
 
   def plusDays(t: T, days: Long): T
 
-object TimeLike:
+object DateLike:
 
-  def apply[T](using ev: TimeLike[T]) = ev
+  def apply[T](using ev: DateLike[T]) = ev
 
-  given TimeLike[LocalDate] = new TimeLike[LocalDate]:
+  given DateLike[LocalDate] = new DateLike[LocalDate]:
 
     def compare(x: LocalDate, y: LocalDate): Int =
       if x.isEqual(y) then 0
@@ -37,8 +37,8 @@ object TimeLike:
 
   trait Syntax:
 
-    given [T: TimeLike]: Ordering[T] = TimeLike[T].toOrdering
+    given [T: DateLike]: Ordering[T] = DateLike[T].toOrdering
 
-    extension [T: TimeLike](t: T)
-      def yearFractionTo(to: T)(using DayCounter) = TimeLike[T].yearFraction(t, to)
-      def yearFractionFrom(from: T)(using DayCounter) = TimeLike[T].yearFraction(from, t)
+    extension [T: DateLike](t: T)
+      def yearFractionTo(to: T)(using DayCounter) = DateLike[T].yearFraction(t, to)
+      def yearFractionFrom(from: T)(using DayCounter) = DateLike[T].yearFraction(from, t)

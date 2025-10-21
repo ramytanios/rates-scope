@@ -10,7 +10,7 @@ import lib.utils.BinarySearch.InsertionLoc
 
 case class CompoundingPeriod[T](fixingDate: T, interestStart: T, interestEnd: T)
 
-class CompoundedRate[T: TimeLike](
+class CompoundedRate[T: DateLike](
     val from: T,
     val to: T,
     val rate: Libor[T],
