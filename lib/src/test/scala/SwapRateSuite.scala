@@ -2,6 +2,7 @@ package lib
 
 import lib.BusinessDayConvention.*
 import lib.Schedule.Direction
+import lib.Schedule.StubConvention
 import lib.literals.*
 import lib.quantities.Tenor
 
@@ -32,7 +33,7 @@ class SwapRateSuite() extends munit.FunSuite:
     DayCounter.Act360,
     Calendar(),
     ModifiedFollowing,
-    lib.Schedule.StubConvention.Short,
+    StubConvention.Short,
     Direction.Backward,
     Curve(Currency.EUR, "discounting_curve")
   )
@@ -45,6 +46,7 @@ class SwapRateSuite() extends munit.FunSuite:
       Curve(Currency.EUR, "reset_curve") -> yieldCurve,
       Curve(Currency.EUR, "discounting_curve") -> yieldCurve
     ),
+    Map.empty,
     Map.empty,
     Map.empty
   )

@@ -20,6 +20,8 @@ class SwapRate[T: DateLike](
     val discountCurve: Curve
 ) extends Underlying[T]:
 
+  def currency: Currency = floatingRate.currency
+
   def interestPeriod(fixingAt: T): (T, T) =
     val startAt = calendar.addBusinessDays(fixingAt, spotLag)
     val endAt = calendar.addBusinessPeriod(startAt, tenor)(using bdConvention)

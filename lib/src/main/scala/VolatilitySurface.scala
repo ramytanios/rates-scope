@@ -16,7 +16,7 @@ object VolatilitySurface:
   def apply[T: DateLike](
       ref: T,
       forward: Forward[T],
-      skews: IndexedSeq[(T, VolatilitySkew)]
+      skews: IndexedSeq[(T, Lazy[VolatilitySkew])]
   ): VolatilitySurface[T] =
     require(skews.map(_(0)).isStrictlyIncreasing, "pillar maturities must be strictly increasing")
 
@@ -47,15 +47,21 @@ object VolatilitySurface:
             )
 
         if t < tMin then
-          skews.head(1)(forward(tMin) - m)
+          skews.head(1).value(forward(tMin) - m)
         else if t > tMax then
-          interpolateBetween(skews(n - 2), skews(n - 1))
+          interpolateBetween(
+            skews(n - 2)(0) -> skews(n - 2)(1).value,
+            skews(n - 1)(0) -> skews(n - 1)(1).value
+          )
         else
           skews.searchBy(_(0))(t) match
             case BinarySearch.Found(i) =>
               val (ti, skew) = skews(i)
-              skew(forward(ti) - m)
+              skew.value(forward(ti) - m)
             case BinarySearch.InsertionLoc(i) =>
-              interpolateBetween(skews(i - 1), skews(i))
+              interpolateBetween(
+                skews(i - 1)(0) -> skews(i - 1)(1).value,
+                skews(i)(0) -> skews(i)(1).value
+              )
 
   def flat[T](vol: Double): VolatilitySurface[T] = _ => VolatilitySkew.flat(vol)

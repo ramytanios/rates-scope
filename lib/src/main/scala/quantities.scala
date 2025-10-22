@@ -36,6 +36,17 @@ object quantities:
 
     given Conversion[Double, Rate] = Rate.apply
 
+  /** Strike */
+  opaque type Strike = Double
+
+  object Strike:
+    def apply(r: Double): Rate = r
+
+    extension (r: Strike)
+      def toDouble: Double = r
+
+    given Conversion[Double, Strike] = Strike.apply
+
   /** Tenor */
   opaque type Tenor = Period
 
