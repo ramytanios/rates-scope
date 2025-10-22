@@ -13,8 +13,8 @@ enum MarketError(msg: String) extends Error(msg):
   case FixingAt[T](underlying: String, at: T)
       extends MarketError(s"missing fixing of $underlying at $at")
 
-  case MarketRate(tenor: Tenor)
-      extends MarketError(s"missing market rate of tenor $tenor")
+  case MarketRate(currency: Currency, tenor: Tenor)
+      extends MarketError(s"missing market rate of tenor $tenor in currency $currency")
 
 case class Curve(ccy: Currency, name: String)
 
@@ -28,7 +28,7 @@ trait Market[T]:
 
   def fixings(rate: String): Either[MarketError, T => Either[MarketError, Fixing[T]]]
 
-  def marketRates(tenor: Tenor): Either[MarketError, Underlying[T]]
+  def marketRates(currency: Currency, tenor: Tenor): Either[MarketError, Underlying[T]]
 
 object Market:
 
@@ -36,7 +36,7 @@ object Market:
       refDate: T,
       curves: Map[Curve, YieldCurve[T]],
       fixingsByRate: Map[String, Seq[Fixing[T]]],
-      marketRatesByTenor: Map[Tenor, Underlying[T]]
+      marketRatesByTenor: Map[Currency, Map[Tenor, Underlying[T]]]
   ) =
     new Market[T]:
 
@@ -53,8 +53,11 @@ object Market:
             (at: T) =>
               map.get(at).flatMap(_.headOption).toRight(MarketError.FixingAt(rate, at))
 
-      def marketRates(tenor: Tenor): Either[MarketError, Underlying[T]] =
-        marketRatesByTenor.get(tenor).toRight(MarketError.MarketRate(tenor))
+      def marketRates(currency: Currency, tenor: Tenor): Either[MarketError, Underlying[T]] =
+        marketRatesByTenor.get(currency).flatMap(_.get(tenor)).toRight(MarketError.MarketRate(
+          currency,
+          tenor
+        ))
 
   def fromSingleCurve[T](ref: T, currency: Currency, name: String, curve: YieldCurve[T]) =
     apply[T](ref, Map(Curve(currency, name) -> curve), Map.empty, Map.empty)

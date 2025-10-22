@@ -11,12 +11,10 @@ class LiborSuite() extends munit.FunSuite:
 
   val ref = d"2025-10-12"
 
-  val rate = MarketRate.SOFR
-
   val libor = new Libor(
-    rate,
-    rate.currency,
-    rate.tenor,
+    "SOFR",
+    Currency.USD,
+    Tenor.`1D`,
     0,
     DayCounter.Act360,
     Calendar(),
