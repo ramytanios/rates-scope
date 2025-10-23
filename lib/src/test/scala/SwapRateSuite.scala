@@ -13,10 +13,10 @@ class SwapRateSuite() extends munit.FunSuite:
   val ref = d"2025-10-21"
 
   val floatingRate = new Libor(
-    "Euribor_3M",
+    "floating_rate",
     Currency.EUR,
     Tenor.`3M`,
-    0,
+    2,
     DayCounter.Act360,
     Calendar(),
     Curve(Currency.EUR, "reset_curve"),
@@ -25,10 +25,10 @@ class SwapRateSuite() extends munit.FunSuite:
 
   val rate = new SwapRate(
     "swap_rate",
-    Tenor.`2Y`,
+    Tenor.years(5),
+    2,
     0,
-    0,
-    Tenor.`3M`,
+    Tenor.`1Y`,
     floatingRate,
     DayCounter.Act360,
     Calendar(),
@@ -53,4 +53,4 @@ class SwapRateSuite() extends munit.FunSuite:
 
   rate.forward.foreach: forward =>
     val t = Calendar().addBusinessPeriod(ref, Tenor.`1Y`)(using ModifiedFollowing)
-    assertEqualsDouble(forward(t), 0.019775494583490195, 1e-12)
+    assertEqualsDouble(forward(t), 0.019924721293744743, 1e-12)
