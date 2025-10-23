@@ -8,8 +8,8 @@ import lib.quantities.Tenor
 
 import java.time.LocalDate
 
-class SwapRateSuite extends munit.FunSuite:
-
+class CompoundedSwapRateSuite extends munit.FunSuite:
+  
   test("forward should match expected value"):
 
     val ref = d"2025-10-21"
@@ -25,13 +25,14 @@ class SwapRateSuite extends munit.FunSuite:
       ModifiedFollowing
     )
 
-    val rate = new SwapRate(
+    val rate = new CompoundedSwapRate(
       "swap_rate",
       Tenor.years(5),
       2,
       0,
       Tenor.`1Y`,
       floatingRate,
+      Tenor.`1Y`,
       DayCounter.Act360,
       Calendar(),
       ModifiedFollowing,
