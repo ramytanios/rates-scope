@@ -65,3 +65,13 @@ object VolatilitySurface:
               )
 
   def flat[T](vol: Double): VolatilitySurface[T] = _ => VolatilitySkew.flat(vol)
+
+  def fromMoneynessSkew[T](
+      forward: Forward[T],
+      moneynesses: Seq[Double],
+      vols: Seq[Double]
+  ): VolatilitySurface[T] = new VolatilitySurface[T]:
+    def apply(maturity: T): VolatilitySkew =
+      val f = forward(maturity)
+      val strikes = moneynesses.map(f - _)
+      VolatilitySkew(strikes.toIndexedSeq, vols.toIndexedSeq)
