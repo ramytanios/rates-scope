@@ -31,6 +31,7 @@ trait Market[T]:
 
   def fixings(rate: String): Either[MarketError, T => Either[MarketError, Fixing[T]]]
 
+  // TODO: rename to options/volatility market conventions
   def marketRates(currency: Currency, tenor: Tenor): Either[MarketError, Underlying[T]]
 
   def volSurface(currency: Currency, tenor: Tenor): Either[MarketError, VolatilitySurface[T]]

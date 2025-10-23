@@ -47,3 +47,6 @@ object DateLike:
     extension [T: DateLike](t: T)
       def yearFractionTo(to: T)(using DayCounter) = DateLike[T].yearFraction(t, to)
       def yearFractionFrom(from: T)(using DayCounter) = DateLike[T].yearFraction(from, t)
+      def -(other: T) = if DateLike[T].compare(t, other) <= 0 then
+        DateLike[T].daysBetween(t, other).size
+      else -DateLike[T].daysBetween(other, t).size

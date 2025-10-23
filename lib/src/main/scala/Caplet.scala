@@ -30,8 +30,8 @@ class Caplet[T: DateLike](
         Either.raiseWhen(
           rate.currency != paymentCurrency
         )(Error.Generic("vanilla price does not support quanto"))
-      .flatMap: _ => // TODO: should we count business days ?
-        Either.raiseWhen(rate.calendar.countBusinessDays(interestEndAt, paymentAt).abs > 7)(
+      .flatMap: _ =>
+        Either.raiseWhen((interestEndAt - paymentAt).abs > 7)(
           Error.Generic(s"vanilla pricer does not allow payment convexity")
         )
       .flatMap: _ =>
