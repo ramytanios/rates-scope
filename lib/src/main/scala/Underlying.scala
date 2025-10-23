@@ -8,7 +8,4 @@ trait Underlying[T]:
 
   def tenor: Tenor
 
-  def forward(using Market[T]): Either[Error, Forward[T]]
-
-  final def volatility(using Market[T]): Either[Error, VolatilitySurface[T]] =
-    summon[Market[T]].volSurface(currency, tenor)
+  def forward: Forward[T]

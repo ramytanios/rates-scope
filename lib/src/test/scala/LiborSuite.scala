@@ -11,23 +11,19 @@ class LiborSuite extends munit.FunSuite:
 
   test("forward should match expected value"):
 
-    val ref = d"2025-10-12"
+    val t = d"2025-10-12"
+
+    val resetCurve = YieldCurve.continousCompounding(t, 0.02, DayCounter.Act365)
 
     val libor = new Libor(
-      "SOFR",
       Currency.USD,
       Tenor.`1D`,
       0,
       DayCounter.Act360,
       Calendar(),
-      Curve(Currency.USD, "SOFR"),
+      resetCurve,
       ModifiedFollowing
     )
 
-    val yieldCurve = YieldCurve.continousCompounding(ref, 0.02, DayCounter.Act365)
-
-    given Market[LocalDate] = Market.fromSingleCurve(ref, Currency.USD, "SOFR", yieldCurve)
-
-    libor.forward.foreach: forward =>
-      val t = Calendar().addBusinessPeriod(ref, Tenor.`1Y`)(using ModifiedFollowing)
-      assertEqualsDouble(forward(t), 0.019726567846252152, 1e-12)
+    val fixingAt = Calendar().addBusinessPeriod(t, Tenor.`1Y`)(using ModifiedFollowing)
+    assertEqualsDouble(libor.forward(fixingAt), 0.019726567846252152, 1e-12)

@@ -12,35 +12,25 @@ class Caplet[T: DateLike](
     val paymentAt: T,
     val paymentCurrency: Currency,
     val strike: Double,
-    val discountWith: Curve,
+    val discountCurve: YieldCurve[T],
     val optionType: OptionType
 ):
 
-  def price(using Market[T]): Either[Error, Double] =
-
-    val ref = summon[Market[T]].ref
+  def price(ref: T, volSurface: VolatilitySurface[T]): Either[Error, Double] =
 
     val (_, interestEndAt) = rate.interestPeriod(fixingAt)
 
-    Either
-      .raiseWhen(
-        discountWith.ccy != paymentCurrency
-      )(Error.Generic("discount curve and payment currencies mismatch"))
-      .flatMap: _ =>
-        Either.raiseWhen(
-          rate.currency != paymentCurrency
-        )(Error.Generic("vanilla price does not support quanto"))
+    Either.raiseWhen(
+      rate.currency != paymentCurrency
+    )(Error.Generic("vanilla price does not support quanto"))
       .flatMap: _ =>
         Either.raiseWhen((interestEndAt - paymentAt).abs > 7)(
           Error.Generic(s"vanilla pricer does not allow payment convexity")
         )
-      .flatMap: _ =>
-        rate.forward.flatMap: forwardCurve =>
-          summon[Market[T]].yieldCurve(discountWith).flatMap: yieldCurve =>
-            val f = forwardCurve(fixingAt)
-            val d = yieldCurve.discount(paymentAt)
-            val dt = ref.yearFractionTo(fixingAt)(using DateLike[T], DayCounter.Act365)
-            summon[Market[T]].volSurface(rate.currency, rate.tenor).map: volSurface =>
-              val vol = volSurface(fixingAt)(strike)
-              val dcf = startAt.yearFractionTo(endAt)(using DateLike[T], rate.dayCounter)
-              dcf * bachelier.price(optionType, f, strike, dt.toDouble, vol, d)
+      .map: _ =>
+        val f = rate.forward(fixingAt)
+        val d = discountCurve.discount(paymentAt)
+        val dt = ref.yearFractionTo(fixingAt)(using DateLike[T], DayCounter.Act365)
+        val vol = volSurface(fixingAt)(strike)
+        val dcf = startAt.yearFractionTo(endAt)(using DateLike[T], rate.dayCounter)
+        dcf * bachelier.price(optionType, f, strike, dt.toDouble, vol, d)

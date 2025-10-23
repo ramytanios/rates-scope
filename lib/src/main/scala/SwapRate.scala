@@ -6,7 +6,6 @@ import lib.Schedule.StubConvention
 import lib.quantities.Tenor
 
 class SwapRate[T: DateLike](
-    val name: String,
     val tenor: Tenor,
     val spotLag: Int,
     val paymentDelay: Int,
@@ -17,7 +16,7 @@ class SwapRate[T: DateLike](
     val bdConvention: BusinessDayConvention,
     val stub: StubConvention,
     val direction: Direction,
-    val discountWith: Curve
+    val discountCurve: YieldCurve[T]
 ) extends Underlying[T]:
 
   def currency: Currency = floatingRate.currency
@@ -27,12 +26,8 @@ class SwapRate[T: DateLike](
     val endAt = calendar.addBusinessPeriod(startAt, tenor)(using bdConvention)
     startAt -> endAt
 
-  def forward(using Market[T]): Either[Error, Forward[T]] =
-
-    for
-      discountCurve <- summon[Market[T]].yieldCurve(discountWith)
-      liborForward <- floatingRate.forward
-    yield t =>
+  def forward: Forward[T] =
+    t =>
       val (from, to) = interestPeriod(t)
 
       val fixed = Leg.fixed(
@@ -67,7 +62,7 @@ class SwapRate[T: DateLike](
         case FloatingCoupon(fixingAt, startAt, endAt, paymentAt) =>
           val dcf = DateLike[T].yearFraction(startAt, endAt)(using floatingRate.dayCounter)
           val discount = discountCurve.discount(paymentAt)
-          val floatingForward = liborForward(fixingAt)
+          val floatingForward = floatingRate.forward(fixingAt)
           dcf * discount * floatingForward
 
       floatingLegValue / fixedLegValue

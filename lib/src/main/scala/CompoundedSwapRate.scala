@@ -6,7 +6,6 @@ import lib.Schedule.StubConvention
 import lib.quantities.Tenor
 
 class CompoundedSwapRate[T: DateLike](
-    val name: String,
     val tenor: Tenor,
     val spotLag: Int,
     val paymentDelay: Int,
@@ -18,7 +17,7 @@ class CompoundedSwapRate[T: DateLike](
     val bdConvention: BusinessDayConvention,
     val stub: StubConvention,
     val direction: Direction,
-    val discountWith: Curve
+    val discountCurve: YieldCurve[T]
 ) extends Underlying[T]:
 
   def currency: Currency = floatingRate.currency
@@ -28,11 +27,10 @@ class CompoundedSwapRate[T: DateLike](
     val endAt = calendar.addBusinessPeriod(startAt, tenor)(using bdConvention)
     startAt -> endAt
 
-  def forward(using Market[T]): Either[Error, Forward[T]] =
-    for
-      discountCurve <- summon[Market[T]].yieldCurve(discountWith)
-      resetCurve <- summon[Market[T]].yieldCurve(floatingRate.resetWith)
-    yield t =>
+  val resetCurve = floatingRate.resetCurve
+
+  def forward: Forward[T] =
+    t =>
       val (from, to) = interestPeriod(t)
 
       val fixed = Leg.fixed(

@@ -34,35 +34,28 @@ class CompoundedRate[T: DateLike](
   val firstFixingDate = schedule.head.fixingDate
   val lastFixingDate = schedule.last.fixingDate
 
-  def compoundingFactor(toInclusive: T)(using Market[T]): Either[MarketError, Double] =
-    schedule
-      .traverseCollect:
-        case CompoundingPeriod(fixingAt, startAt, endAt) if fixingAt <= toInclusive =>
-          summon[Market[T]].fixings(rate.name).flatMap: fixings =>
-            fixings(fixingAt).map: fixing =>
-              (1 + startAt.yearFractionTo(endAt) * fixing.value)
-      .map(_.product)
+  def compoundingFactor(toInclusive: T, fixings: Map[T, Fixing[T]]): Double =
+    schedule.collect:
+      case CompoundingPeriod(fixingAt, startAt, endAt) if fixingAt <= toInclusive =>
+        val fixing = fixings(fixingAt)
+        (1 + startAt.yearFractionTo(endAt) * fixing.value)
+    .product
 
-  def fullCompoundingFactor(using Market[T]) = compoundingFactor(lastFixingDate)
+  def fullCompoundingFactor(fixings: Map[T, Fixing[T]]) = compoundingFactor(lastFixingDate, fixings)
 
-  def forward(using Market[T]): Either[Error, Double] =
-    val market = summon[Market[T]]
-    val t = market.ref
+  def forward(t: T, fixings: Map[T, Fixing[T]]): Either[Error, Double] =
 
     Either.raiseWhen(t > lastFixingDate)(
       Error.Generic(s"ref date $t is after last fixing $lastFixingDate")
-    )
-      .flatMap: _ =>
-        market.yieldCurve(rate.resetWith)
-      .flatMap: curve =>
-        if t < firstFixingDate then
-          (1 / curve.discount(from, to)).asRight
-        else if t == lastFixingDate then fullCompoundingFactor
-        else
-          val obsIdx = schedule.searchBy(_.fixingDate)(t) match
-            case Found(i)        => i
-            case InsertionLoc(i) => i - 1
-          val futIdx = obsIdx + 1
-          compoundingFactor(schedule(obsIdx).fixingDate).map:
-            _ / curve.discount(schedule(futIdx).interestStart, to)
-      .map(forwardCompoundingFactor => (forwardCompoundingFactor - 1.0) / dcf.toDouble)
+    ).map: _ =>
+      if t < firstFixingDate then
+        1.0 / rate.resetCurve.discount(from, to)
+      else if t == lastFixingDate then fullCompoundingFactor(fixings)
+      else
+        val obsIdx = schedule.searchBy(_.fixingDate)(t) match
+          case Found(i)        => i
+          case InsertionLoc(i) => i - 1
+        val futIdx = obsIdx + 1
+        val f = compoundingFactor(schedule(obsIdx).fixingDate, fixings) /
+          rate.resetCurve.discount(schedule(futIdx).interestStart, to)
+        (f - 1.0) / dcf.toDouble
