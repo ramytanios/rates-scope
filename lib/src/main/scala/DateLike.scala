@@ -2,8 +2,9 @@ package lib
 
 import cats.kernel.Order
 import lib.quantities.*
-import scala.jdk.CollectionConverters.*
+
 import java.time.LocalDate
+import scala.jdk.CollectionConverters.*
 
 trait DateLike[T] extends Order[T]:
 

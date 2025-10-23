@@ -20,9 +20,10 @@ class Caplet[T: DateLike](
 
     val (_, interestEndAt) = rate.interestPeriod(fixingAt)
 
-    Either.raiseWhen(
-      rate.currency != paymentCurrency
-    )(Error.Generic("vanilla price does not support quanto"))
+    Either
+      .raiseWhen(rate.currency != paymentCurrency)(
+        Error.Generic("vanilla price does not support quanto")
+      )
       .flatMap: _ =>
         Either.raiseWhen((interestEndAt - paymentAt).abs > 7)(
           Error.Generic(s"vanilla pricer does not allow payment convexity")

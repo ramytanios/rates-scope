@@ -1,9 +1,10 @@
 package lib
 
-import java.time.LocalDate
-import lib.quantities.Tenor
-import lib.literals.*
 import lib.DayCounter.Act360
+import lib.literals.*
+import lib.quantities.Tenor
+
+import java.time.LocalDate
 
 class CapletSuite extends munit.FunSuite:
 
