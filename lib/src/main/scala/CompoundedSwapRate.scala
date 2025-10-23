@@ -18,7 +18,7 @@ class CompoundedSwapRate[T: DateLike](
     val bdConvention: BusinessDayConvention,
     val stub: StubConvention,
     val direction: Direction,
-    val discountCurve: Curve
+    val discountWith: Curve
 ) extends Underlying[T]:
 
   def currency: Currency = floatingRate.currency
@@ -30,8 +30,8 @@ class CompoundedSwapRate[T: DateLike](
 
   def forward(using Market[T]): Either[Error, Forward[T]] =
     for
-      discountCurve <- summon[Market[T]].yieldCurve(discountCurve)
-      resetCurve <- summon[Market[T]].yieldCurve(floatingRate.resetCurve)
+      discountCurve <- summon[Market[T]].yieldCurve(discountWith)
+      resetCurve <- summon[Market[T]].yieldCurve(floatingRate.resetWith)
     yield t =>
       val (from, to) = interestPeriod(t)
 

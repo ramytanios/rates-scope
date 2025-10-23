@@ -2,7 +2,7 @@ package lib
 
 import cats.kernel.Order
 import lib.quantities.*
-
+import scala.jdk.CollectionConverters.*
 import java.time.LocalDate
 
 trait DateLike[T] extends Order[T]:
@@ -10,13 +10,15 @@ trait DateLike[T] extends Order[T]:
   final def yearFraction(from: T, to: T)(using DayCounter): YearFraction =
     summon[DayCounter].yearFraction(toLocalDate(from), toLocalDate(to))
 
-  // convenience for day count fractions calculations 
+  // convenience for day count fractions calculations
   // TODO To be revisited
   def toLocalDate(t: T): LocalDate
 
   def plusPeriod(t: T, period: Tenor): T
 
   def plusDays(t: T, days: Long): T
+
+  def daysBetween(from: T, to: T): Seq[T]
 
 object DateLike:
 
@@ -34,6 +36,9 @@ object DateLike:
     def plusDays(t: LocalDate, days: Long): LocalDate = t.plusDays(days)
 
     def plusPeriod(t: LocalDate, period: Tenor): LocalDate = t.plus(period.toPeriod)
+
+    def daysBetween(from: LocalDate, to: LocalDate): Seq[LocalDate] =
+      from.datesUntil(to).iterator.asScala.toSeq
 
   trait Syntax:
 

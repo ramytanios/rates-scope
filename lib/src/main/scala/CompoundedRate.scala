@@ -53,7 +53,7 @@ class CompoundedRate[T: DateLike](
       Error.Generic(s"ref date $t is after last fixing $lastFixingDate")
     )
       .flatMap: _ =>
-        market.yieldCurve(rate.resetCurve)
+        market.yieldCurve(rate.resetWith)
       .flatMap: curve =>
         if t < firstFixingDate then
           (1 / curve.discount(from, to)).asRight

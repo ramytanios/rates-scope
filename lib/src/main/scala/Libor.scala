@@ -10,7 +10,7 @@ class Libor[T: DateLike](
     val spotLag: Long,
     val dayCounter: DayCounter,
     val calendar: Calendar[T],
-    val resetCurve: Curve,
+    val resetWith: Curve,
     val bdConvention: BusinessDayConvention
 ) extends Underlying[T]:
 
@@ -24,7 +24,7 @@ class Libor[T: DateLike](
     start -> endDate
 
   def forward(using Market[T]): Either[Error, Forward[T]] =
-    summon[Market[T]].yieldCurve(resetCurve).map: yieldCurve =>
+    summon[Market[T]].yieldCurve(resetWith).map: yieldCurve =>
       t =>
         val (startAt, endAt) = interestPeriod(t)
         val dcf = startAt.yearFractionTo(endAt)
