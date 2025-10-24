@@ -45,7 +45,7 @@ object YieldCurve:
         val rt = interp(yf.toDouble)
         exp(-rt)
 
-  def continousCompounding[T: DateLike](
+  def continuousCompounding[T: DateLike](
       ref: T,
       rate: Rate,
       dayCounter: DayCounter

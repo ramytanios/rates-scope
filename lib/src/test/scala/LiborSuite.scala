@@ -13,7 +13,7 @@ class LiborSuite extends munit.FunSuite:
 
     val t = d"2025-10-12"
 
-    val resetCurve = YieldCurve.continousCompounding(t, 0.02, DayCounter.Act365)
+    val resetCurve = YieldCurve.continuousCompounding(t, 0.02, DayCounter.Act365)
 
     val libor = new Libor(
       Currency.USD,
