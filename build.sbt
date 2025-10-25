@@ -9,6 +9,7 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
 // disables publish step
 ThisBuild / githubWorkflowPublishTargetBranches := Seq.empty
+ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.zulu("21"))
 
 lazy val V = new {
   val circe = "0.14.6"
