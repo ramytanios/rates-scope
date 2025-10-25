@@ -25,9 +25,9 @@ class BackwardLookingCaplet[T: DateLike](
 
     val discount = discountCurve.discount(paymentAt)
 
-    def syntheticForward(r: CompoundedRate[T]): Libor[T] =
+    def syntheticFutLibor(from: T, to: T): Libor[T] =
       val noHolidaysCal = Calendar()
-      val n = noHolidaysCal.countBusinessDays(r.from, r.to)
+      val n = noHolidaysCal.countBusinessDays(from, to)
       val tenor = Tenor.days(n.toInt)
       new Libor[T](
         rate.currency,
@@ -43,8 +43,8 @@ class BackwardLookingCaplet[T: DateLike](
       given DayCounter = DayCounter.Act365
       val schedule = futRate.schedule
       futRate.forward(t, fixings).map: forward =>
-        val syntLibor = syntheticForward(futRate)
-        val vol = cube(syntLibor.tenor)(futRate.firstFixingAt)(futStrike)
+        val futLibor = syntheticFutLibor(futRate.from, futRate.to)
+        val vol = cube(futLibor.tenor)(futRate.firstFixingAt)(futStrike)
         val dt = t.yearFractionTo(futRate.firstFixingAt) +
           schedule.indices.init.toList.foldMap(i =>
             schedule(i).fixingAt.yearFractionTo(schedule(i + 1).fixingAt) *
