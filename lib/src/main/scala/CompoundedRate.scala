@@ -77,16 +77,4 @@ object CompoundedRate:
             CompoundingPeriod(fixingDate, t0, t1)
         .toVector
 
-    println(Schedule(
-      from,
-      to,
-      rate.tenor,
-      rate.calendar,
-      rate.bdConvention,
-      stub,
-      direction
-    ).mkString("\n"))
-    println(schedule.mkString("\n"))
-    println(s"----------------------")
-
     new CompoundedRate[T](rate, schedule)
