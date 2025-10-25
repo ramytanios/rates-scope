@@ -3,6 +3,7 @@ package lib
 import cats.kernel.Order
 import lib.quantities.*
 
+import java.time.DayOfWeek
 import java.time.LocalDate
 import scala.jdk.CollectionConverters.*
 
@@ -20,6 +21,10 @@ trait DateLike[T] extends Order[T]:
   def plusDays(t: T, days: Long): T
 
   def daysBetween(from: T, to: T): Seq[T]
+
+  def isWeekend(t: T): Boolean
+
+  def onSameMonth(t0: T, t1: T): Boolean
 
 object DateLike:
 
@@ -40,6 +45,13 @@ object DateLike:
 
     def daysBetween(from: LocalDate, to: LocalDate): Seq[LocalDate] =
       from.datesUntil(to).iterator.asScala.toSeq
+
+    def isWeekend(t: LocalDate): Boolean =
+      val day = t.getDayOfWeek()
+      day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY
+
+    def onSameMonth(t0: LocalDate, t1: LocalDate): Boolean =
+      t0.getMonth == t1.getMonth
 
   trait Syntax:
 

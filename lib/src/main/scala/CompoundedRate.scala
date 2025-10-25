@@ -29,21 +29,21 @@ class CompoundedRate[T: DateLike](
   val firstFixingAt = schedule.head.fixingAt
   val lastFixingAt = schedule.last.fixingAt
 
-  def compoundingFactor(toInclusive: T, fixings: Map[T, Fixing[T]]): Double =
+  def compoundingFactor(toInclusive: T, fixings: Map[T, Double]): Double =
     schedule.collect:
       case CompoundingPeriod(fixingAt, startAt, endAt) if fixingAt <= toInclusive =>
         val fixing = fixings(fixingAt)
-        (1 + startAt.yearFractionTo(endAt) * fixing.value)
+        (1 + startAt.yearFractionTo(endAt) * fixing)
     .product
 
-  def fullCompoundingFactor(fixings: Map[T, Fixing[T]]) = compoundingFactor(lastFixingAt, fixings)
+  def fullCompoundingFactor(fixings: Map[T, Double]) = compoundingFactor(lastFixingAt, fixings)
 
   def findObservationIdx(t: T): Int =
     schedule.searchBy(_.fixingAt)(t) match
       case Found(i)        => i
       case InsertionLoc(i) => i - 1
 
-  def forward(t: T, fixings: Map[T, Fixing[T]]): Either[Error, Double] =
+  def forward(t: T, fixings: Map[T, Double]): Either[Error, Double] =
     Either.raiseWhen(t > lastFixingAt)(
       Error.Generic(s"$t is after last fixing $lastFixingAt")
     ).map: _ =>
@@ -53,9 +53,10 @@ class CompoundedRate[T: DateLike](
       else
         val obsIdx = findObservationIdx(t)
         val futIdx = obsIdx + 1
-        val f = compoundingFactor(schedule(obsIdx).fixingAt, fixings) /
+        compoundingFactor(schedule(obsIdx).fixingAt, fixings) /
           rate.resetCurve.discount(schedule(futIdx).startAt, to)
-        (f - 1.0) / dcf.toDouble
+    .map: f =>
+      (f - 1.0) / dcf.toDouble
 
 object CompoundedRate:
 
@@ -75,5 +76,17 @@ object CompoundedRate:
             val fixingDate = rate.settlementRule.fixingDate(t0)
             CompoundingPeriod(fixingDate, t0, t1)
         .toVector
+
+    println(Schedule(
+      from,
+      to,
+      rate.tenor,
+      rate.calendar,
+      rate.bdConvention,
+      stub,
+      direction
+    ).mkString("\n"))
+    println(schedule.mkString("\n"))
+    println(s"----------------------")
 
     new CompoundedRate[T](rate, schedule)

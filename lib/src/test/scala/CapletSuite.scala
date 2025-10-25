@@ -6,7 +6,7 @@ import lib.quantities.Tenor
 
 import java.time.LocalDate
 
-class CapletSuite extends munit.FunSuite:
+class CapletSuite extends munit.FunSuite with lib.EitherSyntax:
 
   test("caplet price"):
 
@@ -46,5 +46,5 @@ class CapletSuite extends munit.FunSuite:
       OptionType.Call
     )
 
-    caplet.price(t, volSurface).foreach: price =>
+    caplet.price(t, volSurface).failOrAssert: price =>
       assertEqualsDouble(price, 0.0025670413971979954, 1e-10)

@@ -20,13 +20,13 @@ class BackwardLookingCaplet[T: DateLike](
     val stub: StubConvention,
     val direction: Direction
 ):
+  private val noHolidaysCal = Calendar()
 
-  def price(t: T, cube: VolatilityCube[T], fixings: Map[T, Fixing[T]]): Either[Error, Double] =
+  def price(t: T, cube: VolatilityCube[T], fixings: Map[T, Double]): Either[Error, Double] =
 
     val discount = discountCurve.discount(paymentAt)
 
     def syntheticFutLibor(from: T, to: T): Libor[T] =
-      val noHolidaysCal = Calendar()
       val n = noHolidaysCal.countBusinessDays(from, to)
       val tenor = Tenor.days(n.toInt)
       new Libor[T](

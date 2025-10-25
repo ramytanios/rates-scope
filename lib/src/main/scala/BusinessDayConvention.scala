@@ -2,4 +2,4 @@ package lib
 
 enum BusinessDayConvention:
 
-  case Following, Preceding, ModifiedFollowing, ModifiedPreceding
+  case Following, Preceding, ModifiedFollowing

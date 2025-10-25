@@ -7,6 +7,9 @@ ThisBuild / crossScalaVersions := Seq(scala3)
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
+// disables publish step
+ThisBuild / githubWorkflowPublishTargetBranches := Seq.empty
+
 lazy val V = new {
   val circe = "0.14.6"
   val cats = "2.12.0"

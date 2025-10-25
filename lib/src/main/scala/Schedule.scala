@@ -28,17 +28,16 @@ object Schedule:
         var idx = 0
         while loop do
           val curr = calendar.addBusinessPeriod(to, period * idx)(using bdConvention)
-          if curr > from then
+          if curr >= from then
             curr +=: buf
             idx -= 1
           else
             loop = false
 
-        val withStub = stub match
-          case StubConvention.Short => buf
-          case StubConvention.Long  => buf.dropRight(1)
+        if stub == StubConvention.Long then
+          buf.remove(0): Unit
 
-        (from +=: withStub).toVector
+        (from +=: buf).toVector.distinct // TODO: revisit `distinct`
 
       case Direction.Forward =>
         val buf = new ArrayBuffer[T]
@@ -46,17 +45,16 @@ object Schedule:
         var idx = 0
         while loop do
           val curr = calendar.addBusinessPeriod(from, period * idx)(using bdConvention)
-          if curr < to then
+          if curr <= to then
             buf += curr
             idx += 1
           else
             loop = false
 
-        val withStub = stub match
-          case StubConvention.Short => buf
-          case StubConvention.Long  => buf.dropRight(1)
+        if stub == StubConvention.Long then
+          buf.remove(buf.size - 1): Unit
 
-        (withStub += to).toVector
+        (buf += to).toVector.distinct // TODO: revisit `distinct`
 
   enum StubConvention:
     case Short
