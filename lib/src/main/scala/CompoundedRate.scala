@@ -8,61 +8,72 @@ import lib.syntax.{ *, given }
 import lib.utils.BinarySearch.Found
 import lib.utils.BinarySearch.InsertionLoc
 
-case class CompoundingPeriod[T](fixingDate: T, interestStart: T, interestEnd: T)
+case class CompoundingPeriod[T](
+    fixingAt: T,
+    startAt: T, // interest period start
+    endAt: T // interest period end
+)
 
 class CompoundedRate[T: DateLike](
-    val from: T,
-    val to: T,
     val rate: Libor[T],
-    val stub: StubConvention,
-    val direction: Direction
+    val schedule: Vector[CompoundingPeriod[T]]
 ):
 
   given DayCounter = rate.dayCounter
 
+  val from = schedule.head.startAt
+  val to = schedule.last.endAt
+
   val dcf: YearFraction = from.yearFractionTo(to)
 
-  val schedule: Vector[CompoundingPeriod[T]] =
-    Schedule(from, to, rate.tenor, rate.calendar, rate.bdConvention, stub, direction)
-      .sliding(2)
-      .collect:
-        case Seq(t0, t1) =>
-          val fixingDate = rate.settlementRule.fixingDate(t0)
-          CompoundingPeriod(fixingDate, t0, t1)
-      .toVector
+  val firstFixingAt = schedule.head.fixingAt
+  val lastFixingAt = schedule.last.fixingAt
 
-  val firstFixingDate = schedule.head.fixingDate
-  val lastFixingDate = schedule.last.fixingDate
+  def compoundingFactor(toInclusive: T, fixings: Map[T, Fixing[T]]): Double =
+    schedule.collect:
+      case CompoundingPeriod(fixingAt, startAt, endAt) if fixingAt <= toInclusive =>
+        val fixing = fixings(fixingAt)
+        (1 + startAt.yearFractionTo(endAt) * fixing.value)
+    .product
 
-  def compoundingFactor(toInclusive: T)(using Market[T]): Either[MarketError, Double] =
-    schedule
-      .traverseCollect:
-        case CompoundingPeriod(fixingAt, startAt, endAt) if fixingAt <= toInclusive =>
-          summon[Market[T]].fixings(rate.name).flatMap: fixings =>
-            fixings(fixingAt).map: fixing =>
-              (1 + startAt.yearFractionTo(endAt) * fixing.value)
-      .map(_.product)
+  def fullCompoundingFactor(fixings: Map[T, Fixing[T]]) = compoundingFactor(lastFixingAt, fixings)
 
-  def fullCompoundingFactor(using Market[T]) = compoundingFactor(lastFixingDate)
+  def findObservationIdx(t: T): Int =
+    schedule.searchBy(_.fixingAt)(t) match
+      case Found(i)        => i
+      case InsertionLoc(i) => i - 1
 
-  def forward(using Market[T]): Either[Error, Double] =
-    val market = summon[Market[T]]
-    val t = market.ref
+  def forward(t: T, fixings: Map[T, Fixing[T]]): Either[Error, Double] =
+    Either.raiseWhen(t > lastFixingAt)(
+      Error.Generic(s"$t is after last fixing $lastFixingAt")
+    ).map: _ =>
+      if t < firstFixingAt then
+        1.0 / rate.resetCurve.discount(from, to)
+      else if t == lastFixingAt then fullCompoundingFactor(fixings)
+      else
+        val obsIdx = findObservationIdx(t)
+        val futIdx = obsIdx + 1
+        val f = compoundingFactor(schedule(obsIdx).fixingAt, fixings) /
+          rate.resetCurve.discount(schedule(futIdx).startAt, to)
+        (f - 1.0) / dcf.toDouble
 
-    Either.raiseWhen(t > lastFixingDate)(
-      Error.Generic(s"ref date $t is after last fixing $lastFixingDate")
-    )
-      .flatMap: _ =>
-        market.yieldCurve(rate.resetWith)
-      .flatMap: curve =>
-        if t < firstFixingDate then
-          (1 / curve.discount(from, to)).asRight
-        else if t == lastFixingDate then fullCompoundingFactor
-        else
-          val obsIdx = schedule.searchBy(_.fixingDate)(t) match
-            case Found(i)        => i
-            case InsertionLoc(i) => i - 1
-          val futIdx = obsIdx + 1
-          compoundingFactor(schedule(obsIdx).fixingDate).map:
-            _ / curve.discount(schedule(futIdx).interestStart, to)
-      .map(forwardCompoundingFactor => (forwardCompoundingFactor - 1.0) / dcf.toDouble)
+object CompoundedRate:
+
+  def apply[T: DateLike](
+      from: T,
+      to: T,
+      rate: Libor[T],
+      stub: StubConvention,
+      direction: Direction
+  ): CompoundedRate[T] =
+
+    val schedule: Vector[CompoundingPeriod[T]] =
+      Schedule(from, to, rate.tenor, rate.calendar, rate.bdConvention, stub, direction)
+        .sliding(2)
+        .collect:
+          case Seq(t0, t1) =>
+            val fixingDate = rate.settlementRule.fixingDate(t0)
+            CompoundingPeriod(fixingDate, t0, t1)
+        .toVector
+
+    new CompoundedRate[T](rate, schedule)

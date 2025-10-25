@@ -11,7 +11,7 @@ trait YieldCurve[T]:
 
   def spotRate(t: T): Rate
 
-  def discount(to: T): Double
+  def discount(from: T): Double
 
   def discount(from: T, to: T): Double = discount(to) / discount(from)
 
@@ -40,12 +40,12 @@ object YieldCurve:
       def spotRate(t: T): Rate =
         val yf = ref.yearFractionTo(t)
         interp(yf.toDouble) / yf.toDouble
-      def discount(to: T): Double =
-        val yf = ref.yearFractionTo(to)
+      def discount(from: T): Double =
+        val yf = ref.yearFractionTo(from)
         val rt = interp(yf.toDouble)
         exp(-rt)
 
-  def continousCompounding[T: DateLike](
+  def continuousCompounding[T: DateLike](
       ref: T,
       rate: Rate,
       dayCounter: DayCounter
@@ -53,7 +53,7 @@ object YieldCurve:
     given DayCounter = dayCounter
     new YieldCurve:
       def spotRate(t: T): Rate = rate
-      def discount(to: T): Double = discount(ref, to)
+      def discount(from: T): Double = discount(ref, from)
       override def discount(from: T, to: T): Double =
         val dt = from.yearFractionTo(to)
         exp(-rate * dt)
@@ -61,5 +61,5 @@ object YieldCurve:
   def zero[T]: YieldCurve[T] =
     new YieldCurve[T]:
       def spotRate(t: T): Rate = Rate(0.0)
-      def discount(to: T): Double = 1.0
+      def discount(from: T): Double = 1.0
       override def discount(from: T, to: T): Double = 1.0

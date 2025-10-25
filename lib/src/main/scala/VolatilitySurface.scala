@@ -73,5 +73,5 @@ object VolatilitySurface:
   ): VolatilitySurface[T] = new VolatilitySurface[T]:
     def apply(maturity: T): VolatilitySkew =
       val f = forward(maturity)
-      val strikes = moneynesses.map(f - _)
+      val strikes = moneynesses.map(_ + f)
       VolatilitySkew(strikes.toIndexedSeq, vols.toIndexedSeq)

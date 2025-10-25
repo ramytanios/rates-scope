@@ -1,7 +1,7 @@
 package lib
 
-import lib.quantities.*
 import cats.syntax.all.*
+import lib.quantities.*
 
 trait Calendar[T]:
 

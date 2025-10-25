@@ -12,21 +12,22 @@ class SwapRateSuite extends munit.FunSuite:
 
   test("forward should match expected value"):
 
-    val ref = d"2025-10-21"
+    val t = d"2025-10-21"
+
+    val resetCurve = YieldCurve.continuousCompounding(t, 0.02, DayCounter.Act365)
+    val discountCurve = resetCurve
 
     val floatingRate = new Libor(
-      "floating_rate",
       Currency.EUR,
       Tenor.`3M`,
       2,
       DayCounter.Act360,
       Calendar(),
-      Curve(Currency.EUR, "reset_curve"),
+      resetCurve,
       ModifiedFollowing
     )
 
     val rate = new SwapRate(
-      "swap_rate",
       Tenor.years(5),
       2,
       0,
@@ -37,22 +38,8 @@ class SwapRateSuite extends munit.FunSuite:
       ModifiedFollowing,
       StubConvention.Short,
       Direction.Backward,
-      Curve(Currency.EUR, "discounting_curve")
+      discountCurve
     )
 
-    val yieldCurve = YieldCurve.continousCompounding(ref, 0.02, DayCounter.Act365)
-
-    given Market[LocalDate] = Market(
-      ref,
-      Map(
-        Curve(Currency.EUR, "reset_curve") -> yieldCurve,
-        Curve(Currency.EUR, "discounting_curve") -> yieldCurve
-      ),
-      Map.empty,
-      Map.empty,
-      Map.empty
-    )
-
-    rate.forward.foreach: forward =>
-      val t = Calendar().addBusinessPeriod(ref, Tenor.`1Y`)(using ModifiedFollowing)
-      assertEqualsDouble(forward(t), 0.019924721293744743, 1e-12)
+    val fixingAt = Calendar().addBusinessPeriod(t, Tenor.`1Y`)(using ModifiedFollowing)
+    assertEqualsDouble(rate.forward(fixingAt), 0.019924721293744743, 1e-12)
