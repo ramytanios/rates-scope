@@ -60,6 +60,16 @@ lazy val lib = project.in(file("lib")).settings(
   scalacOptions -= "-Xfatal-warnings"
 )
 
+lazy val entry = project.in(file("entry")).settings(
+  libraryDependencies ++= Seq(
+    "org.typelevel" %% "cats-core" % V.cats,
+    "org.typelevel" %% "literally" % V.literally,
+    "org.apache.commons" % "commons-math3" % V.`commons-math`,
+    "org.scalameta" %% "munit" % V.test % Test
+  ),
+  scalacOptions -= "-Xfatal-warnings"
+).dependsOn(lib)
+
 lazy val frontend = project
   .in(file("frontend"))
   .enablePlugins(ScalaJSPlugin)
