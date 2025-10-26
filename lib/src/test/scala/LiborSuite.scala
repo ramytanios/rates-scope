@@ -20,10 +20,10 @@ class LiborSuite extends munit.FunSuite:
       Tenor.`1D`,
       0,
       DayCounter.Act360,
-      Calendar(),
+      Calendar.all,
       resetCurve,
       ModifiedFollowing
     )
 
-    val fixingAt = Calendar().addBusinessPeriod(t, Tenor.`1Y`)(using ModifiedFollowing)
+    val fixingAt = Calendar.all.addBusinessPeriod(t, Tenor.`1Y`)(using ModifiedFollowing)
     assertEqualsDouble(libor.forward(fixingAt), 0.019726567846252152, 1e-12)

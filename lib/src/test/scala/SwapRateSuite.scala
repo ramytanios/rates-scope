@@ -22,7 +22,7 @@ class SwapRateSuite extends munit.FunSuite:
       Tenor.`3M`,
       2,
       DayCounter.Act360,
-      Calendar(),
+      Calendar.all,
       resetCurve,
       ModifiedFollowing
     )
@@ -34,12 +34,12 @@ class SwapRateSuite extends munit.FunSuite:
       Tenor.`1Y`,
       floatingRate,
       DayCounter.Act360,
-      Calendar(),
+      Calendar.all,
       ModifiedFollowing,
       StubConvention.Short,
       Direction.Backward,
       discountCurve
     )
 
-    val fixingAt = Calendar().addBusinessPeriod(t, Tenor.`1Y`)(using ModifiedFollowing)
+    val fixingAt = Calendar.all.addBusinessPeriod(t, Tenor.`1Y`)(using ModifiedFollowing)
     assertEqualsDouble(rate.forward(fixingAt), 0.019924721293744743, 1e-12)

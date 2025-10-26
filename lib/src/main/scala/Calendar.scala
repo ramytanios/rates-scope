@@ -16,9 +16,7 @@ trait Calendar[T]:
 
 object Calendar:
 
-  def apply[T: DateLike](): Calendar[T] = noHolidays[T]
-
-  def weekends[T: DateLike] = new Calendar[T]:
+  def withWeekends[T: DateLike] = new Calendar[T]:
 
     def isBusinessDay(t: T): Boolean = !DateLike[T].isWeekend(t)
 
@@ -56,7 +54,7 @@ object Calendar:
       if from <= to then DateLike[T].daysBetween(from, to).count(isBusinessDay)
       else -DateLike[T].daysBetween(to, from).count(isBusinessDay)
 
-  def noHolidays[T: DateLike] = new Calendar[T]:
+  def all[T: DateLike] = new Calendar[T]:
 
     def isBusinessDay(t: T): Boolean = true
 

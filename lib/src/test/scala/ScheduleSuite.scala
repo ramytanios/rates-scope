@@ -12,7 +12,7 @@ class ScheduleSuite extends munit.FunSuite:
       d"2025-10-16",
       d"2025-10-26",
       Tenor.`1D`,
-      Calendar.noHolidays,
+      Calendar.all,
       BusinessDayConvention.Following,
       StubConvention.Short,
       Direction.Forward
@@ -29,7 +29,7 @@ class ScheduleSuite extends munit.FunSuite:
         d"2025-10-16",
         d"2025-10-26",
         Tenor.days(3),
-        Calendar.noHolidays,
+        Calendar.all,
         BusinessDayConvention.Following,
         stub,
         Direction.Forward
@@ -46,7 +46,7 @@ class ScheduleSuite extends munit.FunSuite:
         d"2025-10-16",
         d"2025-10-26",
         Tenor.days(3),
-        Calendar.noHolidays,
+        Calendar.all,
         BusinessDayConvention.Following,
         StubConvention.Short,
         direction
@@ -60,7 +60,7 @@ class ScheduleSuite extends munit.FunSuite:
       d"2025-08-29",
       d"2025-09-05",
       Tenor.`1D`,
-      Calendar.weekends,
+      Calendar.withWeekends,
       BusinessDayConvention.Following,
       StubConvention.Long,
       Direction.Forward

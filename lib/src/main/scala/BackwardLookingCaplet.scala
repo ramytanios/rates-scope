@@ -20,7 +20,7 @@ class BackwardLookingCaplet[T: DateLike](
     val stub: StubConvention,
     val direction: Direction
 ):
-  private val noHolidaysCal = Calendar()
+  private val noHolidaysCal = Calendar.all
 
   def price(t: T, cube: VolatilityCube[T], fixings: Map[T, Double]): Either[Error, Double] =
 

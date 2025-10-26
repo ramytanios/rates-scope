@@ -20,7 +20,7 @@ class CapletSuite extends munit.FunSuite with lib.EitherSyntax:
       Tenor.`3M`,
       2,
       Act360,
-      Calendar(),
+      Calendar.all,
       resetCurve,
       BusinessDayConvention.ModifiedFollowing
     )
