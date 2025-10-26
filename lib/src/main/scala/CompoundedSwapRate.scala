@@ -1,9 +1,9 @@
 package lib
 
-import cats.syntax.all.*
 import lib.Schedule.Direction
 import lib.Schedule.StubConvention
 import lib.quantities.Tenor
+import lib.syntax.*
 
 class CompoundedSwapRate[T: DateLike](
     val tenor: Tenor,

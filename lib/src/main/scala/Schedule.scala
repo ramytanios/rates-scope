@@ -17,7 +17,7 @@ object Schedule:
       bdConvention: BusinessDayConvention,
       stub: StubConvention,
       direction: Direction
-  ): Vector[T] =
+  ): IndexedSeq[T] =
 
     require(from < to, s"from date $from must be before $to")
 
@@ -34,10 +34,9 @@ object Schedule:
           else
             loop = false
 
-        if stub == StubConvention.Long then
-          buf.remove(0): Unit
+        if stub == StubConvention.Long then buf.remove(0): Unit
 
-        (from +=: buf).toVector.distinct // TODO: revisit `distinct`
+        (from +=: buf).toIndexedSeq.distinct // TODO: revisit `distinct`
 
       case Direction.Forward =>
         val buf = new ArrayBuffer[T]
@@ -51,10 +50,9 @@ object Schedule:
           else
             loop = false
 
-        if stub == StubConvention.Long then
-          buf.remove(buf.size - 1): Unit
+        if stub == StubConvention.Long then buf.remove(buf.size - 1): Unit
 
-        (buf += to).toVector.distinct // TODO: revisit `distinct`
+        (buf += to).toIndexedSeq.distinct // TODO: revisit `distinct`
 
   enum StubConvention:
     case Short

@@ -46,7 +46,7 @@ class BackwardLookingCaplet[T: DateLike](
         val futLibor = syntheticFutLibor(futRate.from, futRate.to)
         val vol = cube(futLibor.tenor)(futRate.firstFixingAt)(futStrike)
         val dt = t.yearFractionTo(futRate.firstFixingAt) +
-          schedule.indices.init.toList.foldMap(i =>
+          schedule.indices.init.foldMap(i =>
             schedule(i).fixingAt.yearFractionTo(schedule(i + 1).fixingAt) *
               pow(schedule(i + 1).startAt.yearFractionTo(futRate.to).toDouble, 2)
           ) / pow(futRate.from.yearFractionTo(futRate.to).toDouble, 2)

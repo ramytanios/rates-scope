@@ -19,14 +19,13 @@ object Leg:
       businessDayConvention: BusinessDayConvention,
       stub: StubConvention,
       direction: Direction
-  ): Vector[FixedCoupon[T]] =
-    Schedule(from, to, period, calendar, businessDayConvention, stub, direction)
-      .sliding(2)
-      .collect:
-        case Vector(startAt, endAt) =>
-          val paymentAt = calendar.addBusinessDays(endAt, paymentDelay)
-          FixedCoupon(startAt, endAt, paymentAt)
-      .toVector
+  ): IndexedSeq[FixedCoupon[T]] =
+    val schedule = Schedule(from, to, period, calendar, businessDayConvention, stub, direction)
+    schedule.indices.init.map: i =>
+      val startAt = schedule(i)
+      val endAt = schedule(i + 1)
+      val paymentAt = calendar.addBusinessDays(endAt, paymentDelay)
+      FixedCoupon(startAt, endAt, paymentAt)
 
   def floating[T: DateLike](
       from: T,
@@ -38,12 +37,11 @@ object Leg:
       indexSettlementRule: SettlementRule[T],
       stub: StubConvention,
       direction: Direction
-  ): Vector[FloatingCoupon[T]] =
-    Schedule(from, to, period, calendar, businessDayConvention, stub, direction)
-      .sliding(2)
-      .collect:
-        case Vector(startAt, endAt) =>
-          val paymentAt = calendar.addBusinessDays(endAt, paymentDelay)
-          val fixingAt = indexSettlementRule.fixingDate(startAt)
-          FloatingCoupon(fixingAt, startAt, endAt, paymentAt)
-      .toVector
+  ): IndexedSeq[FloatingCoupon[T]] =
+    val schedule = Schedule(from, to, period, calendar, businessDayConvention, stub, direction)
+    schedule.indices.init.map: i =>
+      val startAt = schedule(i)
+      val endAt = schedule(i + 1)
+      val paymentAt = calendar.addBusinessDays(endAt, paymentDelay)
+      val fixingAt = indexSettlementRule.fixingDate(startAt)
+      FloatingCoupon(fixingAt, startAt, endAt, paymentAt)
