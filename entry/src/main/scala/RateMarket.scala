@@ -1,3 +1,0 @@
-package entry
-
-trait RateMarket
