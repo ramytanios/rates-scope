@@ -17,7 +17,7 @@ class CubicSplineSuite extends munit.FunSuite:
       ys <- Rand.normal.listOfN(n).map(_.scanLeft(y0)(_ + _))
     yield Case(xs.toVector, ys.toVector)
 
-  test("should match value at knots"):
+  test("values at knots"):
     randCase
       .view
       .take(10)
@@ -28,10 +28,11 @@ class CubicSplineSuite extends munit.FunSuite:
           (xs zip ys).foreach: (x, y) =>
             assertEqualsDouble(interp(x), y, tol, s"i=$i, x=$x, y=$y")
 
-  test("should be continuous in value, first and second derivatives"):
+  // TODO: to be completed
+  test("value, 1st and 2nd derivatives continuity"):
     ()
 
-  test("should be linear in extrapolation region"):
+  test("linear extrapolation"):
     randCase
       .view
       .take(10)

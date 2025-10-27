@@ -10,7 +10,7 @@ import java.time.LocalDate
 
 class SwapRateSuite extends munit.FunSuite:
 
-  test("forward should match expected value"):
+  test("forward calculation"):
 
     val t = d"2025-10-21"
 

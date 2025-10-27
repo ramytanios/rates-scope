@@ -27,13 +27,13 @@ trait Market[T]:
 
   def t: T
 
-  def rate(name: String): Either[MarketError, data.Underlying[T]]
+  def rate(r: data.Rate): Either[MarketError, data.Underlying[T]]
 
   def yieldCurve(curve: data.Curve): Either[MarketError, data.YieldCurve[T]]
 
   def fixings(rate: String): Either[MarketError, T => Either[MarketError, data.Fixing[T]]]
 
-  def volatilityConventions(currency: Currency, tenor: Tenor): Either[MarketError, Underlying[T]]
+  def volatilityConventions(currency: Currency, tenor: Tenor): Either[MarketError, data.Underlying[T]]
 
   def volSurface(currency: Currency, tenor: Tenor): Either[MarketError, data.VolatilitySurface[T]]
 
@@ -41,17 +41,17 @@ object Market:
 
   def apply[T](
       ref: T,
-      rates: Map[String, data.Underlying[T]],
+      rates: Map[data.Rate, data.Underlying[T]],
       curves: Map[data.Curve, data.YieldCurve[T]],
       fixingsByRate: Map[String, Seq[data.Fixing[T]]],
-      volConventions: Map[Currency, Map[Tenor, Underlying[T]]],
+      volConventions: Map[Currency, Map[Tenor, data.Underlying[T]]],
       volatilities: Map[Currency, data.VolatilityCube[T]]
   ): Market[T] = new Market[T]:
 
     def t: T = ref
 
-    def rate(name: String): Either[MarketError, data.Underlying[T]] =
-      rates.get(name).toRight(MarketError.Rate(name))
+    def rate(r: data.Rate): Either[MarketError, data.Underlying[T]] =
+      rates.get(r).toRight(MarketError.Rate(r.name))
 
     def yieldCurve(curve: data.Curve): Either[MarketError, data.YieldCurve[T]] =
       curves.get(curve).toRight(MarketError.YieldCurve(curve.ccy, curve.name))
@@ -64,7 +64,10 @@ object Market:
           (at: T) =>
             map.get(at).flatMap(_.headOption).toRight(MarketError.FixingAt(rate, at))
 
-    def volatilityConventions(currency: Currency, tenor: Tenor): Either[MarketError, Underlying[T]] =
+    def volatilityConventions(
+        currency: Currency,
+        tenor: Tenor
+    ): Either[MarketError, data.Underlying[T]] =
       volConventions.get(currency)
         .flatMap(_.get(tenor))
         .toRight(MarketError.MarketRate(currency, tenor))

@@ -9,7 +9,7 @@ import java.time.LocalDate
 
 class LiborSuite extends munit.FunSuite:
 
-  test("forward should match expected value"):
+  test("forward calculation"):
 
     val t = d"2025-10-12"
 

@@ -17,7 +17,7 @@ class LinearInterpolationSuite extends munit.FunSuite:
       ys <- Rand.normal.listOfN(n).map(_.scanLeft(y0)(_ + _))
     yield Case(xs.toVector, ys.toVector)
 
-  test("should match value at knots"):
+  test("values at knots"):
     randCase
       .view
       .take(10)
@@ -28,7 +28,7 @@ class LinearInterpolationSuite extends munit.FunSuite:
           (xs zip ys).foreach: (x, y) =>
             assertEqualsDouble(interp(x), y, tol, s"i=$i, x=$x, y=$y")
 
-  test("should linearly extrapolate"):
+  test("linear extrapolation"):
     randCase
       .view
       .take(10)
@@ -48,7 +48,7 @@ class LinearInterpolationSuite extends munit.FunSuite:
           assertEqualsDouble(interp(xl - step), sl * (xl - step) + (yl - sl * xl), tol, s"i=$i")
           assertEqualsDouble(interp(xr + step), sr * (xr + step) + (yr - sr * xr), tol, s"i=$i")
 
-  test("should flat extrapolate"):
+  test("flat extrapolation"):
     randCase
       .view
       .take(10)

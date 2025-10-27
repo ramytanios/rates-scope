@@ -8,7 +8,7 @@ import lib.quantities.Tenor
 
 class CompoundedRateSuite extends munit.FunSuite with lib.EitherSyntax:
 
-  test("forward should match expected value"):
+  test("forward calculation"):
 
     val tol = 1e-12
 

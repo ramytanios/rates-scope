@@ -54,7 +54,7 @@ class ScheduleSuite extends munit.FunSuite:
 
       assertEquals(s.size, 5, s"direction=$direction")
 
-  test("schedule should not contain duplicates"):
+  test("duplicates"):
 
     val s = Schedule(
       d"2025-08-29",
