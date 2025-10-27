@@ -82,6 +82,15 @@ object data:
         optionType: OptionType
     ) extends Payoff[T]
 
+    case class Swaption[T](
+        rate: Rate,
+        fixingAt: T,
+        strike: Double,
+        optionType: OptionType,
+        annuity: Annuity,
+        discountCurve: YieldCurve[T]
+    ) extends Payoff[T]
+
     case class BackwardLookingCaplet[T](
         startAt: T,
         endAt: T,

@@ -29,20 +29,23 @@ class CompoundedSwapRate[T: DateLike](
 
   val resetCurve = floatingRate.resetCurve
 
+  def fixedSchedule(from: T, to: T) =
+    Leg.fixed(
+      from,
+      to,
+      fixedPeriod,
+      calendar,
+      paymentDelay,
+      bdConvention,
+      stub,
+      direction
+    )
+
   def forward: Forward[T] =
     t =>
       val (from, to) = interestPeriod(t)
 
-      val fixed = Leg.fixed(
-        from,
-        to,
-        fixedPeriod,
-        calendar,
-        paymentDelay,
-        bdConvention,
-        stub,
-        direction
-      )
+      val fixed = fixedSchedule(from, to)
 
       // floating leg behaves like a fixed one's schedule
       val floating = Leg.fixed(

@@ -26,20 +26,23 @@ class SwapRate[T: DateLike](
     val endAt = calendar.addBusinessPeriod(startAt, tenor)(using bdConvention)
     startAt -> endAt
 
+  def fixedSchedule(from: T, to: T) =
+    Leg.fixed(
+      from,
+      to,
+      fixedPeriod,
+      calendar,
+      paymentDelay,
+      bdConvention,
+      stub,
+      direction
+    )
+
   def forward: Forward[T] =
     t =>
       val (from, to) = interestPeriod(t)
 
-      val fixed = Leg.fixed(
-        from,
-        to,
-        fixedPeriod,
-        calendar,
-        paymentDelay,
-        bdConvention,
-        stub,
-        direction
-      )
+      val fixed = fixedSchedule(from, to)
 
       val floating = Leg.floating(
         from,
