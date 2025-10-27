@@ -17,7 +17,7 @@ class SwapRate[T: DateLike](
     val stub: StubConvention,
     val direction: Direction,
     val discountCurve: YieldCurve[T]
-) extends Underlying[T]:
+) extends SwapLike[T]:
 
   def currency: Currency = floatingRate.currency
 

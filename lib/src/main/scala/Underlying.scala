@@ -9,3 +9,5 @@ trait Underlying[T]:
   def tenor: Tenor
 
   def forward: Forward[T]
+
+  def interestPeriod(fixingAt: T): (T, T)
