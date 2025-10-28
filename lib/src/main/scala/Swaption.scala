@@ -20,23 +20,23 @@ class Swaption[T: DateLike](
   given DayCounter = rate.fixedDayCounter
 
   def price(t: T, volSurface: VolatilitySurface[T]): Either[Error, Double] =
-    val f = rate.forward(fixingAt)
+    val fwd = rate.forward(fixingAt)
     val vol = volSurface(fixingAt)(strike)
-    val (from, to) = rate.interestPeriod(fixingAt)
-    val fixed = rate.fixedSchedule(from, to)
-    val d = annuity match
-      case Annuity.Physical =>
+    val (swapStartAt, swapEndAt) = rate.interestPeriod(fixingAt)
+    val fixed = rate.fixedSchedule(swapStartAt, swapEndAt)
+    val discount = annuity match
+      case Annuity.Physical => // enter into a real swap contract
         val a = fixed.foldLeft(0.0):
           case (acc, FixedCoupon(startAt, endAt, paymentAt)) =>
             acc + rate.discountCurve.discount(paymentAt) * startAt.yearFractionTo(endAt).toDouble
         val adj = discountCurve.discount(fixingAt) / rate.discountCurve.discount(fixingAt)
         a * adj
-      case Annuity.Cash =>
+      case Annuity.Cash => // replace physical annuity with an approx. cash payment at swap start date
         var cash = 0.0
         for i <- fixed.indices.reverse do
-          val dcf = from.yearFractionTo(fixed(i).from).toDouble
-          val discount = 1.0 / (1.0 + f * dcf)
+          val dcf = swapStartAt.yearFractionTo(fixed(i).from).toDouble
+          val discount = 1.0 / (1.0 + fwd * dcf)
           cash = (dcf + cash) * discount
-        cash
+        cash * discountCurve.discount(swapStartAt)
     val dt = t.yearFractionTo(fixingAt)(using DateLike[T], DayCounter.Act365).toDouble
-    bachelier.price(optionType, f, strike, dt, vol, d).asRight[Error]
+    bachelier.price(optionType, fwd, strike, dt, vol, discount).asRight[Error]
