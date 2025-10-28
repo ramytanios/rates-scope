@@ -23,9 +23,11 @@ object data: // what we receive from the outside world
 
   case class VolMarketConventions[T](rates: Map[Currency, Map[Tenor, Underlying[T]]])
 
+  case class Calendar[T](holidays: Seq[T])
+
   sealed trait Underlying[T]:
 
-    def calendar: Calendar[T]  // TODO: should be data.calendar[T], as a list of holidays ?
+    def calendar: Calendar[T]
 
     def bdConvention: BusinessDayConvention
 
@@ -37,7 +39,7 @@ object data: // what we receive from the outside world
         tenor: Tenor,
         spotLag: Long,
         dayCounter: DayCounter,
-        calendar: Calendar[T],
+        calendar: data.Calendar[T],
         resetCurve: Curve,
         bdConvention: BusinessDayConvention
     ) extends Underlying[T]
@@ -50,7 +52,7 @@ object data: // what we receive from the outside world
         fixedPeriod: Tenor,
         floatingRate: Rate,
         fixedDayCounter: DayCounter,
-        calendar: Calendar[T],
+        calendar: data.Calendar[T],
         bdConvention: BusinessDayConvention,
         stub: StubConvention,
         direction: Direction,
@@ -66,7 +68,7 @@ object data: // what we receive from the outside world
         floatingRate: Rate,
         floatingPeriod: Tenor,
         fixedDayCounter: DayCounter,
-        calendar: Calendar[T],
+        calendar: data.Calendar[T],
         bdConvention: BusinessDayConvention,
         stub: StubConvention,
         direction: Direction,
