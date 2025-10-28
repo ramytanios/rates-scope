@@ -20,7 +20,7 @@ object YieldCurve:
   def apply[T: DateLike](
       ref: T,
       dfs: IndexedSeq[(T, Double)],
-      dayCounter: DayCounter
+      dayCounter: DayCounter = DayCounter.Act365
   ): YieldCurve[T] =
 
     given DayCounter = dayCounter

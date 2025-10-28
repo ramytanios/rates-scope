@@ -5,7 +5,7 @@ import lib.quantities.Tenor
 import lib.Schedule.StubConvention
 import lib.Schedule.Direction
 
-object data:
+object data: // what we received from the outside world
 
   case class Rate(name: String)
 
@@ -27,6 +27,7 @@ object data:
 
     case class Libor[T](
         name: String,
+        currency: Currency,
         tenor: Tenor,
         spotLag: Long,
         dayCounter: DayCounter,
