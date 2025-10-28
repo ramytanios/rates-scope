@@ -5,7 +5,7 @@ import lib.quantities.Tenor
 import lib.Schedule.StubConvention
 import lib.Schedule.Direction
 
-object data: // what we received from the outside world
+object data: // what we receive from the outside world
 
   case class Rate(name: String)
 
@@ -21,7 +21,13 @@ object data: // what we received from the outside world
 
   case class VolatilityCube[T](cube: Map[Tenor, VolatilitySurface[T]])
 
-  sealed trait Underlying[T]
+  case class VolMarketConventions[T](rates: Map[Currency, Map[Tenor, Underlying[T]]])
+
+  sealed trait Underlying[T]:
+
+    def calendar: Calendar[T]  // TODO: should be data.calendar[T], as a list of holidays ?
+
+    def bdConvention: BusinessDayConvention
 
   object Underlying:
 

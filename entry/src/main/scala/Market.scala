@@ -37,6 +37,8 @@ trait Market[T]:
 
   def volSurface(currency: Currency, tenor: Tenor): Either[MarketError, data.VolatilitySurface[T]]
 
+  def volMarketConventions(currency: Currency, tenor: Tenor): Either[MarketError, data.Underlying[T]]
+
 object Market:
 
   def apply[T](
@@ -74,3 +76,8 @@ object Market:
 
     def volSurface(currency: Currency, tenor: Tenor): Either[MarketError, data.VolatilitySurface[T]] =
       volatilities.get(currency).map(_.cube(tenor)).toRight(MarketError.Volatility(currency, tenor))
+
+    def volMarketConventions(
+        currency: Currency,
+        tenor: Tenor
+    ): Either[MarketError, data.Underlying[T]] = ???

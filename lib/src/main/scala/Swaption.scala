@@ -31,6 +31,12 @@ class Swaption[T: DateLike](
             acc + rate.discountCurve.discount(paymentAt) * startAt.yearFractionTo(endAt).toDouble
         val adj = discountCurve.discount(fixingAt) / rate.discountCurve.discount(fixingAt)
         a * adj
-      case Annuity.Cash => throw NotImplementedError()
+      case Annuity.Cash =>
+        var cash = 0.0
+        for i <- fixed.indices.reverse do
+          val dcf = from.yearFractionTo(fixed(i).from).toDouble
+          val discount = 1.0 / (1.0 + f * dcf)
+          cash = (dcf + cash) * discount
+        cash
     val dt = t.yearFractionTo(fixingAt)(using DateLike[T], DayCounter.Act365).toDouble
     bachelier.price(optionType, f, strike, dt, vol, d).asRight[Error]
