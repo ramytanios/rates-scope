@@ -13,7 +13,7 @@ trait Calendar[T: DateLike]:
     Iterator
       .iterate((0, t)): (i, curr) =>
         val next = DateLike[T].plusDays(curr, step)
-        if DateLike[T].isWeekend(curr) then i -> next else i + 1 -> next
+        if !isBusinessDay(curr) then i -> next else i + 1 -> next
       .takeWhile(_(0) <= n)
       .map(_(1))
       .foldLeft(t)((_, t) => t)
@@ -45,10 +45,7 @@ trait Calendar[T: DateLike]:
 object Calendar:
 
   def fromHolidays[T: DateLike](holidays: Seq[T]) = new Calendar[T]:
-    def isBusinessDay(t: T): Boolean = !holidays.contains(t)
-
-  def withWeekends[T: DateLike] = new Calendar[T]:
-    def isBusinessDay(t: T): Boolean = !DateLike[T].isWeekend(t)
+    def isBusinessDay(t: T): Boolean = !holidays.contains(t) && !DateLike[T].isWeekend(t)
 
   def all[T: DateLike] = new Calendar[T]:
     def isBusinessDay(t: T): Boolean = true

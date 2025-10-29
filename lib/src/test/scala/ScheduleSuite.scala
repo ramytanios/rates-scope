@@ -60,7 +60,7 @@ class ScheduleSuite extends munit.FunSuite:
       d"2025-08-29",
       d"2025-09-05",
       Tenor.`1D`,
-      Calendar.withWeekends,
+      Calendar.fromHolidays(Nil),
       BusinessDayConvention.Following,
       StubConvention.Long,
       Direction.Forward

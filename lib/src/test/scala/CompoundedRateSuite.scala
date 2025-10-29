@@ -14,7 +14,7 @@ class CompoundedRateSuite extends munit.FunSuite with lib.EitherSyntax:
 
     val t = d"2025-09-01"
 
-    val calendar = Calendar.withWeekends
+    val calendar = Calendar.fromHolidays(Nil)
 
     val resetCurve = YieldCurve.continuousCompounding(t, 0.05, DayCounter.Act365)
 
