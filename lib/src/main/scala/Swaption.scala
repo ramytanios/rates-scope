@@ -34,7 +34,7 @@ class Swaption[T: DateLike](
       case Annuity.Cash => // replace physical annuity with an approx. cash payment at swap start date
         var cash = 0.0
         for i <- fixed.indices.reverse do
-          val dcf = swapStartAt.yearFractionTo(fixed(i).from).toDouble
+          val dcf = fixed(i).from.yearFractionTo(fixed(i).to).toDouble
           val discount = 1.0 / (1.0 + fwd * dcf)
           cash = (dcf + cash) * discount
         cash * discountCurve.discount(swapStartAt)
