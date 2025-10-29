@@ -1,6 +1,7 @@
 package lib
 
-import lib.BusinessDayConvention.*
+import lib.dtos.*
+import lib.dtos.BusinessDayConvention.*
 import lib.literals.*
 import lib.quantities.Rate
 import lib.quantities.Tenor

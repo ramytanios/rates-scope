@@ -1,9 +1,9 @@
 package entry
 
-import lib.*
+import lib.dtos.Currency
 import lib.quantities.*
 
-enum MarketError(msg: String) extends Error(msg):
+enum MarketError(msg: String) extends lib.Error(msg):
 
   case Rate(name: String)
       extends MarketError(s"missing rate $name")
@@ -17,48 +17,46 @@ enum MarketError(msg: String) extends Error(msg):
   case FixingAt[T](underlying: String, at: T)
       extends MarketError(s"missing fixing of $underlying at $at")
 
-  case MarketRate(currency: Currency, tenor: Tenor)
-      extends MarketError(s"missing market rate of tenor $tenor in currency $currency")
-
   case Volatility(currency: Currency, tenor: Tenor)
       extends MarketError(s"missing vol surface in currency $currency and tenor $tenor")
+
+  case VolatilityConventions(currency: Currency, tenor: Tenor)
+      extends MarketError(s"missing vol conventions in currency $currency and tenor $tenor")
 
 trait Market[T]:
 
   def t: T
 
-  def rate(r: data.Rate): Either[MarketError, data.Underlying[T]]
+  def rate(name: String): Either[MarketError, dtos.Underlying[T]]
 
-  def yieldCurve(curve: data.Curve): Either[MarketError, data.YieldCurve[T]]
+  def yieldCurve(curve: dtos.Curve): Either[MarketError, dtos.YieldCurve[T]]
 
-  def fixings(rate: String): Either[MarketError, T => Either[MarketError, data.Fixing[T]]]
+  def fixings(rate: String): Either[MarketError, T => Either[MarketError, dtos.Fixing[T]]]
 
-  def volatilityConventions(currency: Currency, tenor: Tenor): Either[MarketError, data.Underlying[T]]
+  def volatilityConventions(currency: Currency, tenor: Tenor): Either[MarketError, dtos.Underlying[T]]
 
-  def volSurface(currency: Currency, tenor: Tenor): Either[MarketError, data.VolatilitySurface[T]]
-
-  def volMarketConventions(currency: Currency, tenor: Tenor): Either[MarketError, data.Underlying[T]]
+  def volSurface(currency: Currency, tenor: Tenor): Either[MarketError, dtos.VolatilitySurface[T]]
 
 object Market:
 
   def apply[T](
       ref: T,
-      rates: Map[data.Rate, data.Underlying[T]],
-      curves: Map[data.Curve, data.YieldCurve[T]],
-      fixingsByRate: Map[String, Seq[data.Fixing[T]]],
-      volConventions: Map[Currency, Map[Tenor, data.Underlying[T]]],
-      volatilities: Map[Currency, data.VolatilityCube[T]]
+      rates: Map[String, dtos.Underlying[T]],
+      curves: Map[dtos.Curve, dtos.YieldCurve[T]],
+      fixingsByRate: Map[String, Seq[dtos.Fixing[T]]],
+      volConventions: Map[Currency, Map[Tenor, dtos.Underlying[T]]],
+      volatilities: Map[Currency, dtos.VolatilityCube[T]]
   ): Market[T] = new Market[T]:
 
     def t: T = ref
 
-    def rate(r: data.Rate): Either[MarketError, data.Underlying[T]] =
-      rates.get(r).toRight(MarketError.Rate(r.name))
+    def rate(name: String): Either[MarketError, dtos.Underlying[T]] =
+      rates.get(name).toRight(MarketError.Rate(name))
 
-    def yieldCurve(curve: data.Curve): Either[MarketError, data.YieldCurve[T]] =
+    def yieldCurve(curve: dtos.Curve): Either[MarketError, dtos.YieldCurve[T]] =
       curves.get(curve).toRight(MarketError.YieldCurve(curve.ccy, curve.name))
 
-    def fixings(rate: String): Either[MarketError, T => Either[MarketError, data.Fixing[T]]] =
+    def fixings(rate: String): Either[MarketError, T => Either[MarketError, dtos.Fixing[T]]] =
       fixingsByRate.get(rate)
         .toRight(MarketError.FixingOf(rate))
         .map: fixings =>
@@ -69,15 +67,14 @@ object Market:
     def volatilityConventions(
         currency: Currency,
         tenor: Tenor
-    ): Either[MarketError, data.Underlying[T]] =
-      volConventions.get(currency)
-        .flatMap(_.get(tenor))
-        .toRight(MarketError.MarketRate(currency, tenor))
+    ): Either[MarketError, dtos.Underlying[T]] =
+      volConventions.get(currency).flatMap(_.get(tenor)).toRight(MarketError.VolatilityConventions(
+        currency,
+        tenor
+      ))
 
-    def volSurface(currency: Currency, tenor: Tenor): Either[MarketError, data.VolatilitySurface[T]] =
-      volatilities.get(currency).map(_.cube(tenor)).toRight(MarketError.Volatility(currency, tenor))
-
-    def volMarketConventions(
-        currency: Currency,
-        tenor: Tenor
-    ): Either[MarketError, data.Underlying[T]] = ???
+    def volSurface(currency: Currency, tenor: Tenor): Either[MarketError, dtos.VolatilitySurface[T]] =
+      volatilities.get(currency).map(_.cube(tenor.toPeriod)).toRight(MarketError.Volatility(
+        currency,
+        tenor
+      ))

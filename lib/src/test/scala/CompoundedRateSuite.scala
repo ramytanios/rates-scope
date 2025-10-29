@@ -1,7 +1,8 @@
 package lib
 
-import lib.BusinessDayConvention.*
 import lib.DayCounter.Act360
+import lib.dtos.*
+import lib.dtos.BusinessDayConvention.*
 import lib.literals.*
 import lib.quantities.Rate
 import lib.quantities.Tenor
@@ -20,9 +21,9 @@ class CompoundedRateSuite extends munit.FunSuite with lib.EitherSyntax:
 
     val dailyRate = new Libor(Currency.USD, Tenor.`1D`, 0, Act360, calendar, resetCurve, Following)
 
-    val stub = Schedule.StubConvention.Long
+    val stub = StubConvention.Long
 
-    val direction = Schedule.Direction.Forward
+    val direction = Direction.Forward
 
     val fixings = Map(
       d"2025-08-26" -> 0.05,

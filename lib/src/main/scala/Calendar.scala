@@ -1,7 +1,8 @@
 package lib
 
 import cats.syntax.all.*
-import lib.BusinessDayConvention.*
+import lib.dtos.BusinessDayConvention
+import lib.dtos.BusinessDayConvention.*
 import lib.quantities.*
 
 trait Calendar[T: DateLike]:

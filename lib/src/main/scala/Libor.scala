@@ -1,5 +1,6 @@
 package lib
 
+import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
 

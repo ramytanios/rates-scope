@@ -1,10 +1,12 @@
-package lib
+package lib 
+package dtos 
 
 enum Currency:
   case AUD
   case BRL
   case CHF
   case CNY
+  case USD
   case EUR
   case GBP
   case HUF
@@ -19,4 +21,3 @@ enum Currency:
   case SGD
   case TRY
   case TWD
-  case USD

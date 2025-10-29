@@ -1,5 +1,6 @@
 package lib
 
+import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.given
 
@@ -53,11 +54,3 @@ object Schedule:
         if stub == StubConvention.Long then buf.remove(buf.size - 1): Unit
 
         (buf += to).toIndexedSeq.distinct // TODO: revisit `distinct`
-
-  enum StubConvention:
-    case Short
-    case Long
-
-  enum Direction:
-    case Backward
-    case Forward

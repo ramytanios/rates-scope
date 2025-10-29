@@ -1,6 +1,6 @@
 package lib
 
-import lib.Schedule.*
+import lib.dtos.*
 import lib.literals.*
 import lib.quantities.Tenor
 

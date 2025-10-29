@@ -1,8 +1,9 @@
 package lib
 
+import lib.dtos.BusinessDayConvention
+import lib.dtos.BusinessDayConvention.*
 import lib.literals.*
 import lib.quantities.Tenor
-import lib.BusinessDayConvention.*
 
 class CalendarSuite extends munit.FunSuite:
 

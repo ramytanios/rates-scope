@@ -1,8 +1,7 @@
 package lib
 
 import cats.syntax.all.*
-import lib.Schedule.Direction
-import lib.Schedule.StubConvention
+import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.{ *, given }
 import lib.utils.BinarySearch.Found

@@ -1,7 +1,6 @@
 package lib
 
-import lib.Schedule.Direction
-import lib.Schedule.StubConvention
+import lib.dtos.*
 import lib.quantities.Tenor
 import lib.syntax.*
 

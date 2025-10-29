@@ -1,8 +1,7 @@
 package lib
 
-import lib.BusinessDayConvention.*
-import lib.Schedule.Direction
-import lib.Schedule.StubConvention
+import lib.dtos.*
+import lib.dtos.BusinessDayConvention.*
 import lib.literals.*
 import lib.quantities.Tenor
 
