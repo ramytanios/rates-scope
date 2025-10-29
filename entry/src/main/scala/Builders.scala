@@ -7,7 +7,7 @@ import lib.VolatilitySurface
 import lib.YieldCurve
 import dtos.Calendar
 
-class Builders[T: lib.DateLike](market: Market[T]):
+class Builder[T: lib.DateLike](market: Market[T]):
 
   def yieldCurve(curve: dtos.Curve): Either[MarketError, YieldCurve[T]] =
     market.yieldCurve(curve).map: c =>
