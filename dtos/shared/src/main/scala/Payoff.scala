@@ -1,5 +1,7 @@
 package dtos
 
+import lib.dtos.*
+
 sealed trait Payoff[T]
 
 object Payoff:
@@ -10,18 +12,18 @@ object Payoff:
       startAt: T,
       endAt: T,
       paymentAt: T,
-      paymentCurrency: lib.dtos.Currency,
+      paymentCurrency: Currency,
       strike: Double,
       discountCurve: Curve,
-      optionType: lib.dtos.OptionType
+      optionType: OptionType
   ) extends Payoff[T]
 
   case class Swaption[T](
       rate: String,
       fixingAt: T,
       strike: Double,
-      optionType: lib.dtos.OptionType,
-      annuity: lib.dtos.Annuity,
+      optionType: OptionType,
+      annuity: Annuity,
       discountCurve: Curve
   ) extends Payoff[T]
 
@@ -29,11 +31,11 @@ object Payoff:
       startAt: T,
       endAt: T,
       rate: String,
-      paymentCurrency: lib.dtos.Currency,
+      paymentCurrency: Currency,
       paymentAt: T,
       strike: Double,
-      optionType: lib.dtos.OptionType,
+      optionType: OptionType,
       discountCurve: Curve,
-      stub: lib.dtos.StubConvention,
-      direction: lib.dtos.Direction
+      stub: StubConvention,
+      direction: Direction
   ) extends Payoff[T]
