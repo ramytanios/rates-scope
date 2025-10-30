@@ -22,7 +22,7 @@ object Payoff:
       strike: Double,
       optionType: lib.dtos.OptionType,
       annuity: lib.dtos.Annuity,
-      discountCurve: YieldCurve[T]
+      discountCurve: Curve,
   ) extends Payoff[T]
 
   case class BackwardLookingCaplet[T](
@@ -36,4 +36,4 @@ object Payoff:
       discountCurve: Curve,
       stub: lib.dtos.StubConvention,
       direction: lib.dtos.Direction
-  )
+  ) extends Payoff[T]

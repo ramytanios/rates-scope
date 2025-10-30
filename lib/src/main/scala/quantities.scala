@@ -51,7 +51,7 @@ object quantities:
   opaque type Tenor = Period
 
   object Tenor:
-    def apply(t: Tenor): Period = t
+    def apply(t: Period): Tenor = t
 
     val `1D`: Tenor = Period.ofDays(1)
     val `3M`: Tenor = Period.ofMonths(3)
@@ -63,12 +63,24 @@ object quantities:
     def months(n: Int) = Period.ofMonths(n)
     def years(n: Int) = Period.ofYears(n)
 
+    enum Unit:
+      case Day, Week, Month, Year
+
+    def getUnit(t: Tenor): Unit =
+      if t.getYears != 0 && t.getMonths == 0 && t.getDays == 0 then Unit.Year
+      else if t.getYears == 0 && t.getMonths != 0 && t.getDays == 0 then Unit.Month
+      else if t.getYears == 0 && t.getMonths == 0 && t.getDays != 0 && t.getDays % 7 == 0 then
+        Unit.Week
+      else if t.getYears == 0 && t.getMonths == 0 && t.getDays != 0 then Unit.Day
+      else throw RuntimeException("Unable to infer unit")
+
     extension (t: Tenor)
       def toPeriod: Period = t
       def unary_- : Tenor = t.multipliedBy(-1)
       def *(factor: Int): Tenor = t.multipliedBy(factor)
       def days: Int = t.getDays
       def toYearFraction: YearFraction = t.getDays / 365.0
+      def unit: Unit = getUnit(t)
 
     given Ordering[Tenor] = Ordering.by(_.toYearFraction)
 

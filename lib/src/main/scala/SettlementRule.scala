@@ -8,7 +8,7 @@ trait SettlementRule[T]:
 
 object SettlementRule:
 
-  def simpleRule[T](spotLag: Long)(using cal: Calendar[T]): SettlementRule[T] =
+  def simpleRule[T](spotLag: Int)(using cal: Calendar[T]): SettlementRule[T] =
     new SettlementRule:
       def calendar: Calendar[T] = cal
       def fixingDate(of: T): T = calendar.addBusinessDays(of, -spotLag)
