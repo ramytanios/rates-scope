@@ -5,8 +5,8 @@ import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
 
-import scala.math.pow
 import scala.math.max
+import scala.math.pow
 
 class BackwardLookingCaplet[T: DateLike](
     val startAt: T,
