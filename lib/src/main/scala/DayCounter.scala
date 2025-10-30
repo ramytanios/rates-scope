@@ -5,7 +5,7 @@ import lib.quantities.*
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-trait DayCounter:
+sealed trait DayCounter:
 
   def daysBetween(from: LocalDate, to: LocalDate): Long
 

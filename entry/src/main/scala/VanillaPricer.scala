@@ -1,93 +1,38 @@
 package entry
 
 import cats.syntax.all.*
-import entry.data.Payoff.*
-import entry.data.Underlying.*
 
 class VanillaPricer[T: lib.DateLike](val market: Market[T]):
 
-  def price(payoff: data.Payoff[T]): Either[lib.Error, Double] =
+  val builder = new Builder(market)
+
+  import builder.*
+
+  def price(payoff: dtos.Payoff[T]): Either[lib.Error, Double] =
     payoff match
-      case Caplet(
-            rate,
-            fixingAt,
-            startAt,
-            endAt,
-            paymentAt,
-            paymentCurrency,
-            strike,
-            discountCurve,
-            optionType
-          ) =>
-        market.rate(rate).flatMap: _underlying =>
-          market.yieldCurve(discountCurve).flatMap: _discountCurve =>
-            val yieldCurve = lib.YieldCurve(market.t, _discountCurve.discounts.toIndexedSeq)
-            _underlying match
-              case Libor(
-                    name,
-                    currency,
-                    tenor,
-                    spotLag,
-                    dayCounter,
-                    calendar,
-                    resetCurve,
-                    bdConvention
-                  ) =>
-                market.yieldCurve(resetCurve).map: _resetCurve =>
-                  val resetCurve = lib.YieldCurve(market.t, _resetCurve.discounts.toIndexedSeq)
-                  val libor = new lib.Libor[T](
-                    currency,
-                    tenor,
-                    spotLag,
-                    dayCounter,
-                    calendar,
-                    resetCurve,
-                    bdConvention
-                  )
-                  new lib.Caplet[T](
-                    libor,
-                    fixingAt,
-                    startAt,
-                    endAt,
-                    paymentAt,
-                    paymentCurrency,
-                    strike,
-                    yieldCurve,
-                    optionType
-                  )
-                .flatMap: caplet =>
-                  market.volSurface(caplet.rate.currency, caplet.rate.tenor).flatMap: _volSurface =>
-                    _volSurface.surface.toList.traverse: (tenor, skew) =>
-                      val (ks, vs) = skew.skew.unzip
-                      market.volMarketConventions(caplet.rate.currency, tenor).map: udl =>
-                        val mat =
-                          udl.calendar.addBusinessPeriod(market.t, tenor)(using udl.bdConvention)
-                        mat -> lib.Lazy(lib.VolatilitySkew(ks.toIndexedSeq, vs.toIndexedSeq))
-                    .flatMap: data =>
-                      val volSurface =
-                        lib.VolatilitySurface(market.t, caplet.rate.forward, data.toIndexedSeq)
-                      caplet.price(market.t, volSurface)
+      case _caplet: dtos.Payoff.Caplet[T] =>
+        for
+          caplet <- buildCaplet(_caplet)
+          rate <- caplet.rate.asRight
+          marketRate <- buildMarketRate(rate.currency, rate.tenor)
+          volSurface <- buildVolSurface(caplet.paymentCurrency, rate.tenor, marketRate.forward)
+          price <- caplet.price(market.t, volSurface)
+        yield price
 
-              case other => lib.Error.Generic(s"invalid underlying $other").asLeft[Double]
+      case _swaption: dtos.Payoff.Swaption[T] =>
+        for
+          swaption <- buildSwaption(_swaption)
+          rate <- swaption.rate.asRight
+          marketRate <- buildMarketRate(rate.currency, rate.tenor)
+          volSurface <- buildVolSurface(rate.currency, rate.tenor, marketRate.forward)
+          price <- swaption.price(market.t, volSurface)
+        yield price
 
-      case Swaption(
-            rate,
-            fixingAt,
-            strike,
-            optionType,
-            annuity,
-            discountCurve
-          ) => throw NotImplementedError()
-
-      case BackwardLookingCaplet(
-            startAt,
-            endAt,
-            rate,
-            paymentCurrency,
-            paymentAt,
-            strike,
-            optionType,
-            discountCurve,
-            stub,
-            direction
-          ) => throw NotImplementedError()
+      case _caplet: dtos.Payoff.BackwardLookingCaplet[T] =>
+        for
+          caplet <- buildBackwardLookingCaplet(_caplet)
+          rate <- caplet.rate.asRight
+          volCube <- buildVolCube(caplet.rate.currency)
+          fixings <- buildFixings(_caplet.rate)
+          price <- caplet.price(market.t, volCube, fixings)
+        yield price

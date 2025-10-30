@@ -1,12 +1,9 @@
 package lib
 
 import cats.syntax.all.*
-import lib.*
+import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
-
-enum Annuity:
-  case Physical, Cash
 
 class Swaption[T: DateLike](
     val rate: SwapLike[T],

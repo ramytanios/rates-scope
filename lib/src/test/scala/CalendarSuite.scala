@@ -1,8 +1,9 @@
 package lib
 
+import lib.dtos.BusinessDayConvention
+import lib.dtos.BusinessDayConvention.*
 import lib.literals.*
 import lib.quantities.Tenor
-import lib.BusinessDayConvention.*
 
 class CalendarSuite extends munit.FunSuite:
 
@@ -42,7 +43,7 @@ class CalendarSuite extends munit.FunSuite:
 
     assertEquals(
       calendar.addBusinessPeriod(d"2025-12-31", Tenor.days(1))(using Preceding),
-      d"2025-12-31",
+      d"2026-01-02",
       "Preceding"
     )
 

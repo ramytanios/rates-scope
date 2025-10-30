@@ -1,12 +1,12 @@
 package lib
 
 import cats.syntax.all.*
-import lib.Schedule.Direction
-import lib.Schedule.StubConvention
+import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
 
 import scala.math.pow
+import scala.math.max
 
 class BackwardLookingCaplet[T: DateLike](
     val startAt: T,
@@ -70,7 +70,7 @@ class BackwardLookingCaplet[T: DateLike](
               else if t >= fullRate.lastFixingAt && t < paymentAt then
                 val fullRateValue = (fullRate.fullCompoundingFactor(fixings) - 1) / fullDcf.toDouble
                 Right:
-                  fullDcf * discount * optionType.intrinsic(fullRateValue, strike)
+                  fullDcf * discount * max(optionType.sign * (fullRateValue - strike), 0.0)
               else
                 val obsIdx = fullRate.findObservationIdx(t)
                 val futIdx = obsIdx + 1

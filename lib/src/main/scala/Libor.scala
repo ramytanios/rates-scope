@@ -1,12 +1,13 @@
 package lib
 
+import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
 
 class Libor[T: DateLike](
     val currency: Currency,
     val tenor: Tenor,
-    val spotLag: Long,
+    val spotLag: Int,
     val dayCounter: DayCounter,
     val calendar: Calendar[T],
     val resetCurve: YieldCurve[T],

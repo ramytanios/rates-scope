@@ -1,5 +1,7 @@
 package lib
 
+import lib.dtos.*
+
 import scala.math.*
 
 object bachelier:

@@ -48,6 +48,20 @@ lazy val dtos = crossProject(JSPlatform, JVMPlatform)
         "io.circe" %% "circe-parser" % V.circe
       ),
     scalacOptions -= "-Xfatal-warnings"
+  ).dependsOn(`lib-dtos`)
+
+lazy val `lib-dtos` = crossProject(JSPlatform, JVMPlatform)
+  .in(file("lib-dtos"))
+  .settings(
+    scalacOptions -= "-Xfatal-warnings",
+    libraryDependencies ++=
+      Seq(
+        "io.circe" %% "circe-core" % V.circe,
+        "io.circe" %% "circe-generic" % V.circe,
+        "io.circe" %% "circe-literal" % V.circe,
+        "io.circe" %% "circe-parser" % V.circe
+      ),
+    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val lib = project.in(file("lib")).settings(
@@ -58,7 +72,7 @@ lazy val lib = project.in(file("lib")).settings(
     "org.scalameta" %% "munit" % V.test % Test
   ),
   scalacOptions -= "-Xfatal-warnings"
-)
+).dependsOn(`lib-dtos`.jvm)
 
 lazy val entry = project.in(file("entry")).settings(
   libraryDependencies ++= Seq(
@@ -68,7 +82,7 @@ lazy val entry = project.in(file("entry")).settings(
     "org.scalameta" %% "munit" % V.test % Test
   ),
   scalacOptions -= "-Xfatal-warnings"
-).dependsOn(lib)
+).dependsOn(dtos.jvm, `lib-dtos`.jvm, lib)
 
 lazy val frontend = project
   .in(file("frontend"))

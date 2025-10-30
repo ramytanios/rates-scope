@@ -12,15 +12,13 @@ trait DateLike[T] extends Order[T]:
   final def yearFraction(from: T, to: T)(using DayCounter): YearFraction =
     summon[DayCounter].yearFraction(toLocalDate(from), toLocalDate(to))
 
-  // convenience for day count fractions calculations
-  // TODO To be revisited
   def toLocalDate(t: T): LocalDate
 
   def plusPeriod(t: T, period: Tenor): T
 
   def plusDays(t: T, days: Long): T
 
-  def daysBetween(from: T, to: T): Seq[T]
+  def daysBetween(t0: T, t1: T): Seq[T]
 
   def isWeekend(t: T): Boolean
 
@@ -60,6 +58,11 @@ object DateLike:
     extension [T: DateLike](t: T)
       def yearFractionTo(to: T)(using DayCounter) = DateLike[T].yearFraction(t, to)
       def yearFractionFrom(from: T)(using DayCounter) = DateLike[T].yearFraction(from, t)
+      def +(days: Int): T = DateLike[T].plusDays(t, days)
+      def -(days: Int): T = DateLike[T].plusDays(t, -days)
+      def +(tenor: Tenor): T = DateLike[T].plusPeriod(t, tenor)
       def -(other: T) = if DateLike[T].compare(t, other) <= 0 then
         DateLike[T].daysBetween(t, other).size
       else -DateLike[T].daysBetween(other, t).size
+      def daysTo(to: T) = DateLike[T].daysBetween(t, to)
+      def isWeekend = DateLike[T].isWeekend(t)
