@@ -18,10 +18,10 @@ enum MarketError(msg: String) extends lib.Error(msg):
   case FixingAt[T](underlying: String, at: T)
       extends MarketError(s"missing fixing of $underlying at $at")
 
-  case VolCube(currency: Currency)
+  case VolatilityCube(currency: Currency)
       extends MarketError(s"missing vol cube of currency $currency")
 
-  case Volatility(currency: Currency, tenor: Tenor)
+  case VolatilitySurface(currency: Currency, tenor: Tenor)
       extends MarketError(s"missing vol surface in currency $currency and tenor $tenor")
 
   case VolatilityConventions(currency: Currency, tenor: Tenor)
@@ -73,8 +73,8 @@ object Market:
         .toRight(MarketError.VolatilityConventions(currency, tenor))
 
     def volCube(currency: Currency): Either[MarketError, dtos.VolatilityCube[T]] =
-      volatilities.get(currency).toRight(MarketError.VolCube(currency))
+      volatilities.get(currency).toRight(MarketError.VolatilityCube(currency))
 
     def volSurface(currency: Currency, tenor: Tenor): Either[MarketError, dtos.VolatilitySurface[T]] =
       volatilities.get(currency).map(_.cube(tenor.toPeriod))
-        .toRight(MarketError.Volatility(currency, tenor))
+        .toRight(MarketError.VolatilitySurface(currency, tenor))

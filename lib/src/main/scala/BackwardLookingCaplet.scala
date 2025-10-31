@@ -1,6 +1,5 @@
 package lib
 
-import cats.syntax.all.*
 import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
