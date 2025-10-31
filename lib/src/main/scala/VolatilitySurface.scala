@@ -3,8 +3,6 @@ package lib
 import lib.syntax.{ *, given }
 import lib.utils.BinarySearch
 
-import scala.math.Ordering.Implicits.*
-
 import math.sqrt
 
 trait VolatilitySurface[T]:

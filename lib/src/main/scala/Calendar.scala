@@ -1,6 +1,5 @@
 package lib
 
-import cats.syntax.all.*
 import lib.dtos.BusinessDayConvention
 import lib.dtos.BusinessDayConvention.*
 import lib.quantities.*
@@ -14,7 +13,7 @@ trait Calendar[T: DateLike]:
     val step = math.signum(days)
     var curr = t
     var n = 0
-    while n < days do
+    while n < days.abs do
       val next = curr + step
       curr = next
       if isBusinessDay(next) then

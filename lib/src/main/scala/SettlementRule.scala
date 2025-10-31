@@ -1,7 +1,7 @@
 package lib
 
-import lib.syntax.*
 import lib.dtos.BusinessDayConvention.*
+import lib.syntax.*
 
 trait SettlementRule[T]:
 

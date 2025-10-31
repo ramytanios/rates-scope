@@ -42,5 +42,5 @@ object Leg:
       val startAt = schedule(i)
       val endAt = schedule(i + 1)
       val paymentAt = calendar.addBusinessDays(endAt, paymentDelay)
-      val fixingAt = indexSettlementRule.fixingDate(startAt)
+      val fixingAt = indexSettlementRule.fixingAt(startAt)
       FloatingCoupon(fixingAt, startAt, endAt, paymentAt)

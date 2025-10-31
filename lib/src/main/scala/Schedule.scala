@@ -6,7 +6,6 @@ import lib.syntax.given
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ArrayDeque
-import scala.math.Ordering.Implicits.*
 
 object Schedule:
 

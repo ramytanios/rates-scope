@@ -1,7 +1,8 @@
 package dtos
 
-import java.time.Period
 import lib.dtos.*
+
+import java.time.Period
 
 case class VolatiltySkew(skew: Seq[(Double, Double)])
 

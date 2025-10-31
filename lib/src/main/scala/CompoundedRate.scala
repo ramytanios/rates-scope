@@ -1,6 +1,5 @@
 package lib
 
-import cats.syntax.all.*
 import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.{ *, given }
@@ -72,7 +71,7 @@ object CompoundedRate:
         .sliding(2)
         .collect:
           case Seq(t0, t1) =>
-            val fixingDate = rate.settlementRule.fixingDate(t0)
+            val fixingDate = rate.settlementRule.fixingAt(t0)
             CompoundingPeriod(fixingDate, t0, t1)
         .toVector
 

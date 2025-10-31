@@ -16,7 +16,7 @@ class Libor[T: DateLike](
 
   given DayCounter = dayCounter
 
-  val settlementRule = SettlementRule.simpleRule(spotLag)(using calendar)
+  val settlementRule = SettlementRule.simpleRule(spotLag, calendar)
 
   def interestPeriod(from: T) =
     val start = calendar.addBusinessDays(from, spotLag)

@@ -67,7 +67,8 @@ object quantities:
       case Day, Week, Month, Year
 
     def getUnit(t: Tenor): Unit =
-      if t.getYears != 0 && t.getMonths == 0 && t.getDays == 0 then Unit.Year
+      if t.getYears == 0 && t.getMonths == 0 && t.getDays == 0 then Unit.Day
+      else if t.getYears != 0 && t.getMonths == 0 && t.getDays == 0 then Unit.Year
       else if t.getYears == 0 && t.getMonths != 0 && t.getDays == 0 then Unit.Month
       else if t.getYears == 0 && t.getMonths == 0 && t.getDays != 0 && t.getDays % 7 == 0 then
         Unit.Week
