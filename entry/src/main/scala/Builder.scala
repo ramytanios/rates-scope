@@ -1,19 +1,18 @@
 package entry
 
 import cats.syntax.all.*
-import lib.BackwardLookingCaplet
-import lib.Underlying
-import lib.VolatilitySurface
-import lib.YieldCurve
 import lib.dtos.*
-import lib.quantities.Tenor
+import lib.quantities.*
 
 // TODO work on nomenclature of variables
 class Builder[T: lib.DateLike](market: Market[T]):
 
-  def buildYieldCurve(curve: dtos.Curve): Either[MarketError, YieldCurve[T]] =
-    market.yieldCurve(curve).map: c =>
-      lib.YieldCurve(market.t, c.discounts.toIndexedSeq)
+  def buildYieldCurve(curve: dtos.Curve): Either[MarketError, lib.YieldCurve[T]] =
+    market.yieldCurve(curve).map:
+      case dtos.YieldCurve.Discounts(discounts) =>
+        lib.YieldCurve(market.t, discounts.toIndexedSeq)
+      case dtos.YieldCurve.ContinuousCompounding(rate) =>
+        lib.YieldCurve.continuousCompounding(market.t, rate)
 
   def buildCalendar(cal: dtos.Calendar[T]): lib.Calendar[T] =
     lib.Calendar.fromHolidays(cal.holidays)
@@ -27,17 +26,16 @@ class Builder[T: lib.DateLike](market: Market[T]):
   def buildVolSurface(
       currency: Currency,
       tenor: lib.quantities.Tenor
-  ): Either[lib.Error, VolatilitySurface[T]] =
+  ): Either[lib.Error, lib.VolatilitySurface[T]] =
     market.volSurface(currency, tenor).flatMap: surf =>
-      surf.surface.toList.traverse: (_tenor, _skew) =>
-        val (ks, vs) = _skew.skew.unzip
-        market.volatilityConventions(currency, _tenor).map: udl =>
-          val (cal, bdConvention) = udl match
-            case l: dtos.Underlying.Libor[T]              => l.calendar -> l.bdConvention
-            case s: dtos.Underlying.SwapRate[T]           => s.calendar -> s.bdConvention
-            case s: dtos.Underlying.CompoundedSwapRate[T] => s.calendar -> s.bdConvention
-          val mat = buildCalendar(cal).addBusinessPeriod(market.t, _tenor)(using bdConvention)
-          mat -> lib.Lazy(lib.VolatilitySkew(ks.toIndexedSeq, vs.toIndexedSeq))
+      surf.surface.toList.traverse:
+        case (expTenor, dtos.VolatiltySkew(skew)) =>
+          val (ms, vs) = skew.unzip
+          buildMarketRate(currency, tenor).map: rate =>
+            val expiry = rate.calendar.addBusinessPeriod(market.t, expTenor)(using rate.bdConvention)
+            val forward = rate.forward(expiry)
+            val ks = ms.map(forward + _)
+            expiry -> lib.Lazy(lib.VolatilitySkew(ks.toIndexedSeq, vs.toIndexedSeq))
       .flatMap: data =>
         buildMarketRate(currency, tenor).map: marketRate =>
           lib.VolatilitySurface(market.t, marketRate.forward, data.toIndexedSeq)
@@ -53,7 +51,7 @@ class Builder[T: lib.DateLike](market: Market[T]):
       (surfaces, forwards).tupled.map: (surfaces, forwards) =>
         lib.VolatilityCube[T](surfaces, forwards)
 
-  def buildMarketRate(currency: Currency, tenor: Tenor): Either[lib.Error, Underlying[T]] =
+  def buildMarketRate(currency: Currency, tenor: Tenor): Either[lib.Error, lib.Underlying[T]] =
     market.volatilityConventions(currency, tenor).flatMap:
       case libor: dtos.Underlying.Libor[T]             => buildLibor(libor.name)
       case swap: dtos.Underlying.SwapRate[T]           => buildSwapRate(swap.name)
@@ -145,7 +143,7 @@ class Builder[T: lib.DateLike](market: Market[T]):
           )
 
   def buildBackwardLookingCaplet(caplet: dtos.Payoff.BackwardLookingCaplet[T])
-      : Either[lib.Error, BackwardLookingCaplet[T]] =
+      : Either[lib.Error, lib.BackwardLookingCaplet[T]] =
     buildLibor(caplet.rate).flatMap: libor =>
       buildYieldCurve(caplet.discountCurve).map: discountCurve =>
         new lib.BackwardLookingCaplet[T](

@@ -44,7 +44,7 @@ object VolatilitySurface:
                 w * skewR(forward(tR) - m) * dtR
             )
 
-        if t < tMin then
+        if t < tMin || skews.size == 1 then
           skews.head(1).value(forward(tMin) - m)
         else if t > tMax then
           interpolateBetween(

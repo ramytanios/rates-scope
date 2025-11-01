@@ -11,4 +11,8 @@ trait Underlying[T]:
 
   def forward: Forward[T]
 
+  def bdConvention: BusinessDayConvention 
+
+  def calendar: Calendar[T]
+
   def interestPeriod(fixingAt: T): (T, T)

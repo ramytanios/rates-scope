@@ -1,3 +1,9 @@
 package dtos
 
-case class YieldCurve[T](discounts: Seq[(T, Double)])
+trait YieldCurve[T]
+
+object YieldCurve:
+
+  case class Discounts[T](discounts: Seq[(T, Double)]) extends YieldCurve[T]
+
+  case class ContinuousCompounding[T](rate: Double) extends YieldCurve[T]

@@ -47,7 +47,7 @@ object YieldCurve:
   def continuousCompounding[T: DateLike](
       ref: T,
       rate: Rate,
-      dayCounter: DayCounter
+      dayCounter: DayCounter = DayCounter.Act365
   ): YieldCurve[T] =
     given DayCounter = dayCounter
     new YieldCurve:
