@@ -11,7 +11,7 @@ trait Underlying[T]:
 
   def forward: Forward[T]
 
-  def bdConvention: BusinessDayConvention 
+  def bdConvention: BusinessDayConvention
 
   def calendar: Calendar[T]
 

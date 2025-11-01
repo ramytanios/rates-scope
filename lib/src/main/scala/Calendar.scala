@@ -4,6 +4,7 @@ import lib.dtos.BusinessDayConvention
 import lib.dtos.BusinessDayConvention.*
 import lib.quantities.*
 import lib.syntax.*
+import lib.syntax.given
 
 trait Calendar[T: DateLike]:
 
@@ -36,8 +37,10 @@ trait Calendar[T: DateLike]:
 
 object Calendar:
 
-  def fromHolidays[T: DateLike](holidays: Seq[T]): Calendar[T] = new Calendar[T]:
-    def isBusinessDay(t: T): Boolean = !holidays.contains(t) && !t.isWeekend
+  def fromHolidays[T: DateLike](holidays: Seq[T]): Calendar[T] =
+    require(holidays.toIndexedSeq.isStrictlyIncreasing, "holidays must be strictly increasing")
+    new Calendar[T]:
+      def isBusinessDay(t: T): Boolean = !holidays.contains(t) && !t.isWeekend
 
   def all[T: DateLike]: Calendar[T] = new Calendar[T]:
     def isBusinessDay(t: T): Boolean = true
