@@ -60,10 +60,12 @@ class ScheduleSuite extends munit.FunSuite:
       d"2025-08-29",
       d"2025-09-05",
       Tenor.`1D`,
-      Calendar.fromHolidays(Nil),
+      Calendar.fromHolidays(IndexedSeq(d"2025-08-30", d"2025-08-31")),
       BusinessDayConvention.Following,
       StubConvention.Long,
       Direction.Forward
     )
+
+    println(s)
 
     assertEquals(s.size, 6)

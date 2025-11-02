@@ -6,6 +6,8 @@ import lib.quantities.*
 import lib.syntax.*
 import lib.syntax.given
 
+import scala.collection.Searching.Found
+
 trait Calendar[T: DateLike]:
 
   def isBusinessDay(t: T): Boolean
@@ -37,10 +39,15 @@ trait Calendar[T: DateLike]:
 
 object Calendar:
 
-  def fromHolidays[T: DateLike](holidays: Seq[T]): Calendar[T] =
-    require(holidays.toIndexedSeq.isStrictlyIncreasing, "holidays must be strictly increasing")
+  // TODO incoherent weekends logic, to be revisited
+  def fromHolidays[T: DateLike](holidays: IndexedSeq[T]): Calendar[T] =
+    require(holidays.isStrictlyIncreasing, "holidays must be strictly increasing")
     new Calendar[T]:
-      def isBusinessDay(t: T): Boolean = !holidays.contains(t) && !t.isWeekend
+      def isBusinessDay(t: T): Boolean =
+        val isHoliday = holidays.search(t) match
+          case Found(_) => true
+          case _        => false
+        !isHoliday && !t.isWeekend
 
   def all[T: DateLike]: Calendar[T] = new Calendar[T]:
     def isBusinessDay(t: T): Boolean = true

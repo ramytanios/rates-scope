@@ -14,7 +14,7 @@ class Builder[T: lib.DateLike](market: Market[T]):
         lib.YieldCurve.continuousCompounding(market.t, rate)
 
   def buildCalendar(calendar: dtos.Calendar[T]): Either[lib.Error, lib.Calendar[T]] =
-    Either.catchNonFatal(lib.Calendar.fromHolidays(calendar.holidays)).leftMap: th =>
+    Either.catchNonFatal(lib.Calendar.fromHolidays(calendar.holidays.toIndexedSeq)).leftMap: th =>
       lib.Error.Generic(s"unable to build calendar: ${th.getMessage}")
 
   def buildFixings(rate: String): Either[lib.Error, Map[T, Double]] =

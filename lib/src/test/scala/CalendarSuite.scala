@@ -7,7 +7,7 @@ import lib.quantities.Tenor
 
 class CalendarSuite extends munit.FunSuite:
 
-  val holidays = Seq(
+  val holidays = IndexedSeq(
     d"2025-12-25", // Christmas Day
     d"2026-01-01" // New Year's Day
   )
