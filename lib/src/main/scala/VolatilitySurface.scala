@@ -54,8 +54,8 @@ object VolatilitySurface:
         else
           skews.searchBy(_(0))(t) match
             case BinarySearch.Found(i) =>
-              val (ti, skew) = skews(i)
-              skew.value(forward(ti) - m)
+              val (ti, si) = skews(i)
+              si.value(forward(ti) - m)
             case BinarySearch.InsertionLoc(i) =>
               interpolateBetween(
                 skews(i - 1)(0) -> skews(i - 1)(1).value,
