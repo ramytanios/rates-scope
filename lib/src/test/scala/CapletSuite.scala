@@ -44,8 +44,9 @@ class CapletSuite extends munit.FunSuite with lib.EitherSyntax:
       Currency.USD,
       libor.forward(fixingAt) / 2.0,
       discountCurve,
-      OptionType.Call
+      OptionType.Call,
+      Detachment.fixedDetachment(endAt)
     )
 
-    caplet.price(t, volSurface).failOrAssert: price =>
+    caplet.price(t, volSurface, Map.empty).failOrAssert: price =>
       assertEqualsDouble(price, 0.0025670413971979954, 1e-10)

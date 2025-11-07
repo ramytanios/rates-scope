@@ -3,6 +3,7 @@ package lib
 import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
+import scala.math.max
 
 class Caplet[T: DateLike](
     val rate: Libor[T],
@@ -13,10 +14,11 @@ class Caplet[T: DateLike](
     val paymentCurrency: Currency,
     val strike: Double,
     val discountCurve: YieldCurve[T],
-    val optionType: OptionType
+    val optionType: OptionType,
+    val detachment: Detachment[T]
 ):
 
-  def price(t: T, volSurface: VolatilitySurface[T]): Either[Error, Double] =
+  def price(t: T, volSurface: VolatilitySurface[T], fixings: Map[T, Double]): Either[Error, Double] =
 
     val (_, interestEndAt) = rate.interestPeriod(fixingAt)
 
@@ -29,9 +31,15 @@ class Caplet[T: DateLike](
           Error.Generic(s"vanilla pricer does not allow payment convexity")
         )
       .as:
-        val f = rate.forward(fixingAt)
-        val d = discountCurve.discount(paymentAt)
-        val dt = t.yearFractionTo(fixingAt)(using DateLike[T], DayCounter.Act365)
-        val vol = volSurface(fixingAt)(strike)
-        val dcf = startAt.yearFractionTo(endAt)(using DateLike[T], rate.dayCounter)
-        dcf * bachelier.price(optionType, f, strike, dt.toDouble, vol, d)
+        if detachment.isDetached(t) then 0.0
+        else
+          val d = discountCurve.discount(paymentAt)
+          val dcf = startAt.yearFractionTo(endAt)(using DateLike[T], rate.dayCounter)
+          if t >= fixingAt then
+            val rate = fixings(fixingAt)
+            d * dcf.toDouble * max(optionType.sign * (rate - strike), 0.0)
+          else
+            val f = rate.forward(fixingAt)
+            val dt = t.yearFractionTo(fixingAt)(using DateLike[T], DayCounter.Act365)
+            val vol = volSurface(fixingAt)(strike)
+            dcf * bachelier.price(optionType, f, strike, dt.toDouble, vol, d)
