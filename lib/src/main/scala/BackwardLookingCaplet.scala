@@ -17,7 +17,8 @@ class BackwardLookingCaplet[T: DateLike](
     val optionType: OptionType,
     val discountCurve: YieldCurve[T],
     val stub: StubConvention,
-    val direction: Direction
+    val direction: Direction,
+    val detachment: Detachment[T]
 ):
   private val noHolidaysCal = Calendar.all
 
@@ -60,13 +61,13 @@ class BackwardLookingCaplet[T: DateLike](
           Error.Generic(s"vanilla pricer does not allow payment convexity")
         )
           .flatMap: _ =>
-            if t >= paymentAt then Right(0.0)
+            if detachment.isDetached(t) then Right(0.0)
             else
               val fullRate = CompoundedRate[T](startAt, endAt, rate, stub, direction)
               val fullDcf = fullRate.dcf
               if t < fullRate.firstFixingAt then
                 futPrice(fullRate, strike).map(fullDcf * _)
-              else if t >= fullRate.lastFixingAt && t < paymentAt then
+              else if t >= fullRate.lastFixingAt then
                 val fullRateValue = (fullRate.fullCompoundingFactor(fixings) - 1) / fullDcf.toDouble
                 Right:
                   fullDcf * discount * max(optionType.sign * (fullRateValue - strike), 0.0)
