@@ -18,4 +18,5 @@ node_modules
 .vscode/ 
 .env 
 .direnv/
-.devenv/
+.devenv/ 
+*.semanticdb
