@@ -34,7 +34,7 @@ lazy val V = new {
 }
 
 lazy val root =
-  (project in file(".")).aggregate(dtos.jvm, lib, backend, frontend)
+  (project in file(".")).aggregate(dtos.jvm, `lib-dtos`.jvm, entry, lib, backend, frontend)
 
 lazy val dtos = crossProject(JSPlatform, JVMPlatform)
   .in(file("dtos"))
