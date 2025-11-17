@@ -15,7 +15,8 @@ class VanillaPricer[T: lib.DateLike](val market: Market[T]):
           caplet <- buildCaplet(_caplet)
           rate <- caplet.rate.asRight
           volSurface <- buildVolSurface(caplet.paymentCurrency, rate.tenor)
-          price <- caplet.price(market.t, volSurface)
+          fixings <- buildFixings(_caplet.rate)
+          price <- caplet.price(market.t, volSurface, fixings)
         yield price
 
       case _swaption: dtos.Payoff.Swaption[T] =>

@@ -130,7 +130,8 @@ class Builder[T: lib.DateLike](market: Market[T]):
           caplet.paymentCurrency,
           caplet.strike,
           discountCurve,
-          caplet.optionType
+          caplet.optionType,
+          lib.Detachment.fixedDetachment(caplet.paymentAt)
         )
 
   def buildSwaption(swaption: dtos.Payoff.Swaption[T]): Either[lib.Error, lib.Swaption[T]] =
@@ -161,5 +162,6 @@ class Builder[T: lib.DateLike](market: Market[T]):
           caplet.optionType,
           discountCurve,
           caplet.stub,
-          caplet.direction
+          caplet.direction,
+          lib.Detachment.fixedDetachment(caplet.paymentAt)
         )

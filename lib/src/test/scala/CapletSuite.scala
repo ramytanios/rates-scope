@@ -35,6 +35,10 @@ class CapletSuite extends munit.FunSuite with lib.EitherSyntax:
       Seq(100.0, 80.0, 72.0, 70.0, 69.0, 71.0, 74.0, 90.0, 93.0).map(_ / 10000)
     )
 
+    val forward = libor.forward(fixingAt)
+
+    val strike = forward / 2.0
+
     val caplet = new Caplet(
       libor,
       fixingAt,
@@ -42,7 +46,7 @@ class CapletSuite extends munit.FunSuite with lib.EitherSyntax:
       endAt,
       endAt,
       Currency.USD,
-      libor.forward(fixingAt) / 2.0,
+      strike,
       discountCurve,
       OptionType.Call,
       Detachment.fixedDetachment(endAt)
@@ -50,3 +54,9 @@ class CapletSuite extends munit.FunSuite with lib.EitherSyntax:
 
     caplet.price(t, volSurface, Map.empty).failOrAssert: price =>
       assertEqualsDouble(price, 0.0025670413971979954, 1e-10)
+
+    caplet.price(endAt, volSurface, Map.empty).failOrAssert: price =>
+      assertEqualsDouble(price, 0.0, 1e-10, s"payoff detached at $endAt")
+
+    caplet.price(fixingAt, volSurface, Map(fixingAt -> strike)).failOrAssert: price =>
+      assertEqualsDouble(price, 0.0, 1e-10, s"rate already fixed at $fixingAt")
