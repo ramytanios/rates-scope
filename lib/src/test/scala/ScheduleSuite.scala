@@ -66,6 +66,4 @@ class ScheduleSuite extends munit.FunSuite:
       Direction.Forward
     )
 
-    println(s)
-
     assertEquals(s.size, 6)
