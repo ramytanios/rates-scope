@@ -1,8 +1,8 @@
 package entry
 
+import dtos.Fixing
 import lib.dtos.Currency
 import lib.quantities.*
-import dtos.Fixing
 
 enum MarketError(msg: String) extends lib.Error(msg):
 

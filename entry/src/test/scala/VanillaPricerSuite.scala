@@ -1,10 +1,11 @@
 package entry
 
-import lib.dtos.*
-import java.time.LocalDate
-import lib.quantities.Tenor
-import lib.literals.*
 import lib.DateLike
+import lib.dtos.*
+import lib.literals.*
+import lib.quantities.Tenor
+
+import java.time.LocalDate
 
 class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
 

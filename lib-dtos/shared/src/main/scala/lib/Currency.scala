@@ -1,5 +1,5 @@
-package lib 
-package dtos 
+package lib
+package dtos
 
 enum Currency:
   case AUD
