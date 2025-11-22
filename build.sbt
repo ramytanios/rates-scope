@@ -4,6 +4,7 @@ lazy val scala3 = "3.7.3"
 
 ThisBuild / scalaVersion := scala3
 ThisBuild / crossScalaVersions := Seq(scala3)
+ThisBuild / semanticdbEnabled := true
 
 // disables publish step
 ThisBuild / githubWorkflowPublishTargetBranches := Seq.empty
@@ -32,7 +33,16 @@ lazy val V = new {
 }
 
 lazy val root =
-  (project in file(".")).aggregate(dtos.jvm, `lib-dtos`.jvm, entry, lib, backend, frontend)
+  (project in file(".")).aggregate(
+    dtos.jvm,
+    dtos.js,
+    `lib-dtos`.jvm,
+    `lib-dtos`.js,
+    entry,
+    lib,
+    backend,
+    frontend
+  )
 
 lazy val dtos = crossProject(JSPlatform, JVMPlatform)
   .in(file("dtos"))
