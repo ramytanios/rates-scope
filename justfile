@@ -63,4 +63,7 @@ watch-css:
     npx @tailwindcss/cli -i ./input.css -o ./output.css --watch
  
 bloop:
-    bloop compile 
+    bloop compile
+
+bloop-watch:
+    bloop compile --watch
