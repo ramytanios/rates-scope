@@ -41,7 +41,10 @@ object Calendar:
 
   // TODO incoherent weekends logic, to be revisited
   def fromHolidays[T: DateLike](holidays: IndexedSeq[T]): Calendar[T] =
-    require(holidays.isStrictlyIncreasing, "holidays must be strictly increasing")
+    require(
+      holidays.isEmpty || (holidays.nonEmpty && holidays.isStrictlyIncreasing),
+      "holidays must be strictly increasing"
+    )
     new Calendar[T]:
       def isBusinessDay(t: T): Boolean =
         val isHoliday = holidays.search(t) match

@@ -46,7 +46,7 @@ trait Market[T]:
 object Market:
 
   def apply[T](
-      ref: T,
+      tRef: T,
       rates: Map[String, dtos.Underlying[T]],
       curves: Map[dtos.Curve, dtos.YieldCurve[T]],
       fixingsByRate: Map[String, Seq[dtos.Fixing[T]]],
@@ -54,7 +54,7 @@ object Market:
       volatilities: Map[Currency, dtos.VolatilityCube[T]]
   ): Market[T] = new Market[T]:
 
-    def t: T = ref
+    def t: T = tRef
 
     def rate(name: String): Either[MarketError, dtos.Underlying[T]] =
       rates.get(name).toRight(MarketError.Rate(name))

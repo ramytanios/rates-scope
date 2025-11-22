@@ -55,8 +55,9 @@ class SwaptionSuite extends munit.FunSuite with lib.EitherSyntax:
       libor.forward(fixingAt) / 2.0,
       OptionType.Call,
       Annuity.Physical,
-      discountCurve
+      discountCurve,
+      lib.Detachment.default
     )
 
-    caplet.price(t, volSurface).failOrAssert: price =>
+    caplet.price(t, volSurface, Map.empty).failOrAssert: price =>
       assertEqualsDouble(price, 0.02004611618815355, 1e-10)

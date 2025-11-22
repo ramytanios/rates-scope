@@ -10,27 +10,28 @@ class VanillaPricer[T: lib.DateLike](val market: Market[T]):
 
   def price(payoff: dtos.Payoff[T]): Either[lib.Error, Double] =
     payoff match
-      case _caplet: dtos.Payoff.Caplet[T] =>
+      case p: dtos.Payoff.Caplet[T] =>
         for
-          caplet <- buildCaplet(_caplet)
+          caplet <- buildCaplet(p)
           rate <- caplet.rate.asRight
           volSurface <- buildVolSurface(caplet.paymentCurrency, rate.tenor)
-          fixings <- buildFixings(_caplet.rate)
+          fixings <- buildFixings(p.rate)
           price <- caplet.price(market.t, volSurface, fixings)
         yield price
 
-      case _swaption: dtos.Payoff.Swaption[T] =>
+      case p: dtos.Payoff.Swaption[T] =>
         for
-          swaption <- buildSwaption(_swaption)
+          swaption <- buildSwaption(p)
           rate <- swaption.rate.asRight
           volSurface <- buildVolSurface(rate.currency, rate.tenor)
-          price <- swaption.price(market.t, volSurface)
+          fixings <- buildFixings(p.rate)
+          price <- swaption.price(market.t, volSurface, fixings)
         yield price
 
-      case _caplet: dtos.Payoff.BackwardLookingCaplet[T] =>
+      case p: dtos.Payoff.BackwardLookingCaplet[T] =>
         for
-          caplet <- buildBackwardLookingCaplet(_caplet)
+          caplet <- buildBackwardLookingCaplet(p)
           volCube <- buildVolCube(caplet.rate.currency)
-          fixings <- buildFixings(_caplet.rate)
+          fixings <- buildFixings(p.rate)
           price <- caplet.price(market.t, volCube, fixings)
         yield price

@@ -61,7 +61,7 @@ class BackwardLookingCaplet[T: DateLike](
           Error.Generic(s"vanilla pricer does not allow payment convexity")
         )
           .flatMap: _ =>
-            if detachment.isDetached(t) then Right(0.0)
+            if detachment.isDetached(paymentAt, t) then Right(0.0)
             else
               val fullRate = CompoundedRate[T](startAt, endAt, rate, stub, direction)
               val fullDcf = fullRate.dcf

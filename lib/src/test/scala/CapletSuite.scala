@@ -49,7 +49,7 @@ class CapletSuite extends munit.FunSuite with lib.EitherSyntax:
       strike,
       discountCurve,
       OptionType.Call,
-      Detachment.fixedDetachment(endAt)
+      Detachment.default
     )
 
     caplet.price(t, volSurface, Map.empty).failOrAssert: price =>

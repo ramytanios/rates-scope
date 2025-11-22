@@ -3,6 +3,7 @@ package lib
 import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
+
 import scala.math.max
 
 class Caplet[T: DateLike](
@@ -31,7 +32,7 @@ class Caplet[T: DateLike](
           Error.Generic(s"vanilla pricer does not allow payment convexity")
         )
       .as:
-        if detachment.isDetached(t) then 0.0
+        if detachment.isDetached(paymentAt, t) then 0.0
         else
           val d = discountCurve.discount(paymentAt)
           val dcf = startAt.yearFractionTo(endAt)(using DateLike[T], rate.dayCounter)

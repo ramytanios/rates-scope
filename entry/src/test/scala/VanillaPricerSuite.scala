@@ -25,7 +25,7 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
     )
 
     val market = Market(
-      ref = t,
+      tRef = t,
       rates = Map("libor-rate" -> rate),
       curves =
         Map(
