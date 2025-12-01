@@ -49,7 +49,7 @@ class SwaptionSuite extends munit.FunSuite with lib.EitherSyntax:
       Seq(100.0, 80.0, 72.0, 70.0, 69.0, 71.0, 74.0, 90.0, 93.0).map(_ / 10000)
     )
 
-    val caplet = new Swaption(
+    val swaptionPhysical = new Swaption(
       swapRate,
       fixingAt,
       libor.forward(fixingAt) / 2.0,
@@ -59,5 +59,21 @@ class SwaptionSuite extends munit.FunSuite with lib.EitherSyntax:
       lib.Detachment.default
     )
 
-    caplet.price(t, volSurface, Map.empty).failOrAssert: price =>
+    swaptionPhysical.price(t, volSurface, Map.empty).failOrAssert: price =>
       assertEqualsDouble(price, 0.02004611618815355, 1e-10)
+
+    swaptionPhysical.price(fixingAt, volSurface, Map.empty).failOrAssert: price =>
+      assertEqualsDouble(price, 0.0, 1e-10)
+
+    val swaptionCash = new Swaption(
+      swapRate,
+      fixingAt,
+      libor.forward(fixingAt) / 2.0,
+      OptionType.Call,
+      Annuity.Cash,
+      discountCurve,
+      lib.Detachment.default
+    )
+
+    swaptionCash.price(endAt, volSurface, Map.empty).failOrAssert: price =>
+      assertEqualsDouble(price, 0.0, 1e-10)
