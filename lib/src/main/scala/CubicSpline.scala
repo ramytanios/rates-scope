@@ -32,12 +32,10 @@ object CubicSpline:
       override def apply(x: Double): Double =
         if x <= xMin then
           val d = this.fstDerivative(xMin)
-          val b = ys(0) - d * xs(0)
-          d * x + b
+          d * (x - xMin) + ys(0)
         else if x >= xMax then
           val d = this.fstDerivative(xMax)
-          val b = ys(n) - d * xs(n)
-          d * x + b
+          d * (x - xMax) + ys(n)
         else spline.value(x)
 
       override def fstDerivative(x: Double): Double =
