@@ -1,6 +1,7 @@
 package lib
 
 import cats.syntax.all.*
+import scala.math.*
 
 class CubicSplineSuite extends munit.FunSuite:
 
@@ -12,9 +13,9 @@ class CubicSplineSuite extends munit.FunSuite:
     for
       n <- Rand.between(3, 50)
       x0 <- Rand.normal
-      xs <- Rand.normal.listOfN(n).map(_.map(_.abs).scanLeft(x0)(_ + _))
+      xs <- Rand.normal.listOfN(n).map(_.map(_.abs + 0.01).scan(x0)(_ + _))
       y0 <- Rand.normal
-      ys <- Rand.normal.listOfN(n).map(_.scanLeft(y0)(_ + _))
+      ys <- Rand.normal.listOfN(n).map(_.scan(y0)(_ + _))
     yield Case(xs.toVector, ys.toVector)
 
   test("values at knots"):
@@ -23,14 +24,79 @@ class CubicSplineSuite extends munit.FunSuite:
       .take(10)
       .zipWithIndex
       .foreach:
-        case (Case(xs, ys), i) =>
-          val interp = CubicSpline.natural(xs, ys)
+        case Case(xs, ys) -> i =>
+          val interp = CubicSpline(xs, ys)
           (xs zip ys).foreach: (x, y) =>
             assertEqualsDouble(interp(x), y, tol, s"i=$i, x=$x, y=$y")
 
-  // TODO: to be completed
+  test("derivatives values against the java implementation"):
+    randCase
+      .view
+      .take(10)
+      .zipWithIndex
+      .foreach:
+        case Case(xs, ys) -> i =>
+          val javaImpl = CubicSpline.ofJava(xs, ys)
+          val customImpl = CubicSpline(xs, ys)
+          (xs zip ys).foreach: (x, y) =>
+            assertEqualsDouble(
+              customImpl.fstDerivative(x),
+              javaImpl.fstDerivative(x),
+              1e-8,
+              s"i=$i, 1st deriv"
+            )
+            assertEqualsDouble(
+              customImpl.sndDerivative(x),
+              javaImpl.sndDerivative(x),
+              1e-8,
+              s"i=$i, 2nd deriv"
+            )
+
   test("value, 1st and 2nd derivatives continuity"):
-    ()
+    randCase
+      .view
+      .take(10)
+      .zipWithIndex
+      .foreach: (c, i) =>
+        val spline = CubicSpline.ofJava(c.xs.toIndexedSeq, c.ys.toIndexedSeq)
+        val xRange = c.xs.max - c.xs.min
+        val yRange = c.ys.max - c.ys.min
+        val dRange = c.xs.map(spline.fstDerivative).max - c.xs.map(spline.fstDerivative).min
+        val d2Range = c.xs.map(spline.sndDerivative).max - c.xs.map(spline.sndDerivative).min
+
+        val eps0 = 1e-4 * xRange
+        val epsMin = 1e-11 * xRange
+        (c.xs zip c.ys).zipWithIndex.foreach:
+          case x -> y -> j =>
+            val passValue = Iterator
+              .unfold(eps0): eps =>
+                val yLeft = spline(x - eps)
+                val yRight = spline(x + eps)
+                val delta = max(abs(yLeft - y), abs(yRight - y))
+                if eps < epsMin then None else Some(delta, eps / 2)
+              .exists(_ < 1e-5 * yRange)
+
+            val passFstDeriv = Iterator
+              .unfold(eps0): eps =>
+                val d = spline.fstDerivative(x)
+                val dLeft = spline.fstDerivative(x - eps)
+                val dRight = spline.fstDerivative(x + eps)
+                val delta = max(abs(dLeft - d), abs(dRight - d))
+                if eps < epsMin then None else Some(delta, eps / 2)
+              .exists(_ < 1e-5 * dRange)
+
+            val passSndDeriv = Iterator
+              .unfold(eps0): eps =>
+                val d2 = spline.sndDerivative(x)
+                val d2Left = spline.sndDerivative(x - eps)
+                val d2Right = spline.sndDerivative(x + eps)
+                val delta = max(abs(d2Left - d2), abs(d2Right - d2))
+                if eps < epsMin then None else Some(delta, eps / 2)
+              .exists(_ < 1e-5 * d2Range)
+
+            assert(passValue, s"i=$i, value")
+            assert(passFstDeriv, s"i=$i, j=$j, 1st deriv, dRange=$dRange")
+            assert(passSndDeriv, s"i=$i, j=$j, 2nd deriv, d2Range=$dRange")
 
   test("linear extrapolation"):
     randCase
@@ -38,9 +104,9 @@ class CubicSplineSuite extends munit.FunSuite:
       .take(10)
       .zipWithIndex
       .foreach:
-        case (Case(xs, ys), i) =>
+        case Case(xs, ys) -> i =>
           val clue = s"i=$i"
-          val spline = CubicSpline.natural(xs, ys)
+          val spline = CubicSpline(xs, ys)
           val xMin = xs.head
           val xMax = xs.last
           val xRange = xMax - xMin

@@ -9,7 +9,8 @@ trait VolatilitySkew:
 object VolatilitySkew:
 
   def apply(ks: IndexedSeq[Double], vs: IndexedSeq[Double]): VolatilitySkew =
-    val spline = CubicSpline.natural(ks, vs)
+
+    val spline = CubicSpline(ks, vs)
 
     val kMin = ks.head
     val kMax = ks.last

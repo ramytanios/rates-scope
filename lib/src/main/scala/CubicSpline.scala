@@ -1,6 +1,8 @@
 package lib
 
-import scala.math.max
+import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
+
+import scala.math.*
 
 trait CubicSpline:
 
@@ -12,7 +14,40 @@ trait CubicSpline:
 
 object CubicSpline:
 
-  def natural(xs: IndexedSeq[Double], ys: IndexedSeq[Double]): CubicSpline =
+  def ofJava(xs: IndexedSeq[Double], ys: IndexedSeq[Double]): CubicSpline =
+    val m = xs.length
+    require(xs.isStrictlyIncreasing, "xs must be strictly increasing")
+    require(m == ys.length, "xs and ys size mismatch")
+    require(m > 3, "need at least 3 points")
+
+    val n = m - 1 // n intervals, n + 1 points
+
+    val xMin = xs.head
+    val xMax = xs.last
+
+    val spline = SplineInterpolator().interpolate(xs.toArray, ys.toArray)
+
+    new CubicSpline:
+
+      override def apply(x: Double): Double =
+        if x <= xMin then
+          val d = this.fstDerivative(xMin)
+          val b = ys(0) - d * xs(0)
+          d * x + b
+        else if x >= xMax then
+          val d = this.fstDerivative(xMax)
+          val b = ys(n) - d * xs(n)
+          d * x + b
+        else spline.value(x)
+
+      override def fstDerivative(x: Double): Double =
+        spline.derivative.value(min(max(x, xMin), xMax))
+
+      override def sndDerivative(x: Double): Double =
+        if x <= xMin || x >= xMax then 0.0
+        else spline.polynomialSplineDerivative.derivative.value(x)
+
+  def apply(xs: IndexedSeq[Double], ys: IndexedSeq[Double]): CubicSpline =
     val m = xs.length
     require(xs.isStrictlyIncreasing, "xs must be strictly increasing")
     require(m == ys.length, "xs and ys size mismatch")
@@ -37,7 +72,7 @@ object CubicSpline:
     val csInterior = Tdma.solve(ldiag.toArray, diag.toArray, udiag.toArray, rhs.toArray)
 
     for i <- (0 until n - 1) do
-      cs(i + 1) = csInterior(i) / 2.0
+      cs(i + 1) = csInterior(i) / 2
 
     for i <- 0 until n do
       bs(i) =
