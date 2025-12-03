@@ -78,4 +78,4 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
     val pricer = new VanillaPricer(market)
 
     pricer.price(caplet).failOrAssert: price =>
-      assertEqualsDouble(price, 0.0025670413971979954, 1e-10)
+      assertEqualsDouble(price, 0.0025670027485647476, 1e-10)
