@@ -62,7 +62,7 @@ object CubicSpline:
     val diag = (0 until n - 1).map(i => 2 * xs(i + 2) - xs(i))
     val udiag = ldiag
     val rhs = (0 until n - 1).map(i =>
-      6 * ((ys(i + 2) - ys(i + 1)) / (xs(i + 2) - xs(i + 1)) - (ys(i + 1) - ys(i)) / (xs(i + 1) - xs(
+      3 * ((ys(i + 2) - ys(i + 1)) / (xs(i + 2) - xs(i + 1)) - (ys(i + 1) - ys(i)) / (xs(i + 1) - xs(
         i
       )))
     )
@@ -70,7 +70,7 @@ object CubicSpline:
     val csInterior = Tdma.solve(ldiag.toArray, diag.toArray, udiag.toArray, rhs.toArray)
 
     for i <- (0 until n - 1) do
-      cs(i + 1) = csInterior(i) / 2
+      cs(i + 1) = csInterior(i) 
 
     for i <- 0 until n do
       bs(i) =
@@ -80,11 +80,7 @@ object CubicSpline:
       ds(i) = (cs(i + 1) - cs(i)) / (xs(i + 1) - xs(i)) / 3
 
     val a = ys(0) +: as :+ ys(n)
-    val b = bs(0) +: bs :+ bs(
-      n - 1
-    ) + 2 * cs(n - 1) * (xs(n) - xs(n - 1)) + 3 * ds(
-      n - 1
-    ) * (xs(n) - xs(n - 1)) * (xs(n) - xs(n - 1))
+    val b = bs(0) +: bs :+ bs( n - 1) + cs(n - 1) * (xs(n) - xs(n - 1)) 
     val c = 0.0 +: cs.slice(0, cs.length - 1) :+ 0.0
     val d = 0.0 +: ds :+ 0.0
 

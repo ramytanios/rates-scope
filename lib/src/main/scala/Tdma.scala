@@ -17,19 +17,16 @@ object Tdma:
 
     val x = Array.ofDim[Double](n)
 
-    c(0) = c(0) / b(0)
-    d(0) = d(0) / b(0)
-    var i = 1
-    while i < n - 1 do
-      val m = 1.0 / (b(i) - c(i - 1) * a(i))
-      c(i) = c(i) * m
-      d(i) = (d(i) - d(i - 1) * a(i)) * m
-      i += 1
+    val b0 = b.toArray
+    val d0 = d.toArray
 
-    i = n - 2
-    x(n - 1) = d(n - 1)
-    while i > -1 do
-      x(i) = d(i) - c(i) * x(i + 1)
-      i -= 1
+    for i <- 0 to n - 2 do
+      val w = a(i) / b0(i)
+      b0(i + 1) = b0(i + 1) - w * c(i)
+      d0(i + 1) = d0(i + 1) - w * d0(i)
+
+    x(n - 1) = d0(n - 1) / b0(n - 1)
+    for i <- n - 2 to 0 by -1 do
+      x(i) = (d0(i) - c(i) * x(i + 1)) / b0(i)
 
     x
