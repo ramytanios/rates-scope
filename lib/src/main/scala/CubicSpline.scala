@@ -46,57 +46,63 @@ object CubicSpline:
         else spline.polynomialSplineDerivative.derivative.value(x)
 
   def apply(xs: IndexedSeq[Double], ys: IndexedSeq[Double]): CubicSpline =
+
+    require(xs.zip(xs.tail).forall(_ < _), "x values must be stricly increasing")
+    require(xs.length == ys.length, "xs and ys must have same length")
+
     val m = xs.length
-    require(xs.isStrictlyIncreasing, "xs must be strictly increasing")
-    require(m == ys.length, "xs and ys size mismatch")
-    require(m > 3, "need at least 3 points")
+    val n = m - 1
 
-    val n = m - 1 // n intervals, n + 1 points
+    require(m > 2, "cannot fit fewer than 3 knots")
+    require(ys.length == m, "x and y don't have same length")
 
-    val as = ys
-    val bs = Array.ofDim[Double](n)
-    val cs = Array.ofDim[Double](n + 1)
-    val ds = Array.ofDim[Double](n)
+    val a = ys
+    val b = Array.ofDim[Double](n)
+    val c = Array.ofDim[Double](n + 1)
+    val d = Array.ofDim[Double](n)
 
-    val ldiag = (0 until n - 2).map(i => xs(i + 2) - xs(i + 1))
-    val diag = (0 until n - 1).map(i => 2 * xs(i + 2) - xs(i))
-    val udiag = ldiag
-    val rhs = (0 until n - 1).map(i =>
+    val h = (0 until n - 1).map(i =>
       3 * ((ys(i + 2) - ys(i + 1)) / (xs(i + 2) - xs(i + 1)) - (ys(i + 1) - ys(i)) / (xs(i + 1) - xs(
         i
       )))
     )
 
-    val csInterior = Tdma.solve(ldiag.toArray, diag.toArray, udiag.toArray, rhs.toArray)
+    val diag = (0 until n - 1).map(i => 2 * (xs(i + 2) - xs(i)))
+    val ldiag = (0 until n - 2).map(i => xs(i + 2) - xs(i + 1))
+    val udiag = (0 until n - 2).map(i => xs(i + 2) - xs(i + 1))
 
-    for i <- (0 until n - 1) do
-      cs(i + 1) = csInterior(i) 
+    val cInterior = Tdma.solve(ldiag.toArray, diag.toArray, udiag.toArray, h.toArray)
+
+    for i <- 0 until n - 1 do
+      c(i + 1) = cInterior(i)
 
     for i <- 0 until n do
-      bs(i) =
-        (ys(i + 1) - ys(i)) / (xs(i + 1) - xs(i)) - (2 * cs(i) + cs(i + 1)) * (xs(i + 1) - xs(i)) / 3
+      b(i) =
+        (ys(i + 1) - ys(i)) / (xs(i + 1) - xs(i)) - (2 * c(i) + c(i + 1)) * (xs(i + 1) - xs(i)) / 3
 
     for i <- 0 until n do
-      ds(i) = (cs(i + 1) - cs(i)) / (xs(i + 1) - xs(i)) / 3
+      d(i) = (c(i + 1) - c(i)) / (xs(i + 1) - xs(i)) / 3
 
-    val a = ys(0) +: as :+ ys(n)
-    val b = bs(0) +: bs :+ bs( n - 1) + cs(n - 1) * (xs(n) - xs(n - 1)) 
-    val c = 0.0 +: cs.slice(0, cs.length - 1) :+ 0.0
-    val d = 0.0 +: ds :+ 0.0
+    val c0 = c.slice(0, c.length - 1)
+
+    val a1 = ys(0) +: a :+ ys(n)
+    val b1 = b(0) +: b :+ b(n - 1) + c0(n - 1) * (xs(n) - xs(n - 1))
+    val c1 = 0.0 +: c0 :+ 0.0
+    val d1 = 0.0 +: d :+ 0.0
 
     new CubicSpline:
 
       def apply(x: Double): Double =
         val i = xs.search(x).insertionPoint
         val dx = x - xs(max(0, i - 1))
-        a(i) + dx * (b(i) + dx * (c(i) + dx * d(i)))
+        ((d1(i) * dx + c1(i)) * dx + b1(i)) * dx + a1(i)
 
       def fstDerivative(x: Double): Double =
         val i = xs.search(x).insertionPoint
         val dx = x - xs(max(0, i - 1))
-        b(i) + dx * (2 * c(i) + dx * 3 * d(i))
+        (3 * d1(i) * dx + 2 * c1(i)) * dx + b1(i)
 
       def sndDerivative(x: Double): Double =
         val i = xs.search(x).insertionPoint
         val dx = x - xs(max(0, i - 1))
-        2 * c(i) + 6 * d(i) * dx
+        6 * d1(i) * dx + 2 * c1(i)

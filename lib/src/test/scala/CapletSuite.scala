@@ -53,7 +53,7 @@ class CapletSuite extends munit.FunSuite with lib.EitherSyntax:
     )
 
     caplet.price(t, volSurface, Map.empty).failOrAssert: price =>
-      assertEqualsDouble(price, 0.0025670413971979954, 1e-10)
+      assertEqualsDouble(price, 0.0025670027485647476, 1e-10)
 
     caplet.price(endAt, volSurface, Map.empty).failOrAssert: price =>
       assertEqualsDouble(price, 0.0, 1e-10, s"payoff detached at $endAt")

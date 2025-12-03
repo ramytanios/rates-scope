@@ -59,7 +59,7 @@ class CubicSplineSuite extends munit.FunSuite:
       .take(10)
       .zipWithIndex
       .foreach: (c, i) =>
-        val spline = CubicSpline.ofJava(c.xs.toIndexedSeq, c.ys.toIndexedSeq)
+        val spline = CubicSpline(c.xs.toIndexedSeq, c.ys.toIndexedSeq)
         val xRange = c.xs.max - c.xs.min
         val yRange = c.ys.max - c.ys.min
         val dRange = c.xs.map(spline.fstDerivative).max - c.xs.map(spline.fstDerivative).min

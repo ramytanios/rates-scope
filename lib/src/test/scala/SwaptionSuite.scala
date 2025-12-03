@@ -60,7 +60,7 @@ class SwaptionSuite extends munit.FunSuite with lib.EitherSyntax:
     )
 
     swaptionPhysical.price(t, volSurface, Map.empty).failOrAssert: price =>
-      assertEqualsDouble(price, 0.02004611618815355, 1e-10)
+      assertEqualsDouble(price, 0.020045814355300937, 1e-10)
 
     swaptionPhysical.price(fixingAt, volSurface, Map.empty).failOrAssert: price =>
       assertEqualsDouble(price, 0.0, 1e-10)
