@@ -4,9 +4,9 @@ import cats.syntax.all.*
 
 class VanillaPricer[T: lib.DateLike](val market: Market[T]):
 
-  val builder = new Builder(market)
+  val mapper = new Mapper(market)
 
-  import builder.*
+  import mapper.*
 
   def price(payoff: dtos.Payoff[T]): Either[lib.Error, Double] =
     payoff match

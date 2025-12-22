@@ -4,7 +4,7 @@ import cats.syntax.all.*
 import lib.dtos.*
 import lib.quantities.*
 
-class Builder[T: lib.DateLike](market: Market[T]):
+class Mapper[T: lib.DateLike](market: Market[T]):
 
   def buildYieldCurve(curve: dtos.Curve): Either[lib.Error, lib.YieldCurve[T]] =
     market.yieldCurve(curve).map:
