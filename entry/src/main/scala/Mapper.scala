@@ -27,20 +27,16 @@ class Mapper[T: lib.DateLike](market: Market[T]):
       currency: Currency,
       tenor: lib.quantities.Tenor
   ): Either[lib.Error, lib.VolatilitySurface[T]] =
-    market.volSurface(currency, tenor)
-      .flatMap: surface =>
-        surface.surface.toList.traverse:
+    market.volSurface(currency, tenor).flatMap: surface =>
+      buildMarketRate(currency, tenor).map: rate =>
+        val skews = surface.surface.toList.map:
           case (expTenor, dtos.VolatiltySkew(skew)) =>
             val (moneynesses, vols) = skew.unzip
-            buildMarketRate(currency, tenor).map: rate =>
-              val expiry =
-                rate.calendar.addBusinessPeriod(market.t, expTenor)(using rate.bdConvention)
-              val forward = rate.forward(expiry)
-              val strikes = moneynesses.map(forward + _)
-              expiry -> lib.Lazy(lib.VolatilitySkew(strikes.toIndexedSeq, vols.toIndexedSeq))
-      .flatMap: data =>
-        buildMarketRate(currency, tenor).map: marketRate =>
-          lib.VolatilitySurface(market.t, marketRate.forward, data.toIndexedSeq)
+            val expiry = rate.calendar.addBusinessPeriod(market.t, expTenor)(using rate.bdConvention)
+            val forward = rate.forward(expiry)
+            val strikes = moneynesses.map(forward + _)
+            expiry -> lib.Lazy(lib.VolatilitySkew(strikes.toIndexedSeq, vols.toIndexedSeq))
+        lib.VolatilitySurface(market.t, rate.forward, skews.toIndexedSeq)
 
   def buildVolCube(currency: Currency): Either[lib.Error, lib.VolatilityCube[T]] =
     market.volCube(currency).flatMap: volCube =>
