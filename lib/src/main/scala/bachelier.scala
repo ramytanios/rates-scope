@@ -33,26 +33,26 @@ object bachelier:
 
   def impliedCumulative(
       forward: Double,
-      tte: Double,
+      dt: Double,
       vol: Double => Double,
       dvol: Double => Double
   ): Double => Double =
     (k: Double) =>
-      val stte = sqrt(tte)
-      val d = (forward - k) / stte / vol(k)
-      1 - cdf(d) + stte * dvol(k) * pdf(d)
+      val sdt = sqrt(dt)
+      val d = (forward - k) / sdt / vol(k)
+      1 - cdf(d) + sdt * dvol(k) * pdf(d)
 
   def impliedDensity(
       forward: Double,
-      tte: Double,
+      dt: Double,
       vol: Double => Double,
       dvol: Double => Double,
       ddvol: Double => Double
   ): Double => Double =
     (k: Double) =>
-      val stte = sqrt(tte)
-      val d = (forward - k) / stte / vol(k)
-      pdf(d) / stte / vol(k) * (tte * vol(k) * ddvol(k) + pow(
+      val sdt = sqrt(dt)
+      val d = (forward - k) / sdt / vol(k)
+      pdf(d) / sdt / vol(k) * (dt * vol(k) * ddvol(k) + pow(
         (1 + (forward - k) * dvol(k) / vol(k)),
         2
       ))
