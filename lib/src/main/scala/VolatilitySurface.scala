@@ -27,40 +27,79 @@ object VolatilitySurface:
     given DayCounter = DayCounter.Act365
 
     t =>
-      k =>
-        val m = forward(t) - k
+      new VolatilitySkew:
 
-        // linear interpolation in variance
-        def interpolateBetween(s0: (T, VolatilitySkew), s1: (T, VolatilitySkew)) =
-          val (tL, skewL) = s0
-          val (tR, skewR) = s1
+        def interp(left: (T, Double => Double), right: (T, Double => Double), m: Double) =
+          val (tL, fL) = left
+          val (tR, fR) = right
           val w = tL.yearFractionTo(t) / tL.yearFractionTo(tR)
           val dt = t0.yearFractionTo(t).toDouble
           val dtL = t0.yearFractionTo(tL).toDouble
           val dtR = t0.yearFractionTo(tR).toDouble
-          sqrt:
-            1.0 / dt * (
-              (1.0 - w) * skewL(forward(tL) - m) * dtL +
-                w * skewR(forward(tR) - m) * dtR
-            )
-
-        if t < tMin || skews.size == 1 then
-          skews.head(1).value(forward(tMin) - m)
-        else if t > tMax then
-          interpolateBetween(
-            skews(n - 2)(0) -> skews(n - 2)(1).value,
-            skews(n - 1)(0) -> skews(n - 1)(1).value
+          1.0 / dt * (
+            (1.0 - w) * fL(forward(tL) - m) * dtL +
+              w * fR(forward(tR) - m) * dtR
           )
-        else
-          skews.searchBy(_(0))(t) match
-            case BinarySearch.Found(i) =>
-              val (ti, si) = skews(i)
-              si.value(forward(ti) - m)
-            case BinarySearch.InsertionLoc(i) =>
-              interpolateBetween(
-                skews(i - 1)(0) -> skews(i - 1)(1).value,
-                skews(i)(0) -> skews(i)(1).value
+
+        def apply(k: Double): Double =
+          val m = forward(t) - k
+
+          if t < tMin || skews.size == 1 then
+            skews.head(1).value(forward(tMin) - m)
+          else if t > tMax then
+            sqrt:
+              interp(
+                skews(n - 2)(0) -> skews(n - 2)(1).value.apply,
+                skews(n - 1)(0) -> skews(n - 1)(1).value.apply,
+                m
               )
+          else
+            skews.searchBy(_(0))(t) match
+              case BinarySearch.Found(i) =>
+                val (ti, si) = skews(i)
+                si.value(forward(ti) - m)
+              case BinarySearch.InsertionLoc(i) =>
+                sqrt:
+                  interp(
+                    skews(i - 1)(0) -> skews(i - 1)(1).value.apply,
+                    skews(i)(0) -> skews(i)(1).value.apply,
+                    m
+                  )
+
+        def fstDerivative(k: Double): Double =
+          val m = forward(t) - k
+
+          if t < tMin || skews.size == 1 then
+            skews.head(1).value.fstDerivative(forward(tMin) - m)
+          else if t > tMax then
+            interp(
+              skews(n - 2)(0) -> skews(n - 2)(1).value.fstDerivative,
+              skews(n - 1)(0) -> skews(n - 1)(1).value.fstDerivative,
+              m
+            ) / 2.0 / sqrt:
+              interp(
+                skews(n - 2)(0) -> skews(n - 2)(1).value.apply,
+                skews(n - 1)(0) -> skews(n - 1)(1).value.apply,
+                m
+              )
+          else
+            skews.searchBy(_(0))(t) match
+              case BinarySearch.Found(i) =>
+                val (ti, si) = skews(i)
+                si.value.fstDerivative(forward(ti) - m)
+              case BinarySearch.InsertionLoc(i) =>
+                interp(
+                  skews(i - 1)(0) -> skews(i - 1)(1).value.fstDerivative,
+                  skews(i)(0) -> skews(i)(1).value.fstDerivative,
+                  m
+                ) / 2.0 / sqrt:
+                  interp(
+                    skews(i - 1)(0) -> skews(i - 1)(1).value.apply,
+                    skews(i)(0) -> skews(i)(1).value.apply,
+                    m
+                  )
+
+        def sndDerivative(k: Double): Double = ???
 
   def flat[T](vol: Double): VolatilitySurface[T] = _ => VolatilitySkew.flat(vol)
 
