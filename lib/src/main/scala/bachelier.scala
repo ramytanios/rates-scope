@@ -35,24 +35,24 @@ object bachelier:
       forward: Double,
       dt: Double,
       vol: Double => Double,
-      dvol: Double => Double
+      fstDerivVol: Double => Double
   ): Double => Double =
     (k: Double) =>
       val sdt = sqrt(dt)
       val d = (forward - k) / sdt / vol(k)
-      1 - cdf(d) + sdt * dvol(k) * pdf(d)
+      1 - cdf(d) + sdt * fstDerivVol(k) * pdf(d)
 
   def impliedDensity(
       forward: Double,
       dt: Double,
       vol: Double => Double,
-      dvol: Double => Double,
-      ddvol: Double => Double
+      fstDerivVol: Double => Double,
+      sndDerivVol: Double => Double
   ): Double => Double =
     (k: Double) =>
       val sdt = sqrt(dt)
       val d = (forward - k) / sdt / vol(k)
-      pdf(d) / sdt / vol(k) * (dt * vol(k) * ddvol(k) + pow(
-        (1 + (forward - k) * dvol(k) / vol(k)),
+      pdf(d) / sdt / vol(k) * (dt * vol(k) * sndDerivVol(k) + pow(
+        (1 + (forward - k) * fstDerivVol(k) / vol(k)),
         2
       ))
