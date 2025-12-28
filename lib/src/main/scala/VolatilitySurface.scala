@@ -4,6 +4,7 @@ import lib.syntax.{ *, given }
 import lib.utils.BinarySearch
 
 import math.sqrt
+import math.pow
 
 trait VolatilitySurface[T]:
 
@@ -29,7 +30,7 @@ object VolatilitySurface:
     t =>
       new VolatilitySkew:
 
-        def interp(left: (T, Double => Double), right: (T, Double => Double), m: Double) =
+        def V(left: (T, Double => Double), right: (T, Double => Double), m: Double) =
           val (tL, fL) = left
           val (tR, fR) = right
           val w = tL.yearFractionTo(t) / tL.yearFractionTo(tR)
@@ -43,12 +44,11 @@ object VolatilitySurface:
 
         def apply(k: Double): Double =
           val m = forward(t) - k
-
           if t < tMin || skews.size == 1 then
             skews.head(1).value(forward(tMin) - m)
           else if t > tMax then
             sqrt:
-              interp(
+              V(
                 skews(n - 2)(0) -> skews(n - 2)(1).value.apply,
                 skews(n - 1)(0) -> skews(n - 1)(1).value.apply,
                 m
@@ -60,7 +60,7 @@ object VolatilitySurface:
                 si.value(forward(ti) - m)
               case BinarySearch.InsertionLoc(i) =>
                 sqrt:
-                  interp(
+                  V(
                     skews(i - 1)(0) -> skews(i - 1)(1).value.apply,
                     skews(i)(0) -> skews(i)(1).value.apply,
                     m
@@ -68,16 +68,15 @@ object VolatilitySurface:
 
         def fstDerivative(k: Double): Double =
           val m = forward(t) - k
-
           if t < tMin || skews.size == 1 then
             skews.head(1).value.fstDerivative(forward(tMin) - m)
           else if t > tMax then
-            interp(
+            V(
               skews(n - 2)(0) -> skews(n - 2)(1).value.fstDerivative,
               skews(n - 1)(0) -> skews(n - 1)(1).value.fstDerivative,
               m
             ) / 2.0 / sqrt:
-              interp(
+              V(
                 skews(n - 2)(0) -> skews(n - 2)(1).value.apply,
                 skews(n - 1)(0) -> skews(n - 1)(1).value.apply,
                 m
@@ -88,18 +87,61 @@ object VolatilitySurface:
                 val (ti, si) = skews(i)
                 si.value.fstDerivative(forward(ti) - m)
               case BinarySearch.InsertionLoc(i) =>
-                interp(
+                V(
                   skews(i - 1)(0) -> skews(i - 1)(1).value.fstDerivative,
                   skews(i)(0) -> skews(i)(1).value.fstDerivative,
                   m
                 ) / 2.0 / sqrt:
-                  interp(
+                  V(
                     skews(i - 1)(0) -> skews(i - 1)(1).value.apply,
                     skews(i)(0) -> skews(i)(1).value.apply,
                     m
                   )
 
-        def sndDerivative(k: Double): Double = ???
+        def sndDerivative(k: Double): Double =
+          val m = forward(t) - k
+
+          if t < tMin || skews.size == 1 then
+            skews.head(1).value.sndDerivative(forward(tMin) - m)
+          else if t > tMax then
+            val L2 = V(
+              skews(n - 2)(0) -> skews(n - 2)(1).value.sndDerivative,
+              skews(n - 1)(0) -> skews(n - 1)(1).value.sndDerivative,
+              m
+            )
+            val L1 = V(
+              skews(n - 2)(0) -> skews(n - 2)(1).value.fstDerivative,
+              skews(n - 1)(0) -> skews(n - 1)(1).value.fstDerivative,
+              m
+            )
+            val L = V(
+              skews(n - 2)(0) -> skews(n - 2)(1).value.apply,
+              skews(n - 1)(0) -> skews(n - 1)(1).value.apply,
+              m
+            )
+            L2 / 2.0 / sqrt(L) - pow(L1, 2) / 4.0 / L / sqrt(L)
+          else
+            skews.searchBy(_(0))(t) match
+              case BinarySearch.Found(i) =>
+                val (ti, si) = skews(i)
+                si.value.sndDerivative(forward(ti) - m)
+              case BinarySearch.InsertionLoc(i) =>
+                val L2 = V(
+                  skews(i - 1)(0) -> skews(i - 1)(1).value.sndDerivative,
+                  skews(i)(0) -> skews(i)(1).value.sndDerivative,
+                  m
+                )
+                val L1 = V(
+                  skews(i - 1)(0) -> skews(i - 1)(1).value.fstDerivative,
+                  skews(i)(0) -> skews(i)(1).value.fstDerivative,
+                  m
+                )
+                val L = V(
+                  skews(i - 1)(0) -> skews(i - 1)(1).value.apply,
+                  skews(i)(0) -> skews(i)(1).value.apply,
+                  m
+                )
+                L2 / 2.0 / sqrt(L) - pow(L1, 2) / 4.0 / L / sqrt(L)
 
   def flat[T](vol: Double): VolatilitySurface[T] = _ => VolatilitySkew.flat(vol)
 
