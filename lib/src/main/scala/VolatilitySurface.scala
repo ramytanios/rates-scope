@@ -30,118 +30,88 @@ object VolatilitySurface:
     t =>
       new VolatilitySkew:
 
-        def V(left: (T, Double => Double), right: (T, Double => Double), m: Double) =
+        def L(left: (T, Double => Double), right: (T, Double => Double), m: Double) =
           val (tL, fL) = left
           val (tR, fR) = right
           val w = tL.yearFractionTo(t) / tL.yearFractionTo(tR)
           val dt = t0.yearFractionTo(t).toDouble
           val dtL = t0.yearFractionTo(tL).toDouble
           val dtR = t0.yearFractionTo(tR).toDouble
-          1.0 / dt * (
-            (1.0 - w) * fL(forward(tL) - m) * dtL +
-              w * fR(forward(tR) - m) * dtR
-          )
+          1.0 / dt * ((1.0 - w) * dtL * fL(forward(tL) - m) + w * dtR * fR(forward(tR) - m))
 
         def apply(k: Double): Double =
+
           val m = forward(t) - k
+
+          val I = (k: Int) =>
+            sqrt:
+              L(
+                skews(k - 1)(0) -> skews(k - 1)(1).value.apply,
+                skews(k)(0) -> skews(k)(1).value.apply,
+                m
+              )
+
           if t < tMin || skews.size == 1 then
             skews.head(1).value(forward(tMin) - m)
-          else if t > tMax then
-            sqrt:
-              V(
-                skews(n - 2)(0) -> skews(n - 2)(1).value.apply,
-                skews(n - 1)(0) -> skews(n - 1)(1).value.apply,
-                m
-              )
+          else if t > tMax then I(n - 1)
           else
             skews.searchBy(_(0))(t) match
-              case BinarySearch.Found(i) =>
-                val (ti, si) = skews(i)
-                si.value(forward(ti) - m)
-              case BinarySearch.InsertionLoc(i) =>
-                sqrt:
-                  V(
-                    skews(i - 1)(0) -> skews(i - 1)(1).value.apply,
-                    skews(i)(0) -> skews(i)(1).value.apply,
-                    m
-                  )
+              case BinarySearch.Found(i)        => skews(i)(1).value(k)
+              case BinarySearch.InsertionLoc(i) => I(i)
 
         def fstDerivative(k: Double): Double =
+
           val m = forward(t) - k
-          if t < tMin || skews.size == 1 then
-            skews.head(1).value.fstDerivative(forward(tMin) - m)
-          else if t > tMax then
-            V(
-              skews(n - 2)(0) -> skews(n - 2)(1).value.fstDerivative,
-              skews(n - 1)(0) -> skews(n - 1)(1).value.fstDerivative,
+
+          val I = (k: Int) =>
+            L(
+              skews(k - 1)(0) -> skews(k - 1)(1).value.fstDerivative,
+              skews(k)(0) -> skews(k)(1).value.fstDerivative,
               m
             ) / 2.0 / sqrt:
-              V(
-                skews(n - 2)(0) -> skews(n - 2)(1).value.apply,
-                skews(n - 1)(0) -> skews(n - 1)(1).value.apply,
+              L(
+                skews(k - 1)(0) -> skews(k - 1)(1).value.apply,
+                skews(k)(0) -> skews(k)(1).value.apply,
                 m
               )
+
+          if t < tMin || skews.size == 1 then
+            skews.head(1).value.fstDerivative(forward(tMin) - m)
+          else if t > tMax then I(n - 1)
           else
             skews.searchBy(_(0))(t) match
-              case BinarySearch.Found(i) =>
-                val (ti, si) = skews(i)
-                si.value.fstDerivative(forward(ti) - m)
-              case BinarySearch.InsertionLoc(i) =>
-                V(
-                  skews(i - 1)(0) -> skews(i - 1)(1).value.fstDerivative,
-                  skews(i)(0) -> skews(i)(1).value.fstDerivative,
-                  m
-                ) / 2.0 / sqrt:
-                  V(
-                    skews(i - 1)(0) -> skews(i - 1)(1).value.apply,
-                    skews(i)(0) -> skews(i)(1).value.apply,
-                    m
-                  )
+              case BinarySearch.Found(i)        => skews(i)(1).value.fstDerivative(k)
+              case BinarySearch.InsertionLoc(i) => I(i)
 
         def sndDerivative(k: Double): Double =
+
           val m = forward(t) - k
+
+          val I = (k: Int) =>
+            val a = L(
+              skews(k - 1)(0) -> skews(k - 1)(1).value.sndDerivative,
+              skews(k)(0) -> skews(k)(1).value.sndDerivative,
+              m
+            )
+            val b = L(
+              skews(k - 1)(0) -> skews(k - 1)(1).value.fstDerivative,
+              skews(k)(0) -> skews(k)(1).value.fstDerivative,
+              m
+            )
+            val c = L(
+              skews(k - 1)(0) -> skews(k - 1)(1).value.apply,
+              skews(k)(0) -> skews(k)(1).value.apply,
+              m
+            )
+            a / 2.0 / sqrt(c) - pow(b, 2) / 4.0 / c / sqrt(c)
 
           if t < tMin || skews.size == 1 then
             skews.head(1).value.sndDerivative(forward(tMin) - m)
-          else if t > tMax then
-            val L2 = V(
-              skews(n - 2)(0) -> skews(n - 2)(1).value.sndDerivative,
-              skews(n - 1)(0) -> skews(n - 1)(1).value.sndDerivative,
-              m
-            )
-            val L1 = V(
-              skews(n - 2)(0) -> skews(n - 2)(1).value.fstDerivative,
-              skews(n - 1)(0) -> skews(n - 1)(1).value.fstDerivative,
-              m
-            )
-            val L = V(
-              skews(n - 2)(0) -> skews(n - 2)(1).value.apply,
-              skews(n - 1)(0) -> skews(n - 1)(1).value.apply,
-              m
-            )
-            L2 / 2.0 / sqrt(L) - pow(L1, 2) / 4.0 / L / sqrt(L)
+          else if t > tMax then I(n - 1)
           else
             skews.searchBy(_(0))(t) match
-              case BinarySearch.Found(i) =>
-                val (ti, si) = skews(i)
-                si.value.sndDerivative(forward(ti) - m)
-              case BinarySearch.InsertionLoc(i) =>
-                val L2 = V(
-                  skews(i - 1)(0) -> skews(i - 1)(1).value.sndDerivative,
-                  skews(i)(0) -> skews(i)(1).value.sndDerivative,
-                  m
-                )
-                val L1 = V(
-                  skews(i - 1)(0) -> skews(i - 1)(1).value.fstDerivative,
-                  skews(i)(0) -> skews(i)(1).value.fstDerivative,
-                  m
-                )
-                val L = V(
-                  skews(i - 1)(0) -> skews(i - 1)(1).value.apply,
-                  skews(i)(0) -> skews(i)(1).value.apply,
-                  m
-                )
-                L2 / 2.0 / sqrt(L) - pow(L1, 2) / 4.0 / L / sqrt(L)
+              case BinarySearch.Found(i)        => skews(i)(1).value.sndDerivative(k)
+              case BinarySearch.InsertionLoc(i) => I(i)
 
   def flat[T](vol: Double): VolatilitySurface[T] = _ => VolatilitySkew.flat(vol)
 

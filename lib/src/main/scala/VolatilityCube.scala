@@ -25,25 +25,27 @@ object VolatilityCube:
 
     tenor =>
       t =>
-        k =>
-          val m = forwards(tenor)(t) - k
-          if tenor < tenorMin then
-            val surface = surfaces.head(1)
-            surface(t)(forwards(tenorMin)(t) - m)
-          else if tenor > tenorMax then
-            val surface = surfaces.last(1)
-            surface(t)(forwards(tenorMax)(t) - m)
-          else
-            surfaces.searchBy(_(0))(tenor) match
-              case BinarySearch.Found(i) =>
-                val (_tenor, surface) = surfaces(i)
-                surface(t)(forwards(_tenor)(t) - m)
-              case BinarySearch.InsertionLoc(i) =>
-                val (tenorL, surfaceL) = surfaces(i - 1)
-                val (tenorR, surfaceR) = surfaces(i)
-                val w = (tenor.toYearFraction - tenorL.toYearFraction) /
-                  (tenorR.toYearFraction - tenorL.toYearFraction)
-                (1 - w) * surfaceL(t)(forwards(tenorL)(t) - m) +
-                  w * surfaceR(t)(forwards(tenorR)(t) - m)
+        new VolatilitySkew:
+
+          def impl(k: Double)(f: VolatilitySkew => Double => Double) =
+            val m = forwards(tenor)(t) - k
+            if tenor < tenorMin then f(surfaces.head(1)(t))(forwards(tenorMin)(t) - m)
+            else if tenor > tenorMax then f(surfaces.last(1)(t))(forwards(tenorMax)(t) - m)
+            else
+              surfaces.searchBy(_(0))(tenor) match
+                case BinarySearch.Found(i) => f(surfaces(i)(1)(t))(k)
+                case BinarySearch.InsertionLoc(i) =>
+                  val (tenorL, surfaceL) = surfaces(i - 1)
+                  val (tenorR, surfaceR) = surfaces(i)
+                  val w = (tenor.toYearFraction - tenorL.toYearFraction) /
+                    (tenorR.toYearFraction - tenorL.toYearFraction)
+                  (1 - w) * f(surfaceL(t))(forwards(tenorL)(t) - m) +
+                    w * f(surfaceR(t))(forwards(tenorR)(t) - m)
+
+          def apply(k: Double): Double = impl(k)(_.apply)
+
+          def fstDerivative(k: Double): Double = impl(k)(_.fstDerivative)
+
+          def sndDerivative(k: Double): Double = impl(k)(_.sndDerivative)
 
   def flat[T](vol: Double): VolatilityCube[T] = _ => VolatilitySurface.flat(vol)
