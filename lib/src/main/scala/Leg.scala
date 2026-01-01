@@ -1,6 +1,5 @@
 package lib
 
-import lib.dtos.*
 import lib.quantities.Tenor
 
 case class FixedCoupon[T](from: T, to: T, paymentAt: T)
@@ -15,9 +14,9 @@ object Leg:
       period: Tenor,
       calendar: Calendar[T],
       paymentDelay: Int,
-      businessDayConvention: BusinessDayConvention,
-      stub: StubConvention,
-      direction: Direction
+      businessDayConvention: dtos.BusinessDayConvention,
+      stub: dtos.StubConvention,
+      direction: dtos.Direction
   ): IndexedSeq[FixedCoupon[T]] =
     val schedule = Schedule(from, to, period, calendar, businessDayConvention, stub, direction)
     schedule.indices.init.map: i =>
@@ -32,10 +31,10 @@ object Leg:
       period: Tenor,
       calendar: Calendar[T],
       paymentDelay: Int,
-      businessDayConvention: BusinessDayConvention,
+      businessDayConvention: dtos.BusinessDayConvention,
       indexSettlementRule: SettlementRule[T],
-      stub: StubConvention,
-      direction: Direction
+      stub: dtos.StubConvention,
+      direction: dtos.Direction
   ): IndexedSeq[FloatingCoupon[T]] =
     val schedule = Schedule(from, to, period, calendar, businessDayConvention, stub, direction)
     schedule.indices.init.map: i =>

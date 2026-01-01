@@ -1,6 +1,5 @@
 package lib
 
-import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
 
@@ -11,13 +10,13 @@ class BackwardLookingCaplet[T: DateLike](
     val startAt: T,
     val endAt: T,
     val rate: Libor[T],
-    val paymentCurrency: Currency,
+    val paymentCurrency: dtos.Currency,
     val paymentAt: T,
     val strike: Double,
-    val optionType: OptionType,
+    val optionType: dtos.OptionType,
     val discountCurve: YieldCurve[T],
-    val stub: StubConvention,
-    val direction: Direction,
+    val stub: dtos.StubConvention,
+    val direction: dtos.Direction,
     val detachment: Detachment[T]
 ):
   private val noHolidaysCal = Calendar.all

@@ -1,6 +1,5 @@
 package lib
 
-import lib.dtos.*
 import lib.quantities.Tenor
 import lib.syntax.*
 
@@ -13,13 +12,13 @@ class CompoundedSwapRate[T: DateLike](
     val floatingPeriod: Tenor,
     val fixedDayCounter: DayCounter,
     val calendar: Calendar[T],
-    val bdConvention: BusinessDayConvention,
-    val stub: StubConvention,
-    val direction: Direction,
+    val bdConvention: dtos.BusinessDayConvention,
+    val stub: dtos.StubConvention,
+    val direction: dtos.Direction,
     val discountCurve: YieldCurve[T]
 ) extends SwapLike[T]:
 
-  def currency: Currency = floatingRate.currency
+  def currency: dtos.Currency = floatingRate.currency
 
   def interestPeriod(fixingAt: T): (T, T) =
     val startAt = calendar.addBusinessDays(fixingAt, spotLag)

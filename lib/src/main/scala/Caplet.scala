@@ -1,6 +1,5 @@
 package lib
 
-import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
 
@@ -12,10 +11,10 @@ class Caplet[T: DateLike](
     val startAt: T,
     val endAt: T,
     val paymentAt: T,
-    val paymentCurrency: Currency,
+    val paymentCurrency: dtos.Currency,
     val strike: Double,
     val discountCurve: YieldCurve[T],
-    val optionType: OptionType,
+    val optionType: dtos.OptionType,
     val detachment: Detachment[T]
 ):
 

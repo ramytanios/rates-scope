@@ -1,7 +1,5 @@
 package lib
 
-import lib.dtos.*
-
 import scala.math.*
 
 object bachelier:
@@ -9,7 +7,7 @@ object bachelier:
   import normal.*
 
   def price(
-      optionType: OptionType,
+      optionType: dtos.OptionType,
       forward: Double,
       strike: Double,
       timeToExpiry: Double,
@@ -28,8 +26,8 @@ object bachelier:
         discountFactor * ((forward - strike) * cdf(d) + stdv * pdf(d))
 
     optionType match
-      case OptionType.Call => call
-      case OptionType.Put  => call - discountFactor * (forward - strike)
+      case dtos.OptionType.Call => call
+      case dtos.OptionType.Put  => call - discountFactor * (forward - strike)
 
   def impliedCumulative(
       forward: Double,

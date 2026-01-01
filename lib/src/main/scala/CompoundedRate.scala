@@ -1,6 +1,5 @@
 package lib
 
-import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.{ *, given }
 import lib.utils.BinarySearch.Found
@@ -62,8 +61,8 @@ object CompoundedRate:
       from: T,
       to: T,
       rate: Libor[T],
-      stub: StubConvention,
-      direction: Direction
+      stub: dtos.StubConvention,
+      direction: dtos.Direction
   ): CompoundedRate[T] =
 
     val schedule: Vector[CompoundingPeriod[T]] =

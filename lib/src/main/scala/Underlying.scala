@@ -1,17 +1,16 @@
 package lib
 
-import lib.dtos.*
 import lib.quantities.Tenor
 
 trait Underlying[T]:
 
-  def currency: Currency
+  def currency: dtos.Currency
 
   def tenor: Tenor
 
   def forward: Forward[T]
 
-  def bdConvention: BusinessDayConvention
+  def bdConvention: dtos.BusinessDayConvention
 
   def calendar: Calendar[T]
 

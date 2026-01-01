@@ -1,6 +1,5 @@
 package lib
 
-import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
 
@@ -10,8 +9,8 @@ class Swaption[T: DateLike](
     val rate: SwapLike[T],
     val fixingAt: T,
     val strike: Double,
-    val optionType: OptionType,
-    val annuity: Annuity,
+    val optionType: dtos.OptionType,
+    val annuity: dtos.Annuity,
     val discountCurve: YieldCurve[T],
     val detachment: Detachment[T]
 ):
@@ -25,7 +24,7 @@ class Swaption[T: DateLike](
     val fixed = rate.fixedSchedule(swapStartAt, swapEndAt)
     val dt = t.yearFractionTo(fixingAt)(using DateLike[T], DayCounter.Act365).toDouble
     annuity match
-      case Annuity.Physical =>
+      case dtos.Annuity.Physical =>
         // enter into a real swap contract
         if t >= fixingAt then Right(0.0)
         else
@@ -36,7 +35,7 @@ class Swaption[T: DateLike](
             val adj = discountCurve.discount(fixingAt) / rate.discountCurve.discount(fixingAt)
             a * adj
           bachelier.price(optionType, fwd, strike, dt, vol, discount).asRight[Error]
-      case Annuity.Cash =>
+      case dtos.Annuity.Cash =>
         // replace physical annuity with an approx. cash payment at swap start date
         val paymentAt = swapStartAt
         def cashAnnuity(v: Double): Double =

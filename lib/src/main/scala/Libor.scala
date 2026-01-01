@@ -1,17 +1,16 @@
 package lib
 
-import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.*
 
 class Libor[T: DateLike](
-    val currency: Currency,
+    val currency: dtos.Currency,
     val tenor: Tenor,
     val spotLag: Int,
     val dayCounter: DayCounter,
     val calendar: Calendar[T],
     val resetCurve: YieldCurve[T],
-    val bdConvention: BusinessDayConvention
+    val bdConvention: dtos.BusinessDayConvention
 ) extends Underlying[T]:
 
   given DayCounter = dayCounter
