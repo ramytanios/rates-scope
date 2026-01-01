@@ -5,9 +5,9 @@ import lib.dtos
 
 class VanillaPricer[T: lib.DateLike](val market: Market[T]):
 
-  val mapper = new Mapper(market)
+  val interface = new Interface(market)
 
-  import mapper.*
+  import interface.*
 
   def price(payoff: dtos.Payoff[T]): Either[lib.Error, Double] =
     payoff match

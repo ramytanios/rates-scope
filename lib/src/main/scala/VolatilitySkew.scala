@@ -13,6 +13,8 @@ trait VolatilitySkew:
 
 object VolatilitySkew:
 
+  given Conversion[VolatilitySkew, Double => Double] = _.apply
+
   def apply(
       f: Double => Double,
       fstDeriv: Double => Double,

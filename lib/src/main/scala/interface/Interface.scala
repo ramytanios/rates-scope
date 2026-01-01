@@ -4,7 +4,7 @@ import cats.syntax.all.*
 import lib.dtos
 import lib.quantities.*
 
-class Mapper[T: lib.DateLike](market: Market[T]):
+class Interface[T: lib.DateLike](market: Market[T]):
 
   def buildYieldCurve(curve: dtos.Curve): Either[lib.Error, lib.YieldCurve[T]] =
     market.yieldCurve(curve).map:
@@ -28,7 +28,7 @@ class Mapper[T: lib.DateLike](market: Market[T]):
       tenor: lib.quantities.Tenor
   ): Either[lib.Error, lib.VolatilitySurface[T]] =
     market.volSurface(currency, tenor).flatMap: surface =>
-      buildMarketRate(currency, tenor).map: rate =>
+      buildVolConventions(currency, tenor).map: rate =>
         val skews = surface.surface.toList.map:
           case (expTenor, dtos.VolatiltySkew(skew)) =>
             val (moneynesses, vols) = skew.unzip
@@ -44,12 +44,15 @@ class Mapper[T: lib.DateLike](market: Market[T]):
         buildVolSurface(currency, tenor).tupleLeft(Tenor(tenor))
       .map(_.toIndexedSeq)
       val forwards = volCube.cube.keys.toList.traverse: tenor =>
-        buildMarketRate(currency, tenor).map(_.forward).tupleLeft(Tenor(tenor))
+        buildVolConventions(currency, tenor).map(_.forward).tupleLeft(Tenor(tenor))
       .map(_.toMap)
       (surfaces, forwards).tupled.map: (surfaces, forwards) =>
         lib.VolatilityCube[T](surfaces, forwards)
 
-  def buildMarketRate(currency: dtos.Currency, tenor: Tenor): Either[lib.Error, lib.Underlying[T]] =
+  def buildVolConventions(
+      currency: dtos.Currency,
+      tenor: Tenor
+  ): Either[lib.Error, lib.Underlying[T]] =
     market.volatilityConventions(currency, tenor).flatMap:
       case libor: dtos.Underlying.Libor[T]             => buildLibor(libor.name)
       case swap: dtos.Underlying.SwapRate[T]           => buildSwapRate(swap.name)

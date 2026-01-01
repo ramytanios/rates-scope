@@ -59,13 +59,13 @@ object CDFInverter:
             val kMin = ks.head
             val kMax = ks.last
             val put = bachelier.price(dtos.OptionType.Put, fwd, kMin, dt, vol(kMin), 1.0)
-            val putAtm = bachelier.price(dtos.OptionType.Call, fwd, fwd, dt, vol(fwd), 1.0)
+            val putAtm = bachelier.price(dtos.OptionType.Put, fwd, fwd, dt, vol(fwd), 1.0)
             Either.raiseUnless(put <= params.relPriceThreshold * putAtm)(Arbitrage.LeftAsymptotic)
               .as:
                 val step = (kMax - kMin) / params.nTail
                 val strikes = (0 to params.nTail).map(i => kMin + i * step)
                 val cdfs = strikes.map(cdfImplied)
-                (strikes.reverse -> cdfs.reverse)
+                strikes.reverse -> cdfs.reverse
 
     def rightStrikes(kR: Double) =
       if cdfImplied(kR) <= (1 - params.cdfThreshold) then
@@ -89,7 +89,7 @@ object CDFInverter:
                 val step = (kMax - kMin) / params.nTail
                 val strikes = (0 to params.nTail).map(i => kMin + i * step)
                 val cdfs = strikes.map(cdfImplied)
-                (strikes -> cdfs)
+                strikes -> cdfs
 
     for
       (mks, mvs) <- middleStrikes
