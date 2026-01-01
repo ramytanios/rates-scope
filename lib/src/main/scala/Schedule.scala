@@ -1,6 +1,5 @@
 package lib
 
-import lib.dtos.*
 import lib.quantities.*
 import lib.syntax.given
 
@@ -14,15 +13,15 @@ object Schedule:
       to: T,
       period: Tenor,
       calendar: Calendar[T],
-      bdConvention: BusinessDayConvention,
-      stub: StubConvention,
-      direction: Direction
+      bdConvention: dtos.BusinessDayConvention,
+      stub: dtos.StubConvention,
+      direction: dtos.Direction
   ): IndexedSeq[T] =
 
     require(from < to, s"from date $from must be before $to")
 
     direction match
-      case Direction.Backward =>
+      case dtos.Direction.Backward =>
         val buf = new ArrayDeque[T]
         var loop = true
         var idx = 0
@@ -34,11 +33,11 @@ object Schedule:
           else
             loop = false
 
-        if stub == StubConvention.Long then buf.remove(0): Unit
+        if stub == dtos.StubConvention.Long then buf.remove(0): Unit
 
         (from +=: buf).toIndexedSeq.distinct // TODO: revisit `distinct`
 
-      case Direction.Forward =>
+      case dtos.Direction.Forward =>
         val buf = new ArrayBuffer[T]
         var loop = true
         var idx = 0
@@ -50,6 +49,6 @@ object Schedule:
           else
             loop = false
 
-        if stub == StubConvention.Long then buf.remove(buf.size - 1): Unit
+        if stub == dtos.StubConvention.Long then buf.remove(buf.size - 1): Unit
 
         (buf += to).toIndexedSeq.distinct // TODO: revisit `distinct`
