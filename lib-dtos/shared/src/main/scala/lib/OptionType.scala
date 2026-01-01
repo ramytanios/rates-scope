@@ -1,5 +1,4 @@
-package lib
-package dtos
+package lib.dtos
 
 enum OptionType(val sign: Int):
   case Call extends OptionType(1)

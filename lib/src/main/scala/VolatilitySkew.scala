@@ -1,7 +1,7 @@
 package lib
 
-import scala.math.tanh
 import scala.math.pow
+import scala.math.tanh
 
 trait VolatilitySkew:
 

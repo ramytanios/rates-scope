@@ -1,6 +1,7 @@
-package entry
+package lib.interface
 
 import cats.syntax.all.*
+import lib.dtos
 
 class VanillaPricer[T: lib.DateLike](val market: Market[T]):
 

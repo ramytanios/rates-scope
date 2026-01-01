@@ -33,30 +33,7 @@ lazy val V = new {
 }
 
 lazy val root =
-  (project in file(".")).aggregate(
-    dtos.jvm,
-    dtos.js,
-    `lib-dtos`.jvm,
-    `lib-dtos`.js,
-    entry,
-    lib,
-    backend,
-    frontend
-  )
-
-lazy val dtos = crossProject(JSPlatform, JVMPlatform)
-  .in(file("dtos"))
-  .settings(
-    scalacOptions -= "-Xfatal-warnings",
-    libraryDependencies ++=
-      Seq(
-        "io.circe" %% "circe-core" % V.circe,
-        "io.circe" %% "circe-generic" % V.circe,
-        "io.circe" %% "circe-literal" % V.circe,
-        "io.circe" %% "circe-parser" % V.circe
-      ),
-    scalacOptions -= "-Xfatal-warnings"
-  ).dependsOn(`lib-dtos`)
+  (project in file(".")).aggregate(`lib-dtos`.jvm, `lib-dtos`.js, lib)
 
 lazy val `lib-dtos` = crossProject(JSPlatform, JVMPlatform)
   .in(file("lib-dtos"))
@@ -81,64 +58,3 @@ lazy val lib = project.in(file("lib")).settings(
   ),
   scalacOptions -= "-Xfatal-warnings"
 ).dependsOn(`lib-dtos`.jvm)
-
-lazy val entry = project.in(file("entry")).settings(
-  libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core" % V.cats,
-    "org.typelevel" %% "literally" % V.literally,
-    "org.apache.commons" % "commons-math3" % V.`commons-math`,
-    "org.scalameta" %% "munit" % V.test % Test
-  ),
-  scalacOptions -= "-Xfatal-warnings"
-).dependsOn(dtos.jvm, `lib-dtos`.jvm, lib)
-
-lazy val frontend = project
-  .in(file("frontend"))
-  .enablePlugins(ScalaJSPlugin)
-  .settings(
-    scalaJSUseMainModuleInitializer := true,
-    libraryDependencies ++= Seq(
-      "org.typelevel" %%% "mouse" % V.mouse,
-      "dev.optics" %%% "monocle-core" % V.monocle,
-      "io.github.buntec" %%% "ff4s" % V.ff4s,
-      "io.github.buntec" %%% "ff4s-canvas" % V.`ff4s-canvas`,
-      "io.github.buntec" %%% "ff4s-shoelace" % V.`ff4s-shoelace`,
-      "io.github.buntec" %%% "ff4s-heroicons" % V.`ff4s-heroicons`,
-      "io.github.cquiroz" %%% "scala-java-time" % V.`scala-java-time`
-    ),
-    scalacOptions -= "-Xfatal-warnings"
-  )
-  .dependsOn(dtos.js)
-
-lazy val backend = project
-  .in(file("backend"))
-  .enablePlugins(JavaAppPackaging)
-  .settings(
-    fork := true,
-    libraryDependencies ++=
-      Seq(
-        "ch.qos.logback" % "logback-classic" % V.logback,
-        "io.circe" %% "circe-core" % V.circe,
-        "io.circe" %% "circe-generic" % V.circe,
-        "io.circe" %% "circe-literal" % V.circe,
-        "io.circe" %% "circe-parser" % V.circe,
-        "org.typelevel" %% "cats-core" % V.cats,
-        "co.fs2" %% "fs2-core" % V.fs2,
-        "co.fs2" %% "fs2-io" % V.fs2,
-        "org.typelevel" %% "kittens" % V.kittens,
-        "org.typelevel" %% "mouse" % V.mouse,
-        "org.http4s" %% "http4s-dsl" % V.http4s,
-        "org.http4s" %% "http4s-circe" % V.http4s,
-        "org.http4s" %% "http4s-ember-server" % V.http4s,
-        "org.http4s" %% "http4s-ember-client" % V.http4s,
-        "org.typelevel" %% "cats-effect" % V.`cats-effect`,
-        "org.typelevel" %% "cats-effect-std" % V.`cats-effect`,
-        "org.typelevel" %% "cats-time" % V.`cats-time`,
-        "org.typelevel" %% "literally" % V.literally,
-        "org.typelevel" %% "log4cats-core" % V.`log-4cats`,
-        "org.typelevel" %% "log4cats-slf4j" % V.`log-4cats`,
-        "org.apache.commons" % "commons-math3" % V.`commons-math`
-      ),
-    scalacOptions -= "-Xfatal-warnings"
-  )
-  .dependsOn(dtos.jvm)

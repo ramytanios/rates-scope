@@ -1,6 +1,4 @@
-package dtos
-
-import lib.dtos.*
+package lib.dtos
 
 import java.time.Period
 

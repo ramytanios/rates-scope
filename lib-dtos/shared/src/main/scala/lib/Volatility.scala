@@ -1,13 +1,11 @@
-package dtos
-
-import lib.dtos.*
+package lib.dtos
 
 import java.time.Period
 
 case class VolatiltySkew(skew: Seq[(Double, Double)])
 
-case class VolatilitySurface[T](surface: Map[Period, VolatiltySkew])
+case class VolatilitySurface(surface: Map[Period, VolatiltySkew])
 
-case class VolatilityCube[T](cube: Map[Period, VolatilitySurface[T]])
+case class VolatilityCube(cube: Map[Period, VolatilitySurface])
 
 case class VolatilityMarketConventions[T](rates: Map[Currency, Map[Period, Underlying[T]]])

@@ -1,5 +1,4 @@
-package lib
-package dtos
+package lib.dtos
 
 enum BusinessDayConvention:
   case Following, Preceding, ModifiedFollowing

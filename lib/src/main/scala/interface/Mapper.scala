@@ -1,7 +1,7 @@
-package entry
+package lib.interface
 
 import cats.syntax.all.*
-import lib.dtos.*
+import lib.dtos
 import lib.quantities.*
 
 class Mapper[T: lib.DateLike](market: Market[T]):
@@ -24,7 +24,7 @@ class Mapper[T: lib.DateLike](market: Market[T]):
       .map(_.toMap)
 
   def buildVolSurface(
-      currency: Currency,
+      currency: dtos.Currency,
       tenor: lib.quantities.Tenor
   ): Either[lib.Error, lib.VolatilitySurface[T]] =
     market.volSurface(currency, tenor).flatMap: surface =>
@@ -38,7 +38,7 @@ class Mapper[T: lib.DateLike](market: Market[T]):
             expiry -> lib.Lazy(lib.VolatilitySkew(strikes.toIndexedSeq, vols.toIndexedSeq))
         lib.VolatilitySurface(market.t, rate.forward, skews.toIndexedSeq)
 
-  def buildVolCube(currency: Currency): Either[lib.Error, lib.VolatilityCube[T]] =
+  def buildVolCube(currency: dtos.Currency): Either[lib.Error, lib.VolatilityCube[T]] =
     market.volCube(currency).flatMap: volCube =>
       val surfaces = volCube.cube.toList.traverse: (tenor, _) =>
         buildVolSurface(currency, tenor).tupleLeft(Tenor(tenor))
@@ -49,7 +49,7 @@ class Mapper[T: lib.DateLike](market: Market[T]):
       (surfaces, forwards).tupled.map: (surfaces, forwards) =>
         lib.VolatilityCube[T](surfaces, forwards)
 
-  def buildMarketRate(currency: Currency, tenor: Tenor): Either[lib.Error, lib.Underlying[T]] =
+  def buildMarketRate(currency: dtos.Currency, tenor: Tenor): Either[lib.Error, lib.Underlying[T]] =
     market.volatilityConventions(currency, tenor).flatMap:
       case libor: dtos.Underlying.Libor[T]             => buildLibor(libor.name)
       case swap: dtos.Underlying.SwapRate[T]           => buildSwapRate(swap.name)

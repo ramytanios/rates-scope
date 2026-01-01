@@ -1,4 +1,4 @@
-package dtos
+package lib.dtos
 
 trait YieldCurve[T]
 

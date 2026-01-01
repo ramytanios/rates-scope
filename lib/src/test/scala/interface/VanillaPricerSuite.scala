@@ -1,7 +1,9 @@
-package entry
+package lib.interface
 
 import lib.DateLike
-import lib.dtos.*
+import lib.EitherSyntax
+import lib.dtos
+import lib.interface.*
 import lib.literals.*
 import lib.quantities.Tenor
 
@@ -15,13 +17,13 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
 
     val rate: dtos.Underlying[LocalDate] = dtos.Underlying.Libor(
       "libor-rate",
-      Currency.USD,
+      dtos.Currency.USD,
       Tenor.`3M`.toPeriod,
       2,
       dtos.DayCounter.Act360,
       dtos.Calendar[LocalDate](Nil),
-      dtos.Curve(Currency.USD, "single-curve"),
-      BusinessDayConvention.ModifiedFollowing
+      dtos.Curve(dtos.Currency.USD, "single-curve"),
+      dtos.BusinessDayConvention.ModifiedFollowing
     )
 
     val market = Market(
@@ -29,13 +31,13 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
       rates = Map("libor-rate" -> rate),
       curves =
         Map(
-          dtos.Curve(Currency.USD, "single-curve") ->
+          dtos.Curve(dtos.Currency.USD, "single-curve") ->
             dtos.YieldCurve.ContinuousCompounding(0.02)
         ),
       fixingsByRate = Map.empty,
-      volConventions = Map(Currency.USD -> Map(Tenor.`3M` -> rate)),
+      volConventions = Map(dtos.Currency.USD -> Map(Tenor.`3M` -> rate)),
       volatilities = Map(
-        Currency.USD -> dtos.VolatilityCube(
+        dtos.Currency.USD -> dtos.VolatilityCube(
           Map(
             Tenor.`3M`.toPeriod -> dtos.VolatilitySurface(
               Map(
@@ -69,10 +71,10 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
       startAt,
       endAt,
       endAt,
-      Currency.USD,
+      dtos.Currency.USD,
       0.009887915724457295,
-      dtos.Curve(Currency.USD, "single-curve"),
-      OptionType.Call
+      dtos.Curve(dtos.Currency.USD, "single-curve"),
+      dtos.OptionType.Call
     )
 
     val pricer = new VanillaPricer(market)
