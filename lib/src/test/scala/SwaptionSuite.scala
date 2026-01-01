@@ -1,7 +1,6 @@
 package lib
 
 import lib.DayCounter.Act360
-import lib.dtos.*
 import lib.literals.*
 import lib.quantities.Tenor
 
@@ -17,13 +16,13 @@ class SwaptionSuite extends munit.FunSuite with lib.EitherSyntax:
     val discountCurve = resetCurve
 
     val libor = new Libor(
-      Currency.USD,
+      dtos.Currency.USD,
       Tenor.`3M`,
       2,
       Act360,
       Calendar.all,
       resetCurve,
-      BusinessDayConvention.ModifiedFollowing
+      dtos.BusinessDayConvention.ModifiedFollowing
     )
 
     val swapRate = new SwapRate(
@@ -34,9 +33,9 @@ class SwaptionSuite extends munit.FunSuite with lib.EitherSyntax:
       libor,
       Act360,
       Calendar.all,
-      BusinessDayConvention.ModifiedFollowing,
-      StubConvention.Short,
-      Direction.Backward,
+      dtos.BusinessDayConvention.ModifiedFollowing,
+      dtos.StubConvention.Short,
+      dtos.Direction.Backward,
       discountCurve
     )
 
@@ -53,8 +52,8 @@ class SwaptionSuite extends munit.FunSuite with lib.EitherSyntax:
       swapRate,
       fixingAt,
       libor.forward(fixingAt) / 2.0,
-      OptionType.Call,
-      Annuity.Physical,
+      dtos.OptionType.Call,
+      dtos.Annuity.Physical,
       discountCurve,
       lib.Detachment.default
     )
@@ -69,8 +68,8 @@ class SwaptionSuite extends munit.FunSuite with lib.EitherSyntax:
       swapRate,
       fixingAt,
       libor.forward(fixingAt) / 2.0,
-      OptionType.Call,
-      Annuity.Cash,
+      dtos.OptionType.Call,
+      dtos.Annuity.Cash,
       discountCurve,
       lib.Detachment.default
     )

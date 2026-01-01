@@ -1,7 +1,6 @@
 package lib
 
 import lib.DayCounter.Act360
-import lib.dtos.*
 import lib.dtos.BusinessDayConvention.*
 import lib.literals.*
 import lib.quantities.Rate
@@ -19,11 +18,12 @@ class CompoundedRateSuite extends munit.FunSuite with lib.EitherSyntax:
 
     val resetCurve = YieldCurve.continuousCompounding(t, 0.05, DayCounter.Act365)
 
-    val dailyRate = new Libor(Currency.USD, Tenor.`1D`, 0, Act360, calendar, resetCurve, Following)
+    val dailyRate =
+      new Libor(dtos.Currency.USD, Tenor.`1D`, 0, Act360, calendar, resetCurve, Following)
 
-    val stub = StubConvention.Long
+    val stub = dtos.StubConvention.Long
 
-    val direction = Direction.Forward
+    val direction = dtos.Direction.Forward
 
     val fixings = Map(
       d"2025-08-26" -> 0.05,

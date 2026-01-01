@@ -1,7 +1,6 @@
 package lib
 
 import lib.DayCounter.Act360
-import lib.dtos.*
 import lib.literals.*
 import lib.quantities.Tenor
 
@@ -17,13 +16,13 @@ class CapletSuite extends munit.FunSuite with lib.EitherSyntax:
     val discountCurve = resetCurve
 
     val libor = new Libor(
-      Currency.USD,
+      dtos.Currency.USD,
       Tenor.`3M`,
       2,
       Act360,
       Calendar.all,
       resetCurve,
-      BusinessDayConvention.ModifiedFollowing
+      dtos.BusinessDayConvention.ModifiedFollowing
     )
 
     val fixingAt = DateLike[LocalDate].plusPeriod(t, Tenor.`1Y`)
@@ -45,10 +44,10 @@ class CapletSuite extends munit.FunSuite with lib.EitherSyntax:
       startAt,
       endAt,
       endAt,
-      Currency.USD,
+      dtos.Currency.USD,
       strike,
       discountCurve,
-      OptionType.Call,
+      dtos.OptionType.Call,
       Detachment.default
     )
 

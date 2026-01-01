@@ -1,6 +1,5 @@
 package lib
 
-import lib.dtos.*
 import lib.dtos.BusinessDayConvention.*
 import lib.literals.*
 import lib.quantities.Rate
@@ -17,7 +16,7 @@ class LiborSuite extends munit.FunSuite:
     val resetCurve = YieldCurve.continuousCompounding(t, 0.02, DayCounter.Act365)
 
     val libor = new Libor(
-      Currency.USD,
+      dtos.Currency.USD,
       Tenor.`1D`,
       0,
       DayCounter.Act360,

@@ -1,6 +1,5 @@
 package lib
 
-import lib.dtos.*
 import lib.dtos.BusinessDayConvention.*
 import lib.literals.*
 import lib.quantities.Tenor
@@ -17,7 +16,7 @@ class SwapRateSuite extends munit.FunSuite:
     val discountCurve = resetCurve
 
     val floatingRate = new Libor(
-      Currency.EUR,
+      dtos.Currency.EUR,
       Tenor.`3M`,
       2,
       DayCounter.Act360,
@@ -35,8 +34,8 @@ class SwapRateSuite extends munit.FunSuite:
       DayCounter.Act360,
       Calendar.all,
       ModifiedFollowing,
-      StubConvention.Short,
-      Direction.Backward,
+      dtos.StubConvention.Short,
+      dtos.Direction.Backward,
       discountCurve
     )
 
