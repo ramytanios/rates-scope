@@ -13,6 +13,16 @@ trait VolatilitySkew:
 
 object VolatilitySkew:
 
+  def apply(
+      f: Double => Double,
+      fstDeriv: Double => Double,
+      sndDeriv: Double => Double
+  ): VolatilitySkew =
+    new VolatilitySkew:
+      override def apply(strike: Double): Double = f(strike)
+      override def fstDerivative(strike: Double): Double = fstDeriv(strike)
+      override def sndDerivative(strike: Double): Double = sndDeriv(strike)
+
   def apply(ks: IndexedSeq[Double], vs: IndexedSeq[Double]): VolatilitySkew =
 
     val spline = CubicSpline(ks, vs)
