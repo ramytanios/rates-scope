@@ -2,8 +2,8 @@ package lib.api
 
 import lib.DateLike
 import lib.EitherSyntax
-import lib.dtos
 import lib.api.*
+import lib.dtos
 import lib.literals.*
 import lib.quantities.Tenor
 
@@ -16,22 +16,22 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
     val t = d"2025-10-12"
 
     val rate: dtos.Underlying[LocalDate] = dtos.Underlying.Libor(
-      "libor-rate",
+      "LIBOR_RATE",
       dtos.Currency.USD,
       Tenor.`3M`.toPeriod,
       2,
       dtos.DayCounter.Act360,
-      dtos.Calendar[LocalDate](Nil),
-      dtos.Curve(dtos.Currency.USD, "single-curve"),
+      "NO_HOLIDAYS",
+      dtos.Curve(dtos.Currency.USD, "SINGLE_CURVE"),
       dtos.BusinessDayConvention.ModifiedFollowing
     )
 
     val market = Market(
       tRef = t,
-      rates = Map("libor-rate" -> rate),
+      rates = Map("LIBOR_RATE" -> rate),
       curves =
         Map(
-          dtos.Curve(dtos.Currency.USD, "single-curve") ->
+          dtos.Curve(dtos.Currency.USD, "SINGLE_CURVE") ->
             dtos.YieldCurve.ContinuousCompounding(0.02)
         ),
       fixingsByRate = Map.empty,
@@ -58,7 +58,8 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
             )
           )
         )
-      )
+      ),
+      calendars = Map("NO_HOLIDAYS" -> dtos.Calendar[LocalDate](Nil))
     )
 
     val fixingAt = d"2026-10-12"
@@ -66,14 +67,14 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
     val endAt = d"2027-01-14"
 
     val caplet = dtos.Payoff.Caplet(
-      "libor-rate",
+      "LIBOR_RATE",
       fixingAt,
       startAt,
       endAt,
       endAt,
       dtos.Currency.USD,
       0.009887915724457295,
-      dtos.Curve(dtos.Currency.USD, "single-curve"),
+      dtos.Curve(dtos.Currency.USD, "SINGLE_CURVE"),
       dtos.OptionType.Call
     )
 

@@ -48,7 +48,7 @@ class Api[T: lib.DateLike](val market: Market[T]):
       buildVolSurface(currency, tenor).map(_(expiryT)).map: volSkew =>
         CDFInverter(market.t, expiryT, volSkew, rate.forward, Params()).swap.toOption
 
-  def sample(
+  def sampleVolSkew(
       currency: dtos.Currency,
       tenor: Tenor,
       expiry: Tenor,

@@ -1,3 +1,5 @@
 package lib.dtos
 
-case class Calendar[T](holidays: Seq[T])
+import io.circe.Codec
+
+case class Calendar[T](holidays: Seq[T]) derives Codec

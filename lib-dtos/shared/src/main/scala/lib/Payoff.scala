@@ -1,10 +1,15 @@
 package lib.dtos
 
-sealed trait Payoff[T]
+import io.circe.Codec
+import io.circe.derivation.*
+import io.circe.derivation.ConfiguredCodec
 
 object Payoff:
+  given Configuration = Configuration.default.withDiscriminator("type")
 
-  case class Caplet[T](
+enum Payoff[T] derives ConfiguredCodec:
+
+  case Caplet[T](
       rate: String,
       fixingAt: T,
       startAt: T,
@@ -16,7 +21,7 @@ object Payoff:
       optionType: OptionType
   ) extends Payoff[T]
 
-  case class Swaption[T](
+  case Swaption[T](
       rate: String,
       fixingAt: T,
       strike: Double,
@@ -25,7 +30,7 @@ object Payoff:
       discountCurve: Curve
   ) extends Payoff[T]
 
-  case class BackwardLookingCaplet[T](
+  case BackwardLookingCaplet[T](
       startAt: T,
       endAt: T,
       rate: String,

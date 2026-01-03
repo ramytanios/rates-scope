@@ -1,4 +1,9 @@
 package lib.dtos
 
-enum StubConvention:
+import io.circe.derivation.*
+
+object StubConvention:
+  given Configuration = Configuration.default
+
+enum StubConvention derives ConfiguredEnumCodec:
   case Short, Long

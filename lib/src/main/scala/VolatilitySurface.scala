@@ -13,13 +13,12 @@ trait VolatilitySurface[T]:
 object VolatilitySurface:
 
   def apply[T: DateLike](
-      ref: T,
+      tRef: T,
       forward: Forward[T],
       skews: IndexedSeq[(T, Lazy[VolatilitySkew])]
   ): VolatilitySurface[T] =
     require(skews.map(_(0)).isStrictlyIncreasing, "pillar maturities must be strictly increasing")
 
-    val t0 = ref
     val n = skews.length
 
     val tMin = skews.head(0)
@@ -34,9 +33,9 @@ object VolatilitySurface:
           val (tL, fL) = left
           val (tR, fR) = right
           val w = tL.yearFractionTo(t) / tL.yearFractionTo(tR)
-          val dt = t0.yearFractionTo(t).toDouble
-          val dtL = t0.yearFractionTo(tL).toDouble
-          val dtR = t0.yearFractionTo(tR).toDouble
+          val dt = tRef.yearFractionTo(t).toDouble
+          val dtL = tRef.yearFractionTo(tL).toDouble
+          val dtR = tRef.yearFractionTo(tR).toDouble
           1.0 / dt * ((1.0 - w) * dtL * fL(forward(tL) - m) + w * dtR * fR(forward(tR) - m))
 
         def apply(k: Double): Double =

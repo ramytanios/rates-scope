@@ -1,3 +1,5 @@
 package lib.dtos
 
-case class Curve(ccy: lib.dtos.Currency, name: String)
+import io.circe.Codec
+
+case class Curve(currency: Currency, name: String) derives Codec
