@@ -1,9 +1,9 @@
-package lib.interface
+package lib.api
 
 import lib.DateLike
 import lib.EitherSyntax
 import lib.dtos
-import lib.interface.*
+import lib.api.*
 import lib.literals.*
 import lib.quantities.Tenor
 
@@ -77,7 +77,5 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
       dtos.OptionType.Call
     )
 
-    val pricer = new VanillaPricer(market)
-
-    pricer.price(caplet).failOrAssert: price =>
+    new Api(market).price(caplet).failOrAssert: price =>
       assertEqualsDouble(price, 0.0025670027485647476, 1e-10)

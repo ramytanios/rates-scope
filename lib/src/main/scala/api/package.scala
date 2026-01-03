@@ -1,6 +1,6 @@
 package lib
 
-package object interface:
+package object api:
 
   def toDayCounter(dc: dtos.DayCounter): lib.DayCounter =
     dc match

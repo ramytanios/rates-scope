@@ -1,4 +1,4 @@
-package lib.interface
+package lib.api
 
 import lib.*
 import lib.dtos

@@ -1,10 +1,10 @@
-package lib.interface
+package lib.api
 
 import cats.syntax.all.*
 import lib.dtos
 import lib.quantities.*
 
-class Interface[T: lib.DateLike](market: Market[T]):
+class Lib[T: lib.DateLike](market: Market[T]):
 
   def buildYieldCurve(curve: dtos.Curve): Either[lib.Error, lib.YieldCurve[T]] =
     market.yieldCurve(curve).map:
