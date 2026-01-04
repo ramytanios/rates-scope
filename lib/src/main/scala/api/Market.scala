@@ -55,7 +55,7 @@ trait Market[T]:
 
 object Market:
 
-  def default[T](
+  def apply[T](
       tRef: T,
       marketByCcy: Map[dtos.Currency, dtos.CcyMarket[T]],
       static: dtos.Static[T]

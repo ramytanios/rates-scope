@@ -10,6 +10,7 @@ import lib.dtos.given_Codec_LocalDate
 import java.time.LocalDate
 import scala.io.Source
 import scala.util.Using
+import lib.quantities.Tenor
 
 class JsonParsing extends munit.FunSuite with EitherSyntax:
 
@@ -43,8 +44,25 @@ class JsonParsing extends munit.FunSuite with EitherSyntax:
       .leftMap: err =>
         lib.Error.Generic(err.getMessage)
       .flatMap: js =>
-        val market = Market.default(js.tRef, js.market, js.static)
+        val market = Market(js.tRef, js.market, js.static)
         val caplet = js.payoff
         new Api(market).price(caplet)
       .failOrAssert: price =>
         assertEqualsDouble(price, 0.0025670027485647476, 1e-10)
+
+  test("arbitrage check"):
+
+    case class Js(
+        tRef: T,
+        market: Map[dtos.Currency, dtos.CcyMarket[T]],
+        static: dtos.Static[T]
+    ) derives Codec
+
+    val js = readResource("market.json")
+    decode[Js](js)
+      .leftMap: err =>
+        lib.Error.Generic(err.getMessage)
+      .flatMap: js =>
+        val market = Market(js.tRef, js.market, js.static)
+        new Api(market).arbitrageCheck(dtos.Currency.USD, Tenor.`3M`, Tenor.`1Y`)
+      .failOrAssert(arb => assert(arb.isEmpty))
