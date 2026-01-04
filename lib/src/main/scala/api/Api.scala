@@ -73,8 +73,7 @@ class Api[T: lib.DateLike](val market: Market[T]):
               buildVolSurface(currency, tenor).map: volSurface =>
                 val volSkew = volSurface(expiryT)
                 val quotedVols = quotedStrikes.map(volSkew andThen volInUnit)
-                val dt =
-                  market.t.yearFractionTo(expiryT)(using summon[lib.DateLike[T]], DayCounter.Act365)
+                val dt = market.t.yearFractionTo(expiryT)(using lib.DateLike[T], DayCounter.Act365)
                 val atmStdv = volSkew(fwd) * math.sqrt(dt.toDouble)
                 val kMin = quotedStrikes.head - 5 * atmStdv
                 val kMax = quotedStrikes.last + 5 * atmStdv

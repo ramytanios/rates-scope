@@ -21,7 +21,8 @@ lazy val V = new {
   val http4s = "0.23.27"
   val monocle = "3.3.0"
   val logback = "1.5.7"
-  val test = "1.2.1"
+  val munit = "1.2.1"
+  val `munit-cats-effect` = "2.0.0-M3"
   val `cats-effect` = "3.5.4"
   val `cats-time` = "0.5.1"
   val `scala-java-time` = "2.5.0"
@@ -33,7 +34,7 @@ lazy val V = new {
 }
 
 lazy val root =
-  (project in file(".")).aggregate(`lib-dtos`.jvm, `lib-dtos`.js, lib)
+  (project in file(".")).aggregate(lib, ws, `lib-dtos`.jvm, `lib-dtos`.js)
 
 lazy val `lib-dtos` = crossProject(JSPlatform, JVMPlatform)
   .in(file("lib-dtos"))
@@ -54,7 +55,40 @@ lazy val lib = project.in(file("lib")).settings(
     "org.typelevel" %% "cats-core" % V.cats,
     "org.typelevel" %% "literally" % V.literally,
     "org.apache.commons" % "commons-math3" % V.`commons-math`,
-    "org.scalameta" %% "munit" % V.test % Test
+    "org.scalameta" %% "munit" % V.munit % Test
   ),
   scalacOptions -= "-Xfatal-warnings"
 ).dependsOn(`lib-dtos`.jvm)
+
+lazy val ws = project
+  .in(file("ws"))
+  .enablePlugins(JavaAppPackaging)
+  .settings(
+    fork := true,
+    libraryDependencies ++=
+      Seq(
+        "ch.qos.logback" % "logback-classic" % V.logback,
+        "io.circe" %% "circe-core" % V.circe,
+        "io.circe" %% "circe-generic" % V.circe,
+        "io.circe" %% "circe-literal" % V.circe,
+        "io.circe" %% "circe-parser" % V.circe,
+        "org.typelevel" %% "cats-core" % V.cats,
+        "co.fs2" %% "fs2-core" % V.fs2,
+        "co.fs2" %% "fs2-io" % V.fs2,
+        "org.typelevel" %% "kittens" % V.kittens,
+        "org.typelevel" %% "mouse" % V.mouse,
+        "org.typelevel" %% "cats-effect" % V.`cats-effect`,
+        "org.typelevel" %% "cats-effect-std" % V.`cats-effect`,
+        "org.typelevel" %% "cats-time" % V.`cats-time`,
+        "org.typelevel" %% "literally" % V.literally,
+        "org.typelevel" %% "log4cats-core" % V.`log-4cats`,
+        "org.typelevel" %% "log4cats-slf4j" % V.`log-4cats`,
+        "org.apache.commons" % "commons-math3" % V.`commons-math`,
+        "org.http4s" %% "http4s-dsl" % V.http4s,
+        "org.http4s" %% "http4s-circe" % V.http4s,
+        "org.http4s" %% "http4s-ember-server" % V.http4s,
+        "org.typelevel" %% "munit-cats-effect" % V.`munit-cats-effect` % Test
+      ),
+    scalacOptions -= "-Xfatal-warnings"
+  )
+  .dependsOn(lib, `lib-dtos`.jvm)
