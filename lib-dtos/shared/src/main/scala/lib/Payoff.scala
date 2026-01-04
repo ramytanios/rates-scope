@@ -6,8 +6,9 @@ import io.circe.derivation.ConfiguredCodec
 
 object Payoff:
   given Configuration = Configuration.default.withDiscriminator("type")
+  given [T: Codec]: Codec[Payoff[T]] = Codec.AsObject.derivedConfigured
 
-enum Payoff[T] derives ConfiguredCodec:
+enum Payoff[T]:
 
   case Caplet[T](
       rate: String,

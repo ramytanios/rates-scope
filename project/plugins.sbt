@@ -1,7 +1,6 @@
 lazy val V = new {
   val tpolecat = "0.5.1"
   val updates = "0.6.3"
-  val `sbt-bloop` = "2.0.17"
   val `scala-fix` = "0.14.0"
   val `scala-fmt` = "2.5.4"
   val `scala-js` = "1.20.0"
@@ -18,4 +17,3 @@ addSbtPlugin("org.scala-js" % "sbt-scalajs" % V.`scala-js`)
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % V.`cross-project`)
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % V.`native-packager`)
 addSbtPlugin("com.github.sbt" % "sbt-github-actions" % V.`sbt-github-actions`)
-addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % V.`sbt-bloop`)

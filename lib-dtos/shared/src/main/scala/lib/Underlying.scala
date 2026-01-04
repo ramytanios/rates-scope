@@ -20,7 +20,6 @@ object Underlying:
 enum Underlying[T]:
 
   case Libor[T](
-      name: String,
       currency: Currency,
       tenor: Period,
       spotLag: Int,
@@ -31,7 +30,6 @@ enum Underlying[T]:
   ) extends Underlying[T]
 
   case SwapRate[T](
-      name: String,
       tenor: Period,
       spotLag: Int,
       paymentDelay: Int,
@@ -46,7 +44,6 @@ enum Underlying[T]:
   ) extends Underlying[T]
 
   case CompoundedSwapRate[T](
-      name: String,
       tenor: Period,
       spotLag: Int,
       paymentDelay: Int,

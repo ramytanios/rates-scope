@@ -1,5 +1,20 @@
 {
   "tRef": "2025-10-12",
+  "payoff": {
+    "rate": "LIBOR_RATE",
+    "fixingAt": "2026-10-12",
+    "startAt": "2026-10-14",
+    "endAt": "2027-01-14",
+    "paymentAt": "2027-01-14",
+    "paymentCurrency": "USD",
+    "strike": 0.009887915724457295,
+    "discountCurve": {
+      "currency": "USD",
+      "name": "SINGLE_CURVE"
+    },
+    "optionType": "Call",
+    "type": "Caplet"
+  },
   "market": {
     "USD": {
       "rates": {

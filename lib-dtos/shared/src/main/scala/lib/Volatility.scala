@@ -5,10 +5,16 @@ import io.circe.derivation.*
 
 import java.time.Period
 
+object VolUnit:
+  given Configuration = Configuration.default
+
+enum VolUnit derives ConfiguredEnumCodec:
+  case BpPerYear
+
 case class VolatiltySkew(skew: Seq[(Double, Double)]) derives Codec
 
 case class VolatilitySurface(surface: Map[Period, VolatiltySkew]) derives Codec
 
-case class VolatilityCube(cube: Map[Period, VolatilitySurface]) derives Codec
+case class VolatilityCube(cube: Map[Period, VolatilitySurface], unit: VolUnit) derives Codec
 
 case class VolatilityMarketConventions[T](rates: Map[Period, Underlying[T]]) derives Codec

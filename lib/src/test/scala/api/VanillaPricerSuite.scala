@@ -8,6 +8,7 @@ import lib.literals.*
 import lib.quantities.Tenor
 
 import java.time.LocalDate
+import lib.dtos.VolUnit
 
 class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
 
@@ -16,7 +17,6 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
     val t = d"2025-10-12"
 
     val rate: dtos.Underlying[LocalDate] = dtos.Underlying.Libor(
-      "LIBOR_RATE",
       dtos.Currency.USD,
       Tenor.`3M`.toPeriod,
       2,
@@ -52,11 +52,12 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
                     +0.0050 -> 74.0,
                     +0.0100 -> 90.0,
                     +0.0200 -> 93.0
-                  ).map((m, v) => m -> v / 10000)
+                  )
                 )
               )
             )
-          )
+          ),
+          VolUnit.BpPerYear
         )
       ),
       calendars = Map("NO_HOLIDAYS" -> dtos.Calendar[LocalDate](Nil))
