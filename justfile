@@ -1,9 +1,3 @@
-project := "rates-vanilla-scope"
-port := env('BACKEND_PORT', '8090')
-
-alias run := run-backend
-alias serve := serve-frontend
-
 @default:
     just --list
 
@@ -29,41 +23,3 @@ clean:
 deps:
     sbt dependencyUpdates
 
-stage:
-    sbt stage
-
-[working-directory('backend')]
-run-staged:
-    sh ./target/universal/stage/bin/{{ project }}-backend
-
-run-backend:
-    sbt 'backend/run'
-
-compile-frontend:
-    sbt 'frontend/fastLinkJS'
-
-compile-backend:
-    sbt 'backend/compile'
-
-compile:
-    just compile-frontend compile-backend
-
-watch-frontend:
-    sbt '~frontend/fastLinkJS'
-
-watch-backend:
-    sbt '~/backend/run'
-
-[working-directory('frontend')]
-serve-frontend:
-    live-server --entry-file=index.html --proxy=/api:http://localhost:{{ port }}/api
-
-[working-directory('frontend')]
-watch-css:
-    npx @tailwindcss/cli -i ./input.css -o ./output.css --watch
- 
-bloop:
-    bloop compile
-
-bloop-watch:
-    bloop compile --watch
