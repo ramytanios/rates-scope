@@ -54,36 +54,41 @@ class Api[T: lib.DateLike](val market: Market[T]):
       expiry: Tenor,
       nSamples: Int
   ): Either[lib.Error, Api.SamplingResult] =
-    market.volSurface(currency, tenor)
-      .flatMap: volSurface =>
-        volSurface.surface.get(expiry.toPeriod).toRight(lib.Error.Generic(s"Invalid expiry $expiry"))
-      .flatMap: volSkew =>
-        val (ms, _) = volSkew.skew.unzip
-        buildVolConventions(currency, tenor)
-          .flatMap: rate =>
-            val expiryT =
-              rate.calendar.addBusinessPeriod(market.t, expiry.toPeriod)(using rate.bdConvention)
-            val fwd = rate.forward(expiryT)
-            val quotedStrikes = ms.map(fwd - _)
-            buildVolSurface(currency, tenor).map: volSurface =>
-              val volSkew = volSurface(expiryT)
-              val quotedVols = quotedStrikes.map(volSkew)
-              val dt =
-                market.t.yearFractionTo(expiryT)(using summon[lib.DateLike[T]], DayCounter.Act365)
-              val atmStdv = volSkew(fwd) * math.sqrt(dt.toDouble)
-              val kMin = quotedStrikes.head - 3 * atmStdv
-              val kMax = quotedStrikes.last + 3 * atmStdv
-              val step = (kMax - kMin) / nSamples
-              val strikes = (0 to nSamples).map(i => kMin + i * step)
-              val vols = strikes.map(volSkew)
-              val pdf = strikes.map(bachelier.impliedDensity(
-                fwd,
-                dt.toDouble,
-                volSkew,
-                volSkew.fstDerivative,
-                volSkew.sndDerivative
-              ))
-              Api.SamplingResult(quotedStrikes, quotedVols, strikes, vols, pdf)
+    market.volCube(currency).map(_.unit).flatMap: volUnit =>
+      val volInUnit = volUnit match
+        case dtos.VolUnit.BpPerYear => (v: Double) => v * 10000
+      market.volSurface(currency, tenor)
+        .flatMap: volSurface =>
+          volSurface.surface.get(
+            expiry.toPeriod
+          ).toRight(lib.Error.Generic(s"Invalid expiry $expiry"))
+        .flatMap: volSkew =>
+          val (ms, _) = volSkew.skew.unzip
+          buildVolConventions(currency, tenor)
+            .flatMap: rate =>
+              val expiryT =
+                rate.calendar.addBusinessPeriod(market.t, expiry.toPeriod)(using rate.bdConvention)
+              val fwd = rate.forward(expiryT)
+              val quotedStrikes = ms.reverse.map(fwd - _)
+              buildVolSurface(currency, tenor).map: volSurface =>
+                val volSkew = volSurface(expiryT)
+                val quotedVols = quotedStrikes.map(volSkew andThen volInUnit)
+                val dt =
+                  market.t.yearFractionTo(expiryT)(using summon[lib.DateLike[T]], DayCounter.Act365)
+                val atmStdv = volSkew(fwd) * math.sqrt(dt.toDouble)
+                val kMin = quotedStrikes.head - 5 * atmStdv
+                val kMax = quotedStrikes.last + 5 * atmStdv
+                val step = (kMax - kMin) / nSamples
+                val strikes = (0 to nSamples).map(i => kMin + i * step)
+                val vols = strikes.map(volSkew andThen volInUnit)
+                val pdf = strikes.map(bachelier.impliedDensity(
+                  fwd,
+                  dt.toDouble,
+                  volSkew,
+                  volSkew.fstDerivative,
+                  volSkew.sndDerivative
+                ))
+                Api.SamplingResult(quotedStrikes, quotedVols, strikes, vols, pdf)
 
 object Api:
 
