@@ -6,28 +6,28 @@ import lib.quantities.*
 
 enum MarketError(msg: String) extends lib.Error(msg):
 
-  case Rate(name: String)
+  case MissingRate(name: String)
       extends MarketError(s"missing rate $name")
 
-  case YieldCurve(ccy: dtos.Currency, name: String)
+  case MissingYieldCurve(ccy: dtos.Currency, name: String)
       extends MarketError(s"missing curve $name in ccy $ccy")
 
-  case FixingOf(underlying: String)
+  case MissingFixingOf(underlying: String)
       extends MarketError(s"missing fixings of $underlying")
 
-  case FixingAt[T](underlying: String, at: T)
+  case MissingFixingAt[T](underlying: String, at: T)
       extends MarketError(s"missing fixing of $underlying at $at")
 
-  case VolatilityCube(currency: dtos.Currency)
+  case MissingVolatilityCube(currency: dtos.Currency)
       extends MarketError(s"missing vol cube of currency $currency")
 
-  case VolatilitySurface(currency: dtos.Currency, tenor: Tenor)
+  case MissingVolatilitySurface(currency: dtos.Currency, tenor: Tenor)
       extends MarketError(s"missing vol surface in currency $currency and tenor $tenor")
 
-  case VolatilityConventions(currency: dtos.Currency, tenor: Tenor)
+  case MissingVolatilityConventions(currency: dtos.Currency, tenor: Tenor)
       extends MarketError(s"missing vol conventions in currency $currency and tenor $tenor")
 
-  case Calendar(name: String) extends MarketError(s"missing calendar $name")
+  case MissingCalendar(name: String) extends MarketError(s"missing calendar $name")
 
 trait Market[T]:
 
@@ -83,33 +83,35 @@ object Market:
       calendars: Map[String, dtos.Calendar[T]]
   ): Market[T] = new Market[T]:
 
+    import MarketError.*
+
     def t: T = tRef
 
     def rate(name: String): Either[MarketError, dtos.Underlying[T]] =
-      rates.get(name).toRight(MarketError.Rate(name))
+      rates.get(name).toRight(MissingRate(name))
 
     def yieldCurve(curve: dtos.Curve): Either[MarketError, dtos.YieldCurve[T]] =
-      curves.get(curve).toRight(MarketError.YieldCurve(curve.currency, curve.name))
+      curves.get(curve).toRight(MissingYieldCurve(curve.currency, curve.name))
 
     def fixings(rate: String): Either[MarketError, Seq[dtos.Fixing[T]]] =
-      fixingsByRate.get(rate).toRight(MarketError.FixingOf(rate))
+      fixingsByRate.get(rate).toRight(MissingFixingOf(rate))
 
     def volatilityConventions(
         currency: dtos.Currency,
         tenor: Tenor
     ): Either[MarketError, dtos.Underlying[T]] =
       volConventions.get(currency).flatMap(_.get(tenor))
-        .toRight(MarketError.VolatilityConventions(currency, tenor))
+        .toRight(MissingVolatilityConventions(currency, tenor))
 
     def volCube(currency: dtos.Currency): Either[MarketError, dtos.VolatilityCube] =
-      volatilities.get(currency).toRight(MarketError.VolatilityCube(currency))
+      volatilities.get(currency).toRight(MissingVolatilityCube(currency))
 
     def volSurface(
         currency: dtos.Currency,
         tenor: Tenor
     ): Either[MarketError, dtos.VolatilitySurface] =
       volatilities.get(currency).map(_.cube(tenor.toPeriod))
-        .toRight(MarketError.VolatilitySurface(currency, tenor))
+        .toRight(MissingVolatilitySurface(currency, tenor))
 
     def calendar(name: String): Either[MarketError, dtos.Calendar[T]] =
-      calendars.get(name).toRight(MarketError.Calendar(name))
+      calendars.get(name).toRight(MissingCalendar(name))

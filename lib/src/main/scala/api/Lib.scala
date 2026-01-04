@@ -20,7 +20,10 @@ class Lib[T: lib.DateLike](market: Market[T]):
   def buildFixings(rate: String): Either[lib.Error, Map[T, Double]] =
     market.fixings(rate).orElse(Seq.empty.asRight).flatMap: fixings =>
       fixings.groupBy(_.t).toSeq.traverse: (fixingAt, all) =>
-        all.headOption.toRight(MarketError.FixingAt(rate, fixingAt)).map(_.value).tupleLeft(fixingAt)
+        all.headOption.toRight(MarketError.MissingFixingAt(
+          rate,
+          fixingAt
+        )).map(_.value).tupleLeft(fixingAt)
       .map(_.toMap)
 
   def buildVolSurface(
