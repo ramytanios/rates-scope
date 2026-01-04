@@ -82,4 +82,4 @@ class JsonParsing extends munit.FunSuite with EitherSyntax:
       .flatMap: js =>
         val market = Market(js.tRef, js.market, js.static)
         new Api(market).sampleVolSkew(dtos.Currency.USD, Tenor.`3M`, Tenor.`1Y`, 100)
-      .failOrAssert(t => println(t))
+      .failOrAssert(_ => ())
