@@ -1,15 +1,54 @@
 package jsonrpc
 
-import cats.effect.IO
-import cats.effect.IOApp
-import cats.effect.std.Queue
-import cats.effect.std.Random
+import cats.effect.*
 import cats.syntax.all.*
-import fs2.concurrent.SignallingRef
-
-import scala.concurrent.duration.*
-import scala.math.max
+import com.comcast.ip4s.*
+import fs2.io.net.Network
+import org.http4s.HttpRoutes
+import org.http4s.Response
+import org.http4s.circe.CirceEntityCodec.*
+import org.http4s.dsl.io.*
+import org.http4s.ember.server.EmberServerBuilder
+import org.http4s.server.Router
+import org.typelevel.log4cats.*
+import org.typelevel.log4cats.syntax.*
 
 object Main extends IOApp.Simple:
 
-  override def run: IO[Unit] = IO.unit
+  case class HttpServerException(msg: String) extends RuntimeException(msg)
+
+  override def run: IO[Unit] =
+
+    given LoggerFactory[IO] = slf4j.Slf4jFactory.create[IO]
+
+    val host = "localhost"
+    val port = 8090
+
+    val rpc = HttpRoutes.of[IO]:
+      case request @ POST -> Root / "rpc" =>
+        request.as[JsonRpc.Request].attempt.flatMap:
+          case Left(th) => Ok(JsonRpc.error(JsonRpc.ErrorCode.ParseError, th.getMessage))
+          case Right(req) => Handler(req).flatMap(Ok(_)).handleErrorWith(th =>
+              Ok(JsonRpc.error(JsonRpc.ErrorCode.InternalError, th.getMessage))
+            )
+
+    val httpApp = Router("/" -> rpc).orNotFound
+
+    for
+      given Logger[IO] <- LoggerFactory[IO].create
+      host <- Host
+        .fromString(host)
+        .liftTo[IO](HttpServerException(s"Invalid host $host"))
+      port <- Port
+        .fromInt(port)
+        .liftTo[IO](HttpServerException(s"Invalid port $port"))
+      _ <- EmberServerBuilder
+        .default[IO]
+        .withHost(host)
+        .withPort(port)
+        .withHttpApp(httpApp)
+        .withMaxConnections(8)
+        .build
+        .evalTap(_ => info"Server listening on port $port")
+        .use(_ => IO.never)
+    yield ()

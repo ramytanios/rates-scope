@@ -4,11 +4,11 @@ import lib.DateLike
 import lib.EitherSyntax
 import lib.api.*
 import lib.dtos
+import lib.dtos.VolUnit
 import lib.literals.*
 import lib.quantities.Tenor
 
 import java.time.LocalDate
-import lib.dtos.VolUnit
 
 class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
 

@@ -6,11 +6,11 @@ import io.circe.parser.*
 import lib.EitherSyntax
 import lib.dtos
 import lib.dtos.given_Codec_LocalDate
+import lib.quantities.Tenor
 
 import java.time.LocalDate
 import scala.io.Source
 import scala.util.Using
-import lib.quantities.Tenor
 
 class JsonParsing extends munit.FunSuite with EitherSyntax:
 

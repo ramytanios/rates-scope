@@ -1,12 +1,14 @@
 package jsonrpc
 
-import io.circe.derivation.*
-import io.circe.Json
 import io.circe.Codec
+import io.circe.Json
+import io.circe.derivation.*
 
 object JsonRpc:
 
   // https://www.jsonrpc.org/specification
+
+  private val jsonrpc = "2.0"
 
   case class Request(
       jsonrpc: String,
@@ -19,7 +21,7 @@ object JsonRpc:
       jsonrpc: String,
       result: Option[Json],
       error: Option[Error],
-      id: String
+      id: Option[String]
   ) derives Codec
 
   case class Error(
@@ -35,3 +37,9 @@ object JsonRpc:
     case InvalidParams extends ErrorCode(-32602)
     case InternalError extends ErrorCode(-32603)
     // TODO add more
+
+  def error(code: ErrorCode, message: String): Response =
+    Response(jsonrpc, None, Some(Error(code.code, message, None)), None)
+
+  def success(result: Json, id: String): Response =
+    Response(jsonrpc, Some(result), None, Some(id))
