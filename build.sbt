@@ -34,7 +34,7 @@ lazy val V = new {
 }
 
 lazy val root =
-  (project in file(".")).aggregate(lib, ws, `lib-dtos`.jvm, `lib-dtos`.js)
+  (project in file(".")).aggregate(lib, `json-rpc`, `lib-dtos`.jvm, `lib-dtos`.js)
 
 lazy val `lib-dtos` = crossProject(JSPlatform, JVMPlatform)
   .in(file("lib-dtos"))
@@ -60,8 +60,8 @@ lazy val lib = project.in(file("lib")).settings(
   scalacOptions -= "-Xfatal-warnings"
 ).dependsOn(`lib-dtos`.jvm)
 
-lazy val ws = project
-  .in(file("ws"))
+lazy val `json-rpc` = project
+  .in(file("json-rpc"))
   .enablePlugins(JavaAppPackaging)
   .settings(
     fork := true,

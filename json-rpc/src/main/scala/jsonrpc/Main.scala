@@ -1,4 +1,4 @@
-package ws
+package jsonrpc
 
 import cats.effect.IO
 import cats.effect.IOApp
