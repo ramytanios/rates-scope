@@ -39,7 +39,7 @@ class JsonParsing extends munit.FunSuite with EitherSyntax:
         static: dtos.Static[T]
     ) derives Codec
 
-    val js = readResource("pricing.json")
+    val js = readResource("price.json")
     decode[Js](js)
       .leftMap: err =>
         lib.Error.Generic(err.getMessage)

@@ -1,0 +1,117 @@
+{
+  "tRef": "2025-10-12",
+  "payoff": {
+    "rate": "LIBOR_RATE",
+    "fixingAt": "2026-10-12",
+    "startAt": "2026-10-14",
+    "endAt": "2027-01-14",
+    "paymentAt": "2027-01-14",
+    "paymentCurrency": "USD",
+    "strike": 0.009887915724457295,
+    "discountCurve": {
+      "currency": "USD",
+      "name": "SINGLE_CURVE"
+    },
+    "optionType": "Call",
+    "type": "Caplet"
+  },
+  "market": {
+    "USD": {
+      "rates": {
+        "LIBOR_RATE": {
+          "currency": "USD",
+          "tenor": "3M",
+          "spotLag": 2,
+          "dayCounter": "Act360",
+          "calendar": "NO_HOLIDAYS",
+          "resetCurve": {
+            "currency": "USD",
+            "name": "SINGLE_CURVE"
+          },
+          "bdConvention": "ModifiedFollowing",
+          "type": "Libor"
+        }
+      },
+      "curves": {
+        "SINGLE_CURVE": {
+          "rate": "0.02",
+          "type": "ContinuousCompounding"
+        }
+      },
+      "fixings": {},
+      "volatility": {
+        "unit": "BpPerYear",
+        "cube": {
+          "3M": {
+            "surface": {
+              "1Y": {
+                "skew": [
+                  [
+                    -0.0200,
+                    100.0
+                  ],
+                  [
+                    -0.0100,
+                    80.0
+                  ],
+                  [
+                    -0.0050,
+                    72.0
+                  ],
+                  [
+                    -0.0025,
+                    70.0
+                  ],
+                  [
+                    0.0000,
+                    69.0
+                  ],
+                  [
+                    0.0025,
+                    71.0
+                  ],
+                  [
+                    0.0050,
+                    74.0
+                  ],
+                  [
+                    0.0100,
+                    90.0
+                  ],
+                  [
+                    0.0200,
+                    93.0
+                  ]
+                ]
+              }
+            }
+          }
+        }
+      },
+      "volConventions": {
+        "rates": {
+          "3M": {
+            "currency": "USD",
+            "tenor": "3M",
+            "spotLag": 2,
+            "dayCounter": "Act360",
+            "calendar": "NO_HOLIDAYS",
+            "resetCurve": {
+              "currency": "USD",
+              "name": "SINGLE_CURVE"
+            },
+            "bdConvention": "ModifiedFollowing",
+            "type": "Libor"
+          }
+        }
+      }
+    }
+  },
+  "static": {
+    "calendars": {
+      "NO_HOLIDAYS": {
+        "holidays": []
+      }
+    }
+  }
+}
