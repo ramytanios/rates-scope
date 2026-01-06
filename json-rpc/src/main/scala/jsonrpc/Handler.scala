@@ -1,6 +1,5 @@
 package jsonrpc
 
-import cats.effect.IO
 import io.circe.*
 import io.circe.syntax.*
 import lib.api.Api
@@ -39,18 +38,21 @@ object Handler:
       nSamples: Int
   ) derives Codec
 
-  private def impl[P: Decoder](r: JsonRpc.Request, f: P => Either[lib.Error, Json]) =
+  private def impl[P: Decoder](
+      r: JsonRpc.Request,
+      f: P => Either[lib.Error, Json]
+  ): JsonRpc.Response =
     r.params.fold(
-      IO.pure(JsonRpc.error(JsonRpc.ErrorCode.InvalidParams, "missing params"))
+      JsonRpc.error(JsonRpc.ErrorCode.InvalidParams, "missing params")
     )(_.as[P].fold(
-      th => IO.pure(JsonRpc.error(JsonRpc.ErrorCode.InvalidParams, th.getMessage)),
+      th => JsonRpc.error(JsonRpc.ErrorCode.InvalidParams, th.getMessage),
       f(_).fold(
-        th => IO.pure(JsonRpc.error(JsonRpc.ErrorCode.InternalError, th.getMessage)),
-        js => IO.pure(JsonRpc.success(js, r.id))
+        th => JsonRpc.error(JsonRpc.ErrorCode.InternalError, th.getMessage),
+        js => JsonRpc.success(js, r.id)
       )
     ))
 
-  def apply(request: JsonRpc.Request): IO[JsonRpc.Response] =
+  def apply(request: JsonRpc.Request): JsonRpc.Response =
     request.method match
       case "price" => impl[PriceParams](
           request,
@@ -100,5 +102,4 @@ object Handler:
             )
         )
 
-      case other =>
-        IO.pure(JsonRpc.error(JsonRpc.ErrorCode.MethodNotFound, s"method $other not found"))
+      case other => JsonRpc.error(JsonRpc.ErrorCode.MethodNotFound, s"method $other not found")

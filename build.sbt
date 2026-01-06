@@ -87,7 +87,6 @@ lazy val `json-rpc` = project
         "org.http4s" %% "http4s-dsl" % V.http4s,
         "org.http4s" %% "http4s-circe" % V.http4s,
         "org.http4s" %% "http4s-ember-server" % V.http4s,
-        "org.http4s"    %% "http4s-ember-client" % V.http4s,
         "org.typelevel" %% "munit-cats-effect" % V.`munit-cats-effect` % Test
       ),
     scalacOptions -= "-Xfatal-warnings"

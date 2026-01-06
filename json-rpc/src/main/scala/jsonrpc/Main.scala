@@ -28,7 +28,7 @@ object Main extends IOApp.Simple:
       case request @ POST -> Root / "rpc" =>
         request.as[JsonRpc.Request].attempt.flatMap:
           case Left(th) => Ok(JsonRpc.error(JsonRpc.ErrorCode.ParseError, th.getMessage))
-          case Right(req) => Handler(req).flatMap(Ok(_)).handleErrorWith(th =>
+          case Right(req) => IO(Handler(req)).flatMap(Ok(_)).handleErrorWith(th =>
               Ok(JsonRpc.error(JsonRpc.ErrorCode.InternalError, th.getMessage))
             )
 
