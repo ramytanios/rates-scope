@@ -80,20 +80,23 @@ class Api[T: lib.DateLike](val market: Market[T]):
                 val step = (kMax - kMin) / nSamples
                 val strikes = (0 to nSamples).map(i => kMin + i * step)
                 val vols = strikes.map(volSkew andThen volInUnit)
-                val pdf = strikes.map(bachelier.impliedDensity(
+                val impliedPdf = bachelier.impliedDensity(
                   fwd,
                   dt.toDouble,
                   volSkew,
                   volSkew.fstDerivative,
                   volSkew.sndDerivative
-                ))
-                Api.SamplingResult(quotedStrikes, quotedVols, strikes, vols, pdf)
+                )
+                val pdf = strikes.map(impliedPdf)
+                val quotedPdf = quotedStrikes.map(impliedPdf)
+                Api.SamplingResult(quotedStrikes, quotedVols, quotedPdf, strikes, vols, pdf)
 
 object Api:
 
   case class SamplingResult(
       quotedStrikes: Seq[Double],
       quotedVols: Seq[Double],
+      quotedPdf: Seq[Double],
       strikes: Seq[Double],
       vols: Seq[Double],
       pdf: Seq[Double]

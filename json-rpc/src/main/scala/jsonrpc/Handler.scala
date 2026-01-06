@@ -95,6 +95,7 @@ object Handler:
               JsonObject(
                 "quotedStrikes" -> res.quotedStrikes.asJson,
                 "quotedVols" -> res.quotedVols.asJson,
+                "quotedPdf" -> res.quotedPdf.asJson,
                 "strikes" -> res.strikes.asJson,
                 "vols" -> res.vols.asJson,
                 "pdf" -> res.pdf.asJson
