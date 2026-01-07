@@ -69,7 +69,7 @@ class Api[T: lib.DateLike](val market: Market[T]):
               val expiryT =
                 rate.calendar.addBusinessPeriod(market.t, expiry.toPeriod)(using rate.bdConvention)
               val fwd = rate.forward(expiryT)
-              val quotedStrikes = ms.reverse.map(fwd - _)
+              val quotedStrikes = ms.map(_ + fwd)
               buildVolSurface(currency, tenor).map: volSurface =>
                 val volSkew = volSurface(expiryT)
                 val quotedVols = quotedStrikes.map(volSkew andThen volInUnit)
