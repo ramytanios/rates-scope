@@ -74,19 +74,32 @@
         }
       },
       "volConventions": {
-        "rates": {
-          "3M": {
+        "boundaryTenor": "10Y",
+        "liborRate": {
+          "currency": "USD",
+          "tenor": "3M",
+          "spotLag": 2,
+          "dayCounter": "Act360",
+          "calendar": "NO_HOLIDAYS",
+          "resetCurve": {
             "currency": "USD",
-            "tenor": "3M",
-            "spotLag": 2,
-            "dayCounter": "Act360",
-            "calendar": "NO_HOLIDAYS",
-            "resetCurve": {
-              "currency": "USD",
-              "name": "SINGLE_CURVE"
-            },
-            "bdConvention": "ModifiedFollowing",
-            "type": "Libor"
+            "name": "SINGLE_CURVE"
+          },
+          "bdConvention": "ModifiedFollowing"
+        },
+        "swapRate": {
+          "spotLag": 2,
+          "paymentDelay": 0,
+          "fixedPeriod": "3M",
+          "floatingRate": "LIBOR_RATE",
+          "fixedDayCounter": "Act360",
+          "calendar": "NO_HOLIDAYS",
+          "bdConvention": "ModifiedFollowing",
+          "stub": "Short",
+          "direction": "Backward",
+          "discountCurve": {
+            "currency": "USD",
+            "name": "SINGLE_CURVE"
           }
         }
       }

@@ -58,6 +58,7 @@ object quantities:
     val `6M`: Tenor = Period.ofMonths(6)
     val `1Y`: Tenor = Period.ofYears(1)
     val `2Y`: Tenor = Period.ofYears(2)
+    val `10Y`: Tenor = Period.ofYears(10)
 
     def days(n: Int) = Period.ofDays(n)
     def months(n: Int) = Period.ofMonths(n)

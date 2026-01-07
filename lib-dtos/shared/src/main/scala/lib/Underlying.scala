@@ -1,25 +1,20 @@
 package lib.dtos
 
-import cats.syntax.all.*
 import io.circe.Codec
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.derivation.Configuration
+import lib.dtos.given_Codec_Period
 
 import java.time.Period
-import scala.util.Try
 
 object Underlying:
   given Configuration = Configuration.default.withDiscriminator("type")
-  given [T: Codec]: Codec[Underlying[T]] = Codec.AsObject.derivedConfigured
-  given Codec[Period] = Codec.from(
-    Decoder.decodeString.emap(str => Try(Period.parse(s"P$str")).toEither.leftMap(_.toString)),
-    Encoder.encodeString.contramap[Period](_.toString)
-  )
+  given Codec[Underlying] = Codec.AsObject.derivedConfigured
 
-enum Underlying[T]:
+enum Underlying:
 
-  case Libor[T](
+  case Libor(
       currency: Currency,
       tenor: Period,
       spotLag: Int,
@@ -27,9 +22,9 @@ enum Underlying[T]:
       calendar: String,
       resetCurve: Curve,
       bdConvention: BusinessDayConvention
-  ) extends Underlying[T]
+  ) extends Underlying
 
-  case SwapRate[T](
+  case SwapRate(
       tenor: Period,
       spotLag: Int,
       paymentDelay: Int,
@@ -41,9 +36,9 @@ enum Underlying[T]:
       stub: StubConvention,
       direction: Direction,
       discountCurve: Curve
-  ) extends Underlying[T]
+  ) extends Underlying
 
-  case CompoundedSwapRate[T](
+  case CompoundedSwapRate(
       tenor: Period,
       spotLag: Int,
       paymentDelay: Int,
@@ -56,4 +51,4 @@ enum Underlying[T]:
       stub: StubConvention,
       direction: Direction,
       discountCurve: Curve
-  ) extends Underlying[T]
+  ) extends Underlying

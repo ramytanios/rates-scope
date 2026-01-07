@@ -61,11 +61,43 @@ class Lib[T: lib.DateLike](market: Market[T]):
       tenor: Tenor
   ): Either[lib.Error, lib.Underlying[T]] =
     market.volatilityConventions(currency, tenor).flatMap:
-      case rate: dtos.Underlying.Libor[T]              => toLibor(rate)
-      case rate: dtos.Underlying.SwapRate[T]           => toSwapRate(rate)
-      case rate: dtos.Underlying.CompoundedSwapRate[T] => toCompoundedSwapRate(rate)
+      case libor: dtos.VolatilityMarketConventions.Libor   => toLibor(libor, tenor)
+      case swap: dtos.VolatilityMarketConventions.SwapRate => toSwapRate(swap, tenor)
 
-  private def toLibor(libor: dtos.Underlying.Libor[T]) =
+  private def toLibor(libor: dtos.VolatilityMarketConventions.Libor, tenor: Tenor) =
+    buildYieldCurve(libor.resetCurve).flatMap: resetCurve =>
+      market.calendar(libor.calendar).flatMap: calendar =>
+        buildCalendar(calendar).map: calendar =>
+          new lib.Libor[T](
+            libor.currency,
+            tenor,
+            libor.spotLag,
+            toDayCounter(libor.dayCounter),
+            calendar,
+            resetCurve,
+            libor.bdConvention
+          )
+
+  private def toSwapRate(swapRate: dtos.VolatilityMarketConventions.SwapRate, tenor: Tenor) =
+    buildYieldCurve(swapRate.discountCurve).flatMap: discountCurve =>
+      buildLibor(swapRate.floatingRate).flatMap: liborRate =>
+        market.calendar(swapRate.calendar).flatMap: calendar =>
+          buildCalendar(calendar).map: calendar =>
+            new lib.SwapRate[T](
+              tenor,
+              swapRate.spotLag,
+              swapRate.paymentDelay,
+              Tenor(swapRate.fixedPeriod),
+              liborRate,
+              toDayCounter(swapRate.fixedDayCounter),
+              calendar,
+              swapRate.bdConvention,
+              swapRate.stub,
+              swapRate.direction,
+              discountCurve
+            )
+
+  private def toLibor(libor: dtos.Underlying.Libor) =
     buildYieldCurve(libor.resetCurve).flatMap: resetCurve =>
       market.calendar(libor.calendar).flatMap: calendar =>
         buildCalendar(calendar).map: calendar =>
@@ -79,7 +111,7 @@ class Lib[T: lib.DateLike](market: Market[T]):
             libor.bdConvention
           )
 
-  private def toSwapRate(swapRate: dtos.Underlying.SwapRate[T]) =
+  private def toSwapRate(swapRate: dtos.Underlying.SwapRate) =
     buildYieldCurve(swapRate.discountCurve).flatMap: discountCurve =>
       buildLibor(swapRate.floatingRate).flatMap: liborRate =>
         market.calendar(swapRate.calendar).flatMap: calendar =>
@@ -98,7 +130,7 @@ class Lib[T: lib.DateLike](market: Market[T]):
               discountCurve
             )
 
-  private def toCompoundedSwapRate(swapRate: dtos.Underlying.CompoundedSwapRate[T]) =
+  private def toCompoundedSwapRate(swapRate: dtos.Underlying.CompoundedSwapRate) =
     buildYieldCurve(swapRate.discountCurve).flatMap: discountCurve =>
       buildLibor(swapRate.floatingRate).flatMap: liborRate =>
         market.calendar(swapRate.calendar).flatMap: calendar =>
@@ -120,19 +152,18 @@ class Lib[T: lib.DateLike](market: Market[T]):
 
   def buildLibor(rate: String): Either[lib.Error, lib.Libor[T]] =
     market.rate(rate).flatMap:
-      case libor: dtos.Underlying.Libor[T] =>
-        toLibor(libor)
-      case _ => lib.Error.Generic(s"$rate is not a libor").asLeft
+      case libor: dtos.Underlying.Libor => toLibor(libor)
+      case _                            => lib.Error.Generic(s"$rate is not a libor").asLeft
 
   def buildSwapRate(rate: String): Either[lib.Error, lib.SwapRate[T]] =
     market.rate(rate).flatMap:
-      case swapRate: dtos.Underlying.SwapRate[T] =>
+      case swapRate: dtos.Underlying.SwapRate =>
         toSwapRate(swapRate)
       case _ => lib.Error.Generic(s"$rate is not a swap rate").asLeft
 
   def buildCompoundedSwapRate(rate: String): Either[lib.Error, lib.CompoundedSwapRate[T]] =
     market.rate(rate).flatMap:
-      case swapRate: dtos.Underlying.CompoundedSwapRate[T] =>
+      case swapRate: dtos.Underlying.CompoundedSwapRate =>
         toCompoundedSwapRate(swapRate)
       case _ => lib.Error.Generic(s"$rate is not a compounded swap rate").asLeft
 

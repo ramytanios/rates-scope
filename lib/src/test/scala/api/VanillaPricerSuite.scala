@@ -16,7 +16,7 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
 
     val t = d"2025-10-12"
 
-    val rate: dtos.Underlying[LocalDate] = dtos.Underlying.Libor(
+    val rate: dtos.Underlying = dtos.Underlying.Libor(
       dtos.Currency.USD,
       Tenor.`3M`.toPeriod,
       2,
@@ -24,6 +24,30 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
       "NO_HOLIDAYS",
       dtos.Curve(dtos.Currency.USD, "SINGLE_CURVE"),
       dtos.BusinessDayConvention.ModifiedFollowing
+    )
+
+    val volConventions = dtos.VolatilityMarketConventions(
+      Tenor.`10Y`.toPeriod,
+      dtos.VolatilityMarketConventions.Libor(
+        dtos.Currency.USD,
+        2,
+        dtos.DayCounter.Act360,
+        "NO_HOLIDAYS",
+        dtos.Curve(dtos.Currency.USD, "SINGLE_CURVE"),
+        dtos.BusinessDayConvention.ModifiedFollowing
+      ),
+      dtos.VolatilityMarketConventions.SwapRate(
+        2,
+        0,
+        Tenor.`3M`.toPeriod,
+        "LIBOR_RATE",
+        dtos.DayCounter.Act360,
+        "NO_HOLIDAYS",
+        dtos.BusinessDayConvention.ModifiedFollowing,
+        dtos.StubConvention.Short,
+        dtos.Direction.Backward,
+        dtos.Curve(dtos.Currency.USD, "SINGLE_CURVE")
+      )
     )
 
     val market = Market(
@@ -35,7 +59,7 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
             dtos.YieldCurve.ContinuousCompounding(0.02)
         ),
       fixingsByRate = Map.empty,
-      volConventions = Map(dtos.Currency.USD -> Map(Tenor.`3M` -> rate)),
+      volConventions = Map(dtos.Currency.USD -> volConventions),
       volatilities = Map(
         dtos.Currency.USD -> dtos.VolatilityCube(
           Map(

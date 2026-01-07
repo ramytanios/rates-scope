@@ -4,6 +4,8 @@ import lib.*
 import lib.dtos
 import lib.quantities.*
 
+import scala.math.Ordering.Implicits.*
+
 enum MarketError(msg: String) extends lib.Error(msg):
 
   case MissingRate(name: String)
@@ -33,7 +35,7 @@ trait Market[T]:
 
   def t: T
 
-  def rate(name: String): Either[MarketError, dtos.Underlying[T]]
+  def rate(name: String): Either[MarketError, dtos.Underlying]
 
   def yieldCurve(curve: dtos.Curve): Either[MarketError, dtos.YieldCurve[T]]
 
@@ -42,7 +44,10 @@ trait Market[T]:
   def volatilityConventions(
       currency: dtos.Currency,
       tenor: Tenor
-  ): Either[MarketError, dtos.Underlying[T]]
+  ): Either[
+    MarketError,
+    lib.dtos.VolatilityMarketConventions.Libor | lib.dtos.VolatilityMarketConventions.SwapRate
+  ]
 
   def volCube(currency: dtos.Currency): Either[MarketError, dtos.VolatilityCube]
 
@@ -67,18 +72,17 @@ object Market:
         market.curves.map((name, curve) => dtos.Curve(ccy, name) -> curve)
       ).toMap,
       fixingsByRate = marketByCcy.values.map(_.fixings).reduce(_ ++ _),
-      volConventions = marketByCcy.view.mapValues(_.volConventions.rates
-        .map((p, v) => (p: Tenor) -> v)).toMap,
+      volConventions = marketByCcy.view.mapValues(market => market.volConventions).toMap,
       volatilities = marketByCcy.view.mapValues(_.volatility).toMap,
       calendars = static.calendars
     )
 
   def apply[T](
       tRef: T,
-      rates: Map[String, dtos.Underlying[T]],
+      rates: Map[String, dtos.Underlying],
       curves: Map[dtos.Curve, dtos.YieldCurve[T]],
       fixingsByRate: Map[String, Seq[dtos.Fixing[T]]],
-      volConventions: Map[dtos.Currency, Map[Tenor, dtos.Underlying[T]]],
+      volConventions: Map[dtos.Currency, dtos.VolatilityMarketConventions],
       volatilities: Map[dtos.Currency, dtos.VolatilityCube],
       calendars: Map[String, dtos.Calendar[T]]
   ): Market[T] = new Market[T]:
@@ -87,7 +91,7 @@ object Market:
 
     def t: T = tRef
 
-    def rate(name: String): Either[MarketError, dtos.Underlying[T]] =
+    def rate(name: String): Either[MarketError, dtos.Underlying] =
       rates.get(name).toRight(MissingRate(name))
 
     def yieldCurve(curve: dtos.Curve): Either[MarketError, dtos.YieldCurve[T]] =
@@ -99,8 +103,14 @@ object Market:
     def volatilityConventions(
         currency: dtos.Currency,
         tenor: Tenor
-    ): Either[MarketError, dtos.Underlying[T]] =
-      volConventions.get(currency).flatMap(_.get(tenor))
+    ): Either[
+      MarketError,
+      lib.dtos.VolatilityMarketConventions.Libor | lib.dtos.VolatilityMarketConventions.SwapRate
+    ] =
+      volConventions.get(currency).map(volConventions =>
+        val boundary: Tenor = volConventions.boundaryTenor
+        if tenor <= boundary then volConventions.liborRate else volConventions.swapRate
+      )
         .toRight(MissingVolatilityConventions(currency, tenor))
 
     def volCube(currency: dtos.Currency): Either[MarketError, dtos.VolatilityCube] =
