@@ -35,7 +35,8 @@ object Handler:
       currency: dtos.Currency,
       tenor: Period,
       expiry: Period,
-      nSamples: Int
+      nSamples: Int,
+      nStdvs: Int
   ) derives Codec
 
   private def impl[P: Decoder](
@@ -90,7 +91,8 @@ object Handler:
               params.currency,
               params.tenor,
               params.expiry,
-              params.nSamples
+              params.nSamples,
+              params.nStdvs
             ).map(res =>
               JsonObject(
                 "quotedStrikes" -> res.quotedStrikes.asJson,
