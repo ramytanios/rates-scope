@@ -92,7 +92,6 @@
         "boundaryTenor": "10Y",
         "liborRate": {
           "currency": "USD",
-          "tenor": "3M",
           "spotLag": 2,
           "dayCounter": "Act360",
           "calendar": "NO_HOLIDAYS",
