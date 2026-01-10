@@ -6,6 +6,7 @@ import lib.api.Api
 import lib.api.Market
 import lib.dtos
 import lib.dtos.given_Codec_LocalDate
+import lib.dtos.given_Codec_Period
 
 import java.time.LocalDate
 import java.time.Period

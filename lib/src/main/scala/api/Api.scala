@@ -65,7 +65,7 @@ class Api[T: lib.DateLike](val market: Market[T]):
         buildVolCube(currency).map: volCube =>
           val volSkew = volCube(tenor)(expiryT)
           val quotedStrikes =
-            market.volSurface(currency, tenor).toOption.flatMap(_.surface.get(tenor.toPeriod))
+            market.volSurface(currency, tenor).toOption.flatMap(_.surface.get(expiry.toPeriod))
               .map(_.skew.unzip._1.map(_ + fwd)).orEmpty
           val quotedVols = quotedStrikes.map(volSkew andThen volInUnit)
           val dt = market.t.yearFractionTo(expiryT)(using lib.DateLike[T], DayCounter.Act365)

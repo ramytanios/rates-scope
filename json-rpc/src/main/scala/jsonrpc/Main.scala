@@ -12,6 +12,7 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
 import org.typelevel.log4cats.*
 import org.typelevel.log4cats.syntax.*
+import org.http4s.server.middleware.Logger
 
 object Main extends IOApp.Simple:
 
@@ -24,7 +25,7 @@ object Main extends IOApp.Simple:
     val host = "localhost"
     val port = 8090
 
-    val rpc = HttpRoutes.of[IO]:
+    val app = HttpRoutes.of[IO]:
       case request @ POST -> Root / "rpc" =>
         request.as[JsonRpc.Request].attempt.flatMap:
           case Left(th) => Ok(JsonRpc.error(JsonRpc.ErrorCode.ParseError, th.getMessage))
@@ -32,7 +33,9 @@ object Main extends IOApp.Simple:
               Ok(JsonRpc.error(JsonRpc.ErrorCode.InternalError, th.getMessage))
             )
 
-    val httpApp = Router("/" -> rpc).orNotFound
+    val appWithLogging =
+      Logger.httpRoutes(logHeaders = false, logBody = true, redactHeadersWhen = _ => false)(app)
+    val httpApp = Router("/" -> appWithLogging).orNotFound
 
     for
       given Logger[IO] <- LoggerFactory[IO].create
