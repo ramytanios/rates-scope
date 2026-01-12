@@ -10,9 +10,9 @@ import org.http4s.circe.CirceEntityCodec.*
 import org.http4s.dsl.io.*
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
+import org.http4s.server.middleware.Logger
 import org.typelevel.log4cats.*
 import org.typelevel.log4cats.syntax.*
-import org.http4s.server.middleware.Logger
 
 object Main extends IOApp.Simple:
 

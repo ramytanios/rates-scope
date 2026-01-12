@@ -35,14 +35,14 @@ class Lib[T: lib.DateLike](market: Market[T]):
         buildVolConventions(currency, tenor).map: rate =>
           val skews = surface.surface.toList.map:
             case (expTenor, dtos.VolatiltySkew(skew)) =>
-              val (moneynesses, vols0) = skew.unzip
               val expiry =
                 rate.calendar.addBusinessPeriod(market.t, expTenor)(using rate.bdConvention)
-              val forward = rate.forward(expiry)
-              val strikes = moneynesses.map(forward + _)
-              val vols1 = volUnit match
-                case dtos.VolUnit.BpPerYear => vols0.map(_ / 10000)
-              expiry -> lib.Lazy(lib.VolatilitySkew(strikes.toIndexedSeq, vols1.toIndexedSeq))
+              expiry -> lib.Lazy:
+                val (ms, vs0) = skew.unzip
+                val forward = rate.forward(expiry)
+                val strikes = ms.map(forward + _)
+                val vs1 = vs0.map(volUnit.fromUnit)
+                lib.VolatilitySkew(strikes.toIndexedSeq, vs1.toIndexedSeq)
           lib.VolatilitySurface(market.t, rate.forward, skews.toIndexedSeq)
 
   def buildVolCube(currency: dtos.Currency): Either[lib.Error, lib.VolatilityCube[T]] =
