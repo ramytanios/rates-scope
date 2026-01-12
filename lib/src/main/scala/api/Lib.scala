@@ -39,10 +39,10 @@ class Lib[T: lib.DateLike](market: Market[T]):
                 rate.calendar.addBusinessPeriod(market.t, expTenor)(using rate.bdConvention)
               expiry -> lib.Lazy:
                 val (ms, vs0) = skew.unzip
-                val forward = rate.forward(expiry)
-                val strikes = ms.map(forward + _)
+                val fwd = rate.forward(expiry)
+                val ks = ms.map(fwd + _)
                 val vs1 = vs0.map(volUnit.fromUnit)
-                lib.VolatilitySkew(strikes.toIndexedSeq, vs1.toIndexedSeq)
+                lib.VolatilitySkew(ks.toIndexedSeq, vs1.toIndexedSeq)
           lib.VolatilitySurface(market.t, rate.forward, skews.toIndexedSeq)
 
   def buildVolCube(currency: dtos.Currency): Either[lib.Error, lib.VolatilityCube[T]] =
