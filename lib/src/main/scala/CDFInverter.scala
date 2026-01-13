@@ -39,7 +39,7 @@ object CDFInverter:
     val cdfImplied = bachelier.impliedCumulative(fwd, dt, vol.apply, vol.fstDerivative)
 
     def middleStrikes =
-      val strikes = (1 to params.nMiddle - 2).map(i => cdfInvN(i / (params.nMiddle - 1.0)))
+      val strikes = (1 to params.nMiddle).map(i => cdfInvN(i / (params.nMiddle + 1.0)))
       val cdfs = strikes.map(cdfImplied)
       (strikes -> cdfs).asRight[Arbitrage]
 

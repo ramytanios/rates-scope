@@ -4,6 +4,7 @@ import lib.*
 import lib.dtos
 import lib.quantities.Tenor
 import lib.syntax.*
+import org.apache.commons.math3.distribution.NormalDistribution
 
 class Api[T: lib.DateLike](val market: Market[T]):
 
@@ -52,8 +53,9 @@ class Api[T: lib.DateLike](val market: Market[T]):
       currency: dtos.Currency,
       tenor: Tenor,
       expiry: Tenor,
-      nSamples: Int,
-      nStdvs: Int
+      nSamplesMiddle: Int,
+      nSamplesTail: Int,
+      nStdvsTail: Int
   ): Either[lib.Error, Api.SamplingResult] =
     market.volCube(currency).map(_.unit).flatMap: volUnit =>
       val volInUnit = volUnit match
@@ -64,17 +66,36 @@ class Api[T: lib.DateLike](val market: Market[T]):
         val fwd = rate.forward(expiryT)
         buildVolCube(currency).map: volCube =>
           val volSkew = volCube(tenor)(expiryT)
-          val quotedStrikes =
+          val ksQuoted =
             market.volSurface(currency, tenor).toOption.flatMap(_.surface.get(expiry.toPeriod))
-              .map(_.skew.unzip._1.map(_ + fwd)).orEmpty
-          val quotedVols = quotedStrikes.map(volSkew andThen volInUnit)
+              .map(_.skew.unzip._1.map(_ + fwd)).orEmpty.toList
+          val vsQuoted = ksQuoted.map(volSkew andThen volInUnit)
           val dt = market.t.yearFractionTo(expiryT)(using lib.DateLike[T], DayCounter.Act365)
           val atmStdv = volSkew(fwd) * math.sqrt(dt.toDouble)
-          val kMin = fwd - nStdvs * atmStdv
-          val kMax = fwd + nStdvs * atmStdv
-          val step = (kMax - kMin) / nSamples
-          val strikes = (0 to nSamples).map(i => kMin + i * step)
-          val vols = strikes.map(volSkew andThen volInUnit)
+          val cdfInvN = NormalDistribution(fwd, atmStdv).inverseCumulativeProbability
+          val ksMiddle = (1 to nSamplesMiddle).map(i => cdfInvN(i / (nSamplesMiddle + 1.0)))
+          val ksRight = ksMiddle.lastOption.flatMap: kmMax =>
+            ksQuoted.lastOption.map: kqMax =>
+              val kMax0 = if kmMax >= kqMax then kmMax
+              else
+                Iterator.iterate(kmMax + atmStdv)(_ + atmStdv)
+                  .takeWhile(_ < kqMax).toList.lastOption.getOrElse(kqMax)
+              val kMax = kMax0 + nStdvsTail * atmStdv
+              val step = (kMax - kmMax) / nSamplesTail
+              (1 to nStdvsTail).map(i => kmMax + i * step).toList
+          .orEmpty
+          val ksLeft = ksMiddle.headOption.flatMap: kmMin =>
+            ksQuoted.headOption.map: kqMin =>
+              val kMin0 = if kmMin <= kqMin then kmMin
+              else
+                Iterator.iterate(kmMin - atmStdv)(_ - atmStdv)
+                  .takeWhile(_ > kqMin).toList.lastOption.getOrElse(kqMin)
+              val kMin = kMin0 - nStdvsTail * atmStdv
+              val step = (kmMin - kMin) / nSamplesTail
+              (1 to nStdvsTail).map(i => kMin + i * step).toList
+          .orEmpty
+          val ks = ksLeft ++ ksMiddle ++ ksRight
+          val vs = ks.map(volSkew andThen volInUnit)
           val impliedPdf = bachelier.impliedDensity(
             fwd,
             dt.toDouble,
@@ -82,17 +103,17 @@ class Api[T: lib.DateLike](val market: Market[T]):
             volSkew.fstDerivative,
             volSkew.sndDerivative
           )
-          val pdf = strikes.map(impliedPdf)
-          val quotedPdf = quotedStrikes.map(impliedPdf)
-          Api.SamplingResult(quotedStrikes, quotedVols, quotedPdf, strikes, vols, pdf)
+          val pdf = ks.map(impliedPdf)
+          val quotedPdf = ksQuoted.map(impliedPdf)
+          Api.SamplingResult(ksQuoted, vsQuoted, quotedPdf, ks, vs, pdf)
 
 object Api:
 
   case class SamplingResult(
-      quotedStrikes: Seq[Double],
-      quotedVols: Seq[Double],
-      quotedPdf: Seq[Double],
-      strikes: Seq[Double],
-      vols: Seq[Double],
-      pdf: Seq[Double]
+      quotedStrikes: List[Double],
+      quotedVols: List[Double],
+      quotedPdf: List[Double],
+      strikes: List[Double],
+      vols: List[Double],
+      pdf: List[Double]
   )
