@@ -82,7 +82,7 @@ class Api[T: lib.DateLike](val market: Market[T]):
                   .takeWhile(_ < kqMax).toList.lastOption.getOrElse(kqMax)
               val kMax = kMax0 + nStdvsTail * atmStdv
               val step = (kMax - kmMax) / nSamplesTail
-              (1 to nStdvsTail).map(i => kmMax + i * step).toList
+              (1 to nSamplesTail).map(i => kmMax + i * step).toList
           .orEmpty
           val ksLeft = ksMiddle.headOption.flatMap: kmMin =>
             ksQuoted.headOption.map: kqMin =>
@@ -92,7 +92,7 @@ class Api[T: lib.DateLike](val market: Market[T]):
                   .takeWhile(_ > kqMin).toList.lastOption.getOrElse(kqMin)
               val kMin = kMin0 - nStdvsTail * atmStdv
               val step = (kmMin - kMin) / nSamplesTail
-              (1 to nStdvsTail).map(i => kMin + i * step).toList
+              (1 to nSamplesTail).map(i => kMin + (i - 1) * step).toList
           .orEmpty
           val ks = ksLeft ++ ksMiddle ++ ksRight
           val vs = ks.map(volSkew andThen volInUnit)
