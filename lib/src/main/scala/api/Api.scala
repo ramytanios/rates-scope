@@ -65,12 +65,20 @@ class Api[T: lib.DateLike](val market: Market[T]):
         val expiryT = rate.calendar.addBusinessPeriod(market.t, expiry.toPeriod)
         val fwd = rate.forward(expiryT)
         buildVolCube(currency).map: volCube =>
+          val dt = market.t.yearFractionTo(expiryT)(using lib.DateLike[T], DayCounter.Act365)
           val volSkew = volCube(tenor)(expiryT)
           val ksQuoted =
             market.volSurface(currency, tenor).toOption.flatMap(_.surface.get(expiry.toPeriod))
               .map(_.skew.unzip._1.map(_ + fwd)).orEmpty.toList
           val vsQuoted = ksQuoted.map(volSkew andThen volInUnit)
-          val dt = market.t.yearFractionTo(expiryT)(using lib.DateLike[T], DayCounter.Act365)
+          val impliedPdf = bachelier.impliedDensity(
+            fwd,
+            dt.toDouble,
+            volSkew,
+            volSkew.fstDerivative,
+            volSkew.sndDerivative
+          )
+          val pdfQuoted = ksQuoted.map(impliedPdf)
           val atmStdv = volSkew(fwd) * math.sqrt(dt.toDouble)
           val cdfInvN = NormalDistribution(fwd, atmStdv).inverseCumulativeProbability
           val ksMiddle = (1 to nSamplesMiddle).map(i => cdfInvN(i / (nSamplesMiddle + 1.0)))
@@ -96,16 +104,8 @@ class Api[T: lib.DateLike](val market: Market[T]):
           .orEmpty
           val ks = ksLeft ++ ksMiddle ++ ksRight
           val vs = ks.map(volSkew andThen volInUnit)
-          val impliedPdf = bachelier.impliedDensity(
-            fwd,
-            dt.toDouble,
-            volSkew,
-            volSkew.fstDerivative,
-            volSkew.sndDerivative
-          )
           val pdf = ks.map(impliedPdf)
-          val quotedPdf = ksQuoted.map(impliedPdf)
-          Api.SamplingResult(ksQuoted, vsQuoted, quotedPdf, ks, vs, pdf)
+          Api.SamplingResult(ksQuoted, vsQuoted, pdfQuoted, ks, vs, pdf)
 
 object Api:
 
