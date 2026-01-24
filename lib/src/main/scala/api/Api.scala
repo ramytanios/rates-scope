@@ -105,7 +105,7 @@ class Api[T: lib.DateLike](val market: Market[T]):
           val ks = ksLeft ++ ksMiddle ++ ksRight
           val vs = ks.map(volSkew andThen volInUnit)
           val pdf = ks.map(impliedPdf)
-          Api.SamplingResult(ksQuoted, vsQuoted, pdfQuoted, ks, vs, pdf)
+          Api.SamplingResult(ksQuoted, vsQuoted, pdfQuoted, ks, vs, pdf, fwd)
 
 object Api:
 
@@ -115,5 +115,6 @@ object Api:
       quotedPdf: List[Double],
       strikes: List[Double],
       vols: List[Double],
-      pdf: List[Double]
+      pdf: List[Double],
+      fwd: Double
   )

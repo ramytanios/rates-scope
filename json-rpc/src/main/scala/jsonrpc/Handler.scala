@@ -103,7 +103,8 @@ object Handler:
                 "quotedPdf" -> res.quotedPdf.asJson,
                 "strikes" -> res.strikes.asJson,
                 "vols" -> res.vols.asJson,
-                "pdf" -> res.pdf.asJson
+                "pdf" -> res.pdf.asJson,
+                "fwd" -> res.fwd.asJson
               ).toJson
             )
         )
