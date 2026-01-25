@@ -28,15 +28,9 @@ object CDFInverter:
 
     val dt = t.yearFractionTo(expiry)(using DateLike[T], DayCounter.Act365).toDouble
 
-    println(dt)
-
     val fwd = forward(expiry)
 
-    println(fwd)
-
     val atmStdv = vol(fwd) * math.sqrt(dt)
-
-    println(atmStdv)
 
     // φ⁻¹ of N(F,σ²T)
     val cdfInvN = NormalDistribution(fwd, atmStdv).inverseCumulativeProbability
