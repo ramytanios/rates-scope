@@ -80,8 +80,11 @@ object quantities:
       def toPeriod: Period = t
       def unary_- : Tenor = t.multipliedBy(-1)
       def *(factor: Int): Tenor = t.multipliedBy(factor)
-      def days: Int = t.getDays
-      def toYearFraction: YearFraction = t.getDays / 365.0
+      def toYearFraction: YearFraction = getUnit(t) match
+        case Unit.Day   => t.getDays() / 365.0
+        case Unit.Week  => t.getDays() / 365.0
+        case Unit.Month => t.getMonths() * 30.0 / 365.0
+        case Unit.Year  => t.getYears()
       def unit: Unit = getUnit(t)
 
     given Ordering[Tenor] = Ordering.by(_.toYearFraction)

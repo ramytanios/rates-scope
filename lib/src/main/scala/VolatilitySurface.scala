@@ -17,7 +17,11 @@ object VolatilitySurface:
       forward: Forward[T],
       skews: IndexedSeq[(T, Lazy[VolatilitySkew])]
   ): VolatilitySurface[T] =
-    require(skews.map(_(0)).isStrictlyIncreasing, "pillar maturities must be strictly increasing")
+    val ts = skews.map(_(0))
+    require(
+      ts.isStrictlyIncreasing,
+      s"pillar maturities must be strictly increasing, got ${ts.mkString(",")}"
+    )
 
     val n = skews.length
 

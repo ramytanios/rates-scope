@@ -15,9 +15,10 @@ object VolatilityCube:
       surfaces: IndexedSeq[(Tenor, VolatilitySurface[T])],
       forwards: Map[Tenor, Forward[T]]
   ): VolatilityCube[T] =
+    val tenors = surfaces.map(_(0))
     require(
-      surfaces.map(_(0).toYearFraction.toDouble).isStrictlyIncreasing,
-      "surfaces must be order by tenor"
+      tenors.map(_.toYearFraction.toDouble).isStrictlyIncreasing,
+      s"surfaces must be order by tenor, got ${tenors.mkString(",")}"
     )
 
     val tenorMin = surfaces.head(0)

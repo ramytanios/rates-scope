@@ -43,7 +43,8 @@ class Lib[T: lib.DateLike](market: Market[T]):
                 val ks = ms.map(fwd + _)
                 val vs1 = vs0.map(volUnit.fromUnit)
                 lib.VolatilitySkew(ks.toIndexedSeq, vs1.toIndexedSeq)
-          lib.VolatilitySurface(market.t, rate.forward, skews.toIndexedSeq)
+          val sortedSkews = skews.sortBy(_(0))(using lib.syntax.given_Ordering_T)
+          lib.VolatilitySurface(market.t, rate.forward, sortedSkews.toIndexedSeq)
 
   def buildVolCube(currency: dtos.Currency): Either[lib.Error, lib.VolatilityCube[T]] =
     market.volCube(currency).flatMap: volCube =>
@@ -54,7 +55,8 @@ class Lib[T: lib.DateLike](market: Market[T]):
         buildVolConventions(currency, tenor).map(_.forward).tupleLeft(Tenor(tenor))
       .map(_.toMap)
       (surfaces, forwards).tupled.map: (surfaces, forwards) =>
-        lib.VolatilityCube[T](surfaces, forwards)
+        val sortedSurfaces = surfaces.sortBy((t, _) => t.toYearFraction.toDouble)
+        lib.VolatilityCube[T](sortedSurfaces, forwards)
 
   def buildVolConventions(
       currency: dtos.Currency,
