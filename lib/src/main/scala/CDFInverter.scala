@@ -28,9 +28,15 @@ object CDFInverter:
 
     val dt = t.yearFractionTo(expiry)(using DateLike[T], DayCounter.Act365).toDouble
 
+    println(dt)
+
     val fwd = forward(expiry)
 
+    println(fwd)
+
     val atmStdv = vol(fwd) * math.sqrt(dt)
+
+    println(atmStdv)
 
     // φ⁻¹ of N(F,σ²T)
     val cdfInvN = NormalDistribution(fwd, atmStdv).inverseCumulativeProbability
@@ -56,16 +62,19 @@ object CDFInverter:
           ks.size == params.nTailMax && cdfImplied(ks.last) > params.cdfThreshold
         )(Arbitrage.LeftAsymptotic)
           .flatMap: _ =>
-            val kMin = ks.head
-            val kMax = ks.last
-            val put = bachelier.price(dtos.OptionType.Put, fwd, kMin, dt, vol(kMin), 1.0)
-            val putAtm = bachelier.price(dtos.OptionType.Put, fwd, fwd, dt, vol(fwd), 1.0)
-            Either.raiseUnless(put <= params.relPriceThreshold * putAtm)(Arbitrage.LeftAsymptotic)
-              .as:
-                val step = (kMax - kMin) / params.nTail
-                val strikes = (0 to params.nTail).map(i => kMin + i * step)
-                val cdfs = strikes.map(cdfImplied)
-                strikes.reverse -> cdfs.reverse
+            if ks.isEmpty then
+              (IndexedSeq.empty[Double], IndexedSeq.empty).asRight[Arbitrage]
+            else
+              val kMin = ks.head
+              val kMax = ks.last
+              val put = bachelier.price(dtos.OptionType.Put, fwd, kMin, dt, vol(kMin), 1.0)
+              val putAtm = bachelier.price(dtos.OptionType.Put, fwd, fwd, dt, vol(fwd), 1.0)
+              Either.raiseUnless(put <= params.relPriceThreshold * putAtm)(Arbitrage.LeftAsymptotic)
+                .as:
+                  val step = (kMax - kMin) / params.nTail
+                  val strikes = (0 to params.nTail).map(i => kMin + i * step)
+                  val cdfs = strikes.map(cdfImplied)
+                  strikes.reverse -> cdfs.reverse
 
     def rightStrikes(kR: Double) =
       if cdfImplied(kR) <= (1 - params.cdfThreshold) then
@@ -80,16 +89,21 @@ object CDFInverter:
           ks.size == params.nTailMax && cdfImplied(ks.last) < (1 - params.cdfThreshold)
         )(Arbitrage.RightAsymptotic)
           .flatMap: _ =>
-            val kMin = ks.head
-            val kMax = ks.last
-            val call = bachelier.price(dtos.OptionType.Call, fwd, kMax, dt, vol(kMax), 1.0)
-            val callAtm = bachelier.price(dtos.OptionType.Call, fwd, fwd, dt, vol(fwd), 1.0)
-            Either.raiseUnless(call <= params.relPriceThreshold * callAtm)(Arbitrage.RightAsymptotic)
-              .as:
-                val step = (kMax - kMin) / params.nTail
-                val strikes = (0 to params.nTail).map(i => kMin + i * step)
-                val cdfs = strikes.map(cdfImplied)
-                strikes -> cdfs
+            if ks.isEmpty then
+              (IndexedSeq.empty[Double], IndexedSeq.empty).asRight[Arbitrage]
+            else
+              val kMin = ks.head
+              val kMax = ks.last
+              val call = bachelier.price(dtos.OptionType.Call, fwd, kMax, dt, vol(kMax), 1.0)
+              val callAtm = bachelier.price(dtos.OptionType.Call, fwd, fwd, dt, vol(fwd), 1.0)
+              Either.raiseUnless(
+                call <= params.relPriceThreshold * callAtm
+              )(Arbitrage.RightAsymptotic)
+                .as:
+                  val step = (kMax - kMin) / params.nTail
+                  val strikes = (0 to params.nTail).map(i => kMin + i * step)
+                  val cdfs = strikes.map(cdfImplied)
+                  strikes -> cdfs
 
     for
       (mks, mvs) <- middleStrikes

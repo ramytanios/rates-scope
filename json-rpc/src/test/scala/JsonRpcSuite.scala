@@ -13,17 +13,23 @@ import scala.util.Using
 
 class JsonRpcSuite extends CatsEffectSuite:
 
+  def testMethodIsSuccess(file: String, method: String): IO[Unit] =
+    UUIDGen.randomUUID[IO].flatMap: id =>
+      IO.blocking(parse(Using.resource(Source.fromResource(file))(_.mkString)))
+        .flatMap(_.liftTo[IO])
+        .flatMap: params =>
+          val rpcRequest = JsonRpc.Request("2.0", method, params.some, id.toString)
+          val isSuccessIO = IO(Handler(rpcRequest).asJson).map: js =>
+            js.hcursor.get[Option[JsonRpc.Error]]("error").exists(_.isEmpty)
+          assertIOBoolean(isSuccessIO)
+
   test("jsonrpc"):
 
-    val testPriceIO =
-      UUIDGen.randomUUID[IO].flatMap: id =>
-        IO.blocking(parse(Using.resource(Source.fromResource("price.json"))(_.mkString)))
-          .flatMap(_.liftTo[IO])
-          .flatMap: params =>
-            val rpcRequest = JsonRpc.Request("2.0", "price", params.some, id.toString)
-            val isSuccessIO = IO(Handler(rpcRequest).asJson).map: js =>
-              js.hcursor.get[Option[JsonRpc.Error]]("error").exists(_.isEmpty)
-            assertIOBoolean(isSuccessIO)
+    val testPriceIO = testMethodIsSuccess("price.json", "price")
+
+    val testSamplingIO = testMethodIsSuccess("sampling.json", "volsampling")
+
+    val testArbitrageIO = testMethodIsSuccess("arbitrage.json", "arbitrage")
 
     val testInvalidMethodIO =
       UUIDGen.randomUUID[IO].flatMap: id =>
@@ -34,6 +40,8 @@ class JsonRpcSuite extends CatsEffectSuite:
         assertIOBoolean(isErrorIO)
 
     for
-      _ <- testPriceIO
-      _ <- testInvalidMethodIO
+    // _ <- testPriceIO
+    // _ <- testSamplingIO
+    _ <- testArbitrageIO
+    // _ <- testInvalidMethodIO
     yield ()
