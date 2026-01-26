@@ -1,6 +1,8 @@
 # 📈 Rates Vanilla Scope
 
-Vanilla option pricing library for interest rates derivatives 🚧 _Work in progress_
+Vanilla option pricing library for interest rates derivatives
+
+**🚧 Work in Progress**
 
 ## JSON-RPC API
 
