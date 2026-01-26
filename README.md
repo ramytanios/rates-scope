@@ -1,6 +1,6 @@
 # 📈 Rates Vanilla Scope
 
-Vanilla option pricing library for interest rates derivatives
+Vanilla option pricing library for interest rates derivatives.
 
 **🚧 Work in Progress**
 
