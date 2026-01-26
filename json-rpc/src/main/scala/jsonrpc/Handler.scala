@@ -3,6 +3,7 @@ package jsonrpc
 import io.circe.*
 import io.circe.syntax.*
 import lib.api.Api
+import cats.syntax.all.*
 import lib.api.Market
 import lib.dtos
 import lib.dtos.given_Codec_LocalDate
@@ -27,6 +28,13 @@ object Handler:
       currency: dtos.Currency,
       tenor: Period,
       expiry: Period
+  ) derives Codec
+
+  case class ArbitrageMatrixParams(
+      tRef: LocalDate,
+      market: Map[dtos.Currency, dtos.CcyMarket[LocalDate]],
+      static: dtos.Static[LocalDate],
+      currency: dtos.Currency
   ) derives Codec
 
   case class VolSamplingParams(
@@ -83,6 +91,33 @@ object Handler:
                       ).toJson
                 ).asJson).toJson
               )
+        )
+
+      case "arbitragematrix" => impl[ArbitrageMatrixParams](
+          request,
+          params =>
+            val market = Market[LocalDate](params.tRef, params.market, params.static)
+            market.volCube(params.currency).flatMap: volCube =>
+              val tenors = volCube.cube.keysIterator.toList
+              val expiries = volCube.cube.values.flatMap(_.surface.keysIterator).toList.distinct
+              val api = new Api(market)
+              tenors.flatTraverse: tenor =>
+                expiries.traverse: expiry =>
+                  api.arbitrageCheck(params.currency, tenor, expiry).map((tenor, expiry, _))
+              .map: matrix =>
+                JsonObject("matrix" -> matrix.map((te, ex, ar) =>
+                  val arbJson = ar.map:
+                    case lib.Arbitrage.LeftAsymptotic =>
+                      JsonObject("type" -> "LeftAsymptotic".asJson).toJson
+                    case lib.Arbitrage.RightAsymptotic =>
+                      JsonObject("type" -> "RightAsymptotic".asJson).toJson
+                    case lib.Arbitrage.Density(leftStrike, rightStrike) =>
+                      JsonObject(
+                        "type" -> "Density".asJson,
+                        "between" -> List(leftStrike, rightStrike).asJson
+                      ).toJson
+                  (te, ex, arbJson).asJson
+                ).asJson).toJson
         )
 
       case "volsampling" => impl[VolSamplingParams](

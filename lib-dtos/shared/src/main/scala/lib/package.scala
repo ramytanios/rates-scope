@@ -16,7 +16,7 @@ package object dtos:
 
   given Codec[Period] = Codec.from(
     Decoder.decodeString.emap(str => Try(Period.parse(s"P$str")).toEither.leftMap(_.toString)),
-    Encoder.encodeString.contramap[Period](_.toString)
+    Encoder.encodeString.contramap[Period](_.toString.drop(1))
   )
 
   given KeyDecoder[Period] = KeyDecoder.instance(str => Try(Period.parse(s"P$str")).toOption)
