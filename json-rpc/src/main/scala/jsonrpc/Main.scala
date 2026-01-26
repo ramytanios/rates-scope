@@ -50,7 +50,7 @@ object Main extends IOApp.Simple:
         .withHost(host)
         .withPort(port)
         .withHttpApp(httpApp)
-        .withMaxConnections(8)
+        .withMaxConnections(1024)
         .build
         .evalTap(_ => info"Server listening on port $port")
         .use(_ => IO.never)
