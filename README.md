@@ -1,4 +1,3 @@
-````markdown
 # 📈 Rates Vanilla Scope
 
 Vanilla option pricing library for interest rates derivatives 🚧 _Work in progress_
@@ -89,5 +88,4 @@ sbt compile
 sbt "json-rpc/run"
 # Run tests
 sbt test
-```
 ```
