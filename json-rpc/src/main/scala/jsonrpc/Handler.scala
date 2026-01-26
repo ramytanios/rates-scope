@@ -63,6 +63,19 @@ object Handler:
       )
     ))
 
+  private def arbitrageToJson(arb: Option[lib.Arbitrage]): Json =
+    arb.map:
+      case lib.Arbitrage.LeftAsymptotic =>
+        JsonObject("type" -> "LeftAsymptotic".asJson).toJson
+      case lib.Arbitrage.RightAsymptotic =>
+        JsonObject("type" -> "RightAsymptotic".asJson).toJson
+      case lib.Arbitrage.Density(leftStrike, rightStrike) =>
+        JsonObject(
+          "type" -> "Density".asJson,
+          "between" -> List(leftStrike, rightStrike).asJson
+        ).toJson
+    .asJson
+
   def apply(request: JsonRpc.Request): JsonRpc.Response =
     request.method match
       case "price" => impl[PriceParams](
@@ -77,20 +90,7 @@ object Handler:
           params =>
             val market = Market[LocalDate](params.tRef, params.market, params.static)
             new Api(market).arbitrageCheck(params.currency, params.tenor, params.expiry)
-              .map(res =>
-                JsonObject("arbitrage" -> res.map(arb =>
-                  arb match
-                    case lib.Arbitrage.LeftAsymptotic =>
-                      JsonObject("type" -> "LeftAsymptotic".asJson).toJson
-                    case lib.Arbitrage.RightAsymptotic =>
-                      JsonObject("type" -> "RightAsymptotic".asJson).toJson
-                    case lib.Arbitrage.Density(leftStrike, rightStrike) =>
-                      JsonObject(
-                        "type" -> "Density".asJson,
-                        "between" -> List(leftStrike, rightStrike).asJson
-                      ).toJson
-                ).asJson).toJson
-              )
+              .map(res => JsonObject("arbitrage" -> arbitrageToJson(res)).toJson)
         )
 
       case "arbitragematrix" => impl[ArbitrageMatrixParams](
@@ -106,17 +106,7 @@ object Handler:
                   api.arbitrageCheck(params.currency, tenor, expiry).map((tenor, expiry, _))
               .map: matrix =>
                 JsonObject("matrix" -> matrix.map((te, ex, ar) =>
-                  val arbJson = ar.map:
-                    case lib.Arbitrage.LeftAsymptotic =>
-                      JsonObject("type" -> "LeftAsymptotic".asJson).toJson
-                    case lib.Arbitrage.RightAsymptotic =>
-                      JsonObject("type" -> "RightAsymptotic".asJson).toJson
-                    case lib.Arbitrage.Density(leftStrike, rightStrike) =>
-                      JsonObject(
-                        "type" -> "Density".asJson,
-                        "between" -> List(leftStrike, rightStrike).asJson
-                      ).toJson
-                  (te, ex, arbJson).asJson
+                  (te, ex, arbitrageToJson(ar)).asJson
                 ).asJson).toJson
         )
 
