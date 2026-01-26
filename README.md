@@ -71,7 +71,6 @@ The `json-rpc/` module provides HTTP API access to the pricing library via JSON-
   "id": 1
 }
 ```
-````
 
 **Response:**
 
