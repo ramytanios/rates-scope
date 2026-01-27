@@ -26,7 +26,7 @@ class SwapRateSuite extends munit.FunSuite:
     )
 
     val rate = new SwapRate(
-      Tenor.years(5),
+      Tenor.fromYears(5),
       2,
       0,
       Tenor.`1Y`,

@@ -62,13 +62,13 @@ class Api[T: lib.DateLike](val market: Market[T]):
         case dtos.VolUnit.BpPerYear => (v: Double) => v * 10000
       buildVolConventions(currency, tenor).flatMap: rate =>
         given dtos.BusinessDayConvention = rate.bdConvention
-        val expiryT = rate.calendar.addBusinessPeriod(market.t, expiry.toPeriod)
+        val expiryT = rate.calendar.addBusinessPeriod(market.t, expiry)
         val fwd = rate.forward(expiryT)
         buildVolCube(currency).map: volCube =>
           val dt = market.t.yearFractionTo(expiryT)(using lib.DateLike[T], DayCounter.Act365)
           val volSkew = volCube(tenor)(expiryT)
           val ksQuoted =
-            market.volSurface(currency, tenor).toOption.flatMap(_.surface.get(expiry.toPeriod))
+            market.volSurface(currency, tenor).toOption.flatMap(_.surface.get(expiry))
               .map(_.skew.unzip._1.map(_ + fwd)).orEmpty.toList
           val vsQuoted = ksQuoted.map(volSkew andThen volInUnit)
           val impliedPdf = bachelier.impliedDensity(

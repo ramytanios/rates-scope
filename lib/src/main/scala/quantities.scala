@@ -48,45 +48,58 @@ object quantities:
     given Conversion[Double, Strike] = Strike.apply
 
   /** Tenor */
-  opaque type Tenor = Period
+
+  case class Tenor(length: Int, unit: Tenor.Unit):
+
+    def days: Int = unit match
+      case Tenor.Unit.Day   => length
+      case Tenor.Unit.Week  => length * 7
+      case Tenor.Unit.Month => length * 30
+      case Tenor.Unit.Year  => length * 365
 
   object Tenor:
-    def apply(t: Period): Tenor = t
-
-    val `1D`: Tenor = Period.ofDays(1)
-    val `3M`: Tenor = Period.ofMonths(3)
-    val `6M`: Tenor = Period.ofMonths(6)
-    val `1Y`: Tenor = Period.ofYears(1)
-    val `2Y`: Tenor = Period.ofYears(2)
-    val `10Y`: Tenor = Period.ofYears(10)
-
-    def days(n: Int) = Period.ofDays(n)
-    def months(n: Int) = Period.ofMonths(n)
-    def years(n: Int) = Period.ofYears(n)
 
     enum Unit:
       case Day, Week, Month, Year
 
-    def getUnit(t: Tenor): Unit =
-      if t.getYears == 0 && t.getMonths == 0 && t.getDays == 0 then Unit.Day
-      else if t.getYears != 0 && t.getMonths == 0 && t.getDays == 0 then Unit.Year
-      else if t.getYears == 0 && t.getMonths != 0 && t.getDays == 0 then Unit.Month
-      else if t.getYears == 0 && t.getMonths == 0 && t.getDays != 0 && t.getDays % 7 == 0 then
-        Unit.Week
-      else if t.getYears == 0 && t.getMonths == 0 && t.getDays != 0 then Unit.Day
-      else throw RuntimeException("Unable to infer unit")
+    val `1D`: Tenor = Tenor(1, Unit.Day)
+    val `3M`: Tenor = Tenor(3, Unit.Month)
+    val `6M`: Tenor = Tenor(6, Unit.Month)
+    val `1Y`: Tenor = Tenor(1, Unit.Year)
+    val `2Y`: Tenor = Tenor(2, Unit.Year)
+    val `10Y`: Tenor = Tenor(10, Unit.Year)
+
+    def fromDays(n: Int): Tenor = Tenor(n, Unit.Day)
+    def fromMonths(n: Int): Tenor = Tenor(n, Unit.Month)
+    def fromYears(n: Int): Tenor = Tenor(n, Unit.Year)
 
     extension (t: Tenor)
-      def toPeriod: Period = t
-      def unary_- : Tenor = t.multipliedBy(-1)
-      def *(factor: Int): Tenor = t.multipliedBy(factor)
-      def toYearFraction: YearFraction = getUnit(t) match
-        case Unit.Day   => t.getDays() / 365.0
-        case Unit.Week  => t.getDays() / 365.0
-        case Unit.Month => t.getMonths() * 30.0 / 365.0
-        case Unit.Year  => t.getYears()
-      def unit: Unit = getUnit(t)
+      def toPeriod = t.unit match
+        case Unit.Day   => Period.ofDays(t.length)
+        case Unit.Week  => Period.ofWeeks(t.length)
+        case Unit.Month => Period.ofMonths(t.length)
+        case Unit.Year  => Period.ofYears(t.length)
+
+      def unary_- : Tenor = t.copy(length = -1 * t.length)
+      def *(factor: Int): Tenor = t.copy(length = factor * t.length)
+      def toYearFraction: YearFraction = t.unit match
+        case Unit.Day   => t.length / 365.0
+        case Unit.Week  => t.length * 7 / 365.0
+        case Unit.Month => t.length * 30.0 / 365.0
+        case Unit.Year  => t.length
 
     given Ordering[Tenor] = Ordering.by(_.toYearFraction)
 
-    given Conversion[Period, Tenor] = Tenor.apply
+    given fromDto: Conversion[dtos.Tenor, Tenor] = t =>
+      t.unit match
+        case dtos.Tenor.Unit.Day   => Tenor(t.length, Unit.Day)
+        case dtos.Tenor.Unit.Week  => Tenor(t.length, Unit.Week)
+        case dtos.Tenor.Unit.Month => Tenor(t.length, Unit.Month)
+        case dtos.Tenor.Unit.Year  => Tenor(t.length, Unit.Year)
+
+    given toDto: Conversion[Tenor, dtos.Tenor] = t =>
+      t.unit match
+        case Unit.Day   => dtos.Tenor(t.length, dtos.Tenor.Unit.Day)
+        case Unit.Week  => dtos.Tenor(t.length, dtos.Tenor.Unit.Week)
+        case Unit.Month => dtos.Tenor(t.length, dtos.Tenor.Unit.Month)
+        case Unit.Year  => dtos.Tenor(t.length, dtos.Tenor.Unit.Year)

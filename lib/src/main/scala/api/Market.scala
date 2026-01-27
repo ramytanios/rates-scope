@@ -1,10 +1,9 @@
 package lib.api
 
-import lib.*
 import lib.dtos
-import lib.quantities.*
 
 import scala.math.Ordering.Implicits.*
+import lib.quantities.Tenor
 
 enum MarketError(msg: String) extends lib.Error(msg):
 
@@ -23,10 +22,10 @@ enum MarketError(msg: String) extends lib.Error(msg):
   case MissingVolatilityCube(currency: dtos.Currency)
       extends MarketError(s"missing vol cube of currency $currency")
 
-  case MissingVolatilitySurface(currency: dtos.Currency, tenor: Tenor)
+  case MissingVolatilitySurface(currency: dtos.Currency, tenor: dtos.Tenor)
       extends MarketError(s"missing vol surface in currency $currency and tenor $tenor")
 
-  case MissingVolatilityConventions(currency: dtos.Currency, tenor: Tenor)
+  case MissingVolatilityConventions(currency: dtos.Currency, tenor: dtos.Tenor)
       extends MarketError(s"missing vol conventions in currency $currency and tenor $tenor")
 
   case MissingCalendar(name: String) extends MarketError(s"missing calendar $name")
@@ -43,7 +42,7 @@ trait Market[T]:
 
   def volatilityConventions(
       currency: dtos.Currency,
-      tenor: Tenor
+      tenor: dtos.Tenor
   ): Either[
     MarketError,
     lib.dtos.VolatilityMarketConventions.Libor | lib.dtos.VolatilityMarketConventions.SwapRate
@@ -53,7 +52,7 @@ trait Market[T]:
 
   def volSurface(
       currency: dtos.Currency,
-      tenor: Tenor
+      tenor: dtos.Tenor
   ): Either[MarketError, dtos.VolatilitySurface]
 
   def calendar(name: String): Either[MarketError, dtos.Calendar[T]]
@@ -102,14 +101,15 @@ object Market:
 
     def volatilityConventions(
         currency: dtos.Currency,
-        tenor: Tenor
+        tenor: dtos.Tenor
     ): Either[
       MarketError,
       lib.dtos.VolatilityMarketConventions.Libor | lib.dtos.VolatilityMarketConventions.SwapRate
     ] =
       volConventions.get(currency).map(volConventions =>
         val boundary: Tenor = volConventions.boundaryTenor
-        if tenor <= boundary then volConventions.liborRate else volConventions.swapRate
+        if boundary >= tenor then volConventions.liborRate
+        else volConventions.swapRate
       )
         .toRight(MissingVolatilityConventions(currency, tenor))
 
@@ -118,9 +118,9 @@ object Market:
 
     def volSurface(
         currency: dtos.Currency,
-        tenor: Tenor
+        tenor: dtos.Tenor
     ): Either[MarketError, dtos.VolatilitySurface] =
-      volatilities.get(currency).map(_.cube(tenor.toPeriod))
+      volatilities.get(currency).map(_.cube(tenor))
         .toRight(MissingVolatilitySurface(currency, tenor))
 
     def calendar(name: String): Either[MarketError, dtos.Calendar[T]] =

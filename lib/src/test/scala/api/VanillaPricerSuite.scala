@@ -6,7 +6,6 @@ import lib.api.*
 import lib.dtos
 import lib.dtos.VolUnit
 import lib.literals.*
-import lib.quantities.Tenor
 
 import java.time.LocalDate
 
@@ -18,7 +17,7 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
 
     val rate: dtos.Underlying = dtos.Underlying.Libor(
       dtos.Currency.USD,
-      Tenor.`3M`.toPeriod,
+      dtos.Tenor.`3M`,
       2,
       dtos.DayCounter.Act360,
       "NO_HOLIDAYS",
@@ -27,7 +26,7 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
     )
 
     val volConventions = dtos.VolatilityMarketConventions(
-      Tenor.`10Y`.toPeriod,
+      dtos.Tenor.`10Y`,
       dtos.VolatilityMarketConventions.Libor(
         dtos.Currency.USD,
         2,
@@ -39,7 +38,7 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
       dtos.VolatilityMarketConventions.SwapRate(
         2,
         0,
-        Tenor.`3M`.toPeriod,
+        dtos.Tenor.`3M`,
         "LIBOR_RATE",
         dtos.DayCounter.Act360,
         "NO_HOLIDAYS",
@@ -63,9 +62,9 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
       volatilities = Map(
         dtos.Currency.USD -> dtos.VolatilityCube(
           Map(
-            Tenor.`3M`.toPeriod -> dtos.VolatilitySurface(
+            dtos.Tenor.`3M` -> dtos.VolatilitySurface(
               Map(
-                Tenor.`1Y`.toPeriod -> dtos.VolatiltySkew(
+                dtos.Tenor.`1Y` -> dtos.VolatiltySkew(
                   Seq(
                     -0.0200 -> 100.0,
                     -0.0100 -> 80.0,

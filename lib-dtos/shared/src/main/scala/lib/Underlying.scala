@@ -4,9 +4,6 @@ import io.circe.Codec
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.derivation.Configuration
-import lib.dtos.given_Codec_Period
-
-import java.time.Period
 
 object Underlying:
   given Configuration = Configuration.default.withDiscriminator("type")
@@ -16,7 +13,7 @@ enum Underlying:
 
   case Libor(
       currency: Currency,
-      tenor: Period,
+      tenor: Tenor,
       spotLag: Int,
       dayCounter: DayCounter,
       calendar: String,
@@ -25,10 +22,10 @@ enum Underlying:
   ) extends Underlying
 
   case SwapRate(
-      tenor: Period,
+      tenor: Tenor,
       spotLag: Int,
       paymentDelay: Int,
-      fixedPeriod: Period,
+      fixedPeriod: Tenor,
       floatingRate: String,
       fixedDayCounter: DayCounter,
       calendar: String,
@@ -39,12 +36,12 @@ enum Underlying:
   ) extends Underlying
 
   case CompoundedSwapRate(
-      tenor: Period,
+      tenor: Tenor,
       spotLag: Int,
       paymentDelay: Int,
-      fixedPeriod: Period,
+      fixedPeriod: Tenor,
       floatingRate: String,
-      floatingPeriod: Period,
+      floatingPeriod: Tenor,
       fixedDayCounter: DayCounter,
       calendar: String,
       bdConvention: BusinessDayConvention,

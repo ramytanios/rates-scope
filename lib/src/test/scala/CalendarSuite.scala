@@ -24,7 +24,7 @@ class CalendarSuite extends munit.FunSuite:
     )
 
     assertEquals(
-      calendar.addBusinessPeriod(d"2025-12-24", Tenor.days(1))(using BusinessDayConvention.Following),
+      calendar.addBusinessPeriod(d"2025-12-24", Tenor.fromDays(1))(using BusinessDayConvention.Following),
       d"2025-12-26"
     )
 
@@ -36,19 +36,19 @@ class CalendarSuite extends munit.FunSuite:
   test("business day convention"):
 
     assertEquals(
-      calendar.addBusinessPeriod(d"2025-12-31", Tenor.days(1))(using Following),
+      calendar.addBusinessPeriod(d"2025-12-31", Tenor.fromDays(1))(using Following),
       d"2026-01-02",
       "Following"
     )
 
     assertEquals(
-      calendar.addBusinessPeriod(d"2025-12-31", Tenor.days(1))(using Preceding),
+      calendar.addBusinessPeriod(d"2025-12-31", Tenor.fromDays(1))(using Preceding),
       d"2026-01-02",
       "Preceding"
     )
 
     assertEquals(
-      calendar.addBusinessPeriod(d"2025-12-31", Tenor.days(1))(using ModifiedFollowing),
+      calendar.addBusinessPeriod(d"2025-12-31", Tenor.fromDays(1))(using ModifiedFollowing),
       d"2026-01-02",
       "ModifiedFollowing"
     )

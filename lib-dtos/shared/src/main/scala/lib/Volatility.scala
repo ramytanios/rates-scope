@@ -6,9 +6,6 @@ import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.derivation.*
 import io.circe.derivation.Configuration
-import lib.dtos.given_Codec_Period
-
-import java.time.Period
 
 object VolUnit:
   given Configuration = Configuration.default
@@ -18,12 +15,12 @@ enum VolUnit derives ConfiguredEnumCodec:
 
 case class VolatiltySkew(skew: Seq[(Double, Double)]) derives Codec
 
-case class VolatilitySurface(surface: Map[Period, VolatiltySkew]) derives Codec
+case class VolatilitySurface(surface: Map[Tenor, VolatiltySkew]) derives Codec
 
-case class VolatilityCube(cube: Map[Period, VolatilitySurface], unit: VolUnit) derives Codec
+case class VolatilityCube(cube: Map[Tenor, VolatilitySurface], unit: VolUnit) derives Codec
 
 case class VolatilityMarketConventions(
-    boundaryTenor: Period,
+    boundaryTenor: Tenor,
     liborRate: VolatilityMarketConventions.Libor,
     swapRate: VolatilityMarketConventions.SwapRate
 ) derives Codec
@@ -42,7 +39,7 @@ object VolatilityMarketConventions:
   case class SwapRate(
       spotLag: Int,
       paymentDelay: Int,
-      fixedPeriod: Period,
+      fixedPeriod: Tenor,
       floatingRate: String,
       fixedDayCounter: DayCounter,
       calendar: String,

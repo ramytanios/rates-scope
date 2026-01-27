@@ -25,7 +25,7 @@ trait Calendar[T: DateLike]:
 
   final def addBusinessPeriod(t: T, period: Tenor)(using BusinessDayConvention): T =
     period.unit match
-      case Tenor.Unit.Day => addBusinessDays(t, period.toPeriod.getDays)
+      case Tenor.Unit.Day => addBusinessDays(t, period.days)
       case Tenor.Unit.Week =>
         val bdConvention = summon[BusinessDayConvention] match
           case ModifiedFollowing => Following

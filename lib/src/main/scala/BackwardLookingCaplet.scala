@@ -27,7 +27,7 @@ class BackwardLookingCaplet[T: DateLike](
 
     def syntheticFutLibor(from: T, to: T): Libor[T] =
       val n = noHolidaysCal.countBusinessDays(from, to)
-      val tenor = Tenor.days(n.toInt)
+      val tenor = Tenor.fromDays(n.toInt)
       new Libor[T](
         rate.currency,
         tenor,

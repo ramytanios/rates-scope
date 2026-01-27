@@ -3,6 +3,7 @@ package lib.api
 import cats.syntax.all.*
 import lib.dtos
 import lib.quantities.*
+import lib.quantities.Tenor.toYearFraction
 
 class Lib[T: lib.DateLike](market: Market[T]):
 
@@ -49,13 +50,14 @@ class Lib[T: lib.DateLike](market: Market[T]):
   def buildVolCube(currency: dtos.Currency): Either[lib.Error, lib.VolatilityCube[T]] =
     market.volCube(currency).flatMap: volCube =>
       val surfaces = volCube.cube.toList.traverse: (tenor, _) =>
-        buildVolSurface(currency, tenor).tupleLeft(Tenor(tenor))
+        buildVolSurface(currency, tenor).tupleLeft(tenor)
       .map(_.toIndexedSeq)
-      val forwards = volCube.cube.keys.toList.traverse: tenor =>
-        buildVolConventions(currency, tenor).map(_.forward).tupleLeft(Tenor(tenor))
+      val forwards = volCube.cube.keys.map(t => (t: Tenor)).toList.traverse: tenor =>
+        buildVolConventions(currency, tenor).map(_.forward).tupleLeft(tenor)
       .map(_.toMap)
       (surfaces, forwards).tupled.map: (surfaces, forwards) =>
         val sortedSurfaces = surfaces.sortBy((t, _) => t.toYearFraction.toDouble)
+          .map((t, e) => (t: Tenor) -> e)
         lib.VolatilityCube[T](sortedSurfaces, forwards)
 
   def buildVolConventions(
@@ -89,7 +91,7 @@ class Lib[T: lib.DateLike](market: Market[T]):
               tenor,
               swapRate.spotLag,
               swapRate.paymentDelay,
-              Tenor(swapRate.fixedPeriod),
+              swapRate.fixedPeriod,
               liborRate,
               toDayCounter(swapRate.fixedDayCounter),
               calendar,
@@ -105,7 +107,7 @@ class Lib[T: lib.DateLike](market: Market[T]):
         buildCalendar(calendar).map: calendar =>
           new lib.Libor[T](
             libor.currency,
-            Tenor(libor.tenor),
+            libor.tenor,
             libor.spotLag,
             toDayCounter(libor.dayCounter),
             calendar,
@@ -122,7 +124,7 @@ class Lib[T: lib.DateLike](market: Market[T]):
               swapRate.tenor,
               swapRate.spotLag,
               swapRate.paymentDelay,
-              Tenor(swapRate.fixedPeriod),
+              swapRate.fixedPeriod,
               liborRate,
               toDayCounter(swapRate.fixedDayCounter),
               calendar,
@@ -141,9 +143,9 @@ class Lib[T: lib.DateLike](market: Market[T]):
               swapRate.tenor,
               swapRate.spotLag,
               swapRate.paymentDelay,
-              Tenor(swapRate.fixedPeriod),
+              swapRate.fixedPeriod,
               liborRate,
-              Tenor(swapRate.fixedPeriod),
+              swapRate.fixedPeriod,
               toDayCounter(swapRate.fixedDayCounter),
               calendar,
               swapRate.bdConvention,

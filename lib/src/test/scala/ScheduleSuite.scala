@@ -27,7 +27,7 @@ class ScheduleSuite extends munit.FunSuite:
       val s = Schedule(
         d"2025-10-16",
         d"2025-10-26",
-        Tenor.days(3),
+        Tenor.fromDays(3),
         Calendar.all,
         dtos.BusinessDayConvention.Following,
         stub,
@@ -44,7 +44,7 @@ class ScheduleSuite extends munit.FunSuite:
       val s = Schedule(
         d"2025-10-16",
         d"2025-10-26",
-        Tenor.days(3),
+        Tenor.fromDays(3),
         Calendar.all,
         dtos.BusinessDayConvention.Following,
         dtos.StubConvention.Short,

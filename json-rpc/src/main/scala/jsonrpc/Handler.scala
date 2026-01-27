@@ -1,16 +1,14 @@
 package jsonrpc
 
+import cats.syntax.all.*
 import io.circe.*
 import io.circe.syntax.*
 import lib.api.Api
-import cats.syntax.all.*
 import lib.api.Market
 import lib.dtos
 import lib.dtos.given_Codec_LocalDate
-import lib.dtos.given_Codec_Period
 
 import java.time.LocalDate
-import java.time.Period
 
 object Handler:
 
@@ -26,8 +24,8 @@ object Handler:
       market: Map[dtos.Currency, dtos.CcyMarket[LocalDate]],
       static: dtos.Static[LocalDate],
       currency: dtos.Currency,
-      tenor: Period,
-      expiry: Period
+      tenor: dtos.Tenor,
+      expiry: dtos.Tenor
   ) derives Codec
 
   case class ArbitrageMatrixParams(
@@ -42,8 +40,8 @@ object Handler:
       market: Map[dtos.Currency, dtos.CcyMarket[LocalDate]],
       static: dtos.Static[LocalDate],
       currency: dtos.Currency,
-      tenor: Period,
-      expiry: Period,
+      tenor: dtos.Tenor,
+      expiry: dtos.Tenor,
       nSamplesMiddle: Int,
       nSamplesTail: Int,
       nStdvsTail: Int
