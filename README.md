@@ -10,8 +10,8 @@ The `json-rpc/` module provides HTTP API access to the pricing library via JSON-
 
 - **`price`** - Price caplets, swaptions, and backward-looking caplets
 - **`arbitrage`** - Check volatility arbitrage for specific tenor/expiry
-- **`arbitragematrix`** - Full arbitrage matrix across all tenors/expiries
-- **`volsampling`** - Volatility skew sampling with PDF calculations
+- **`arbitrage-matrix`** - Full arbitrage matrix across all tenors/expiries
+- **`vol-sampling`** - Volatility skew sampling with PDF calculations
 
 ## API Example
 

@@ -91,7 +91,7 @@ object Handler:
               .map(res => JsonObject("arbitrage" -> arbitrageToJson(res)).toJson)
         )
 
-      case "arbitragematrix" => impl[ArbitrageMatrixParams](
+      case "arbitrage-matrix" => impl[ArbitrageMatrixParams](
           request,
           params =>
             val market = Market[LocalDate](params.tRef, params.market, params.static)
@@ -108,7 +108,7 @@ object Handler:
                 ).asJson).toJson
         )
 
-      case "volsampling" => impl[VolSamplingParams](
+      case "vol-sampling" => impl[VolSamplingParams](
           request,
           params =>
             val market = Market[LocalDate](params.tRef, params.market, params.static)

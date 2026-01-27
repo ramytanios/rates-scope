@@ -85,9 +85,7 @@ class Api[T: lib.DateLike](val market: Market[T]):
           val ksRight = ksMiddle.lastOption.flatMap: kmMax =>
             ksQuoted.lastOption.map: kqMax =>
               val kMax0 = if kmMax >= kqMax then kmMax
-              else
-                Iterator.iterate(kmMax + atmStdv)(_ + atmStdv)
-                  .takeWhile(_ < kqMax).toList.lastOption.getOrElse(kqMax)
+              else Iterator.iterate(kmMax + atmStdv)(_ + atmStdv).find(_ >= kqMax).get
               val kMax = kMax0 + nStdvsTail * atmStdv
               val step = (kMax - kmMax) / nSamplesTail
               (1 to nSamplesTail).map(i => kmMax + i * step).toList
@@ -95,9 +93,7 @@ class Api[T: lib.DateLike](val market: Market[T]):
           val ksLeft = ksMiddle.headOption.flatMap: kmMin =>
             ksQuoted.headOption.map: kqMin =>
               val kMin0 = if kmMin <= kqMin then kmMin
-              else
-                Iterator.iterate(kmMin - atmStdv)(_ - atmStdv)
-                  .takeWhile(_ > kqMin).toList.lastOption.getOrElse(kqMin)
+              else Iterator.iterate(kmMin - atmStdv)(_ - atmStdv).find(_ <= kqMin).get
               val kMin = kMin0 - nStdvsTail * atmStdv
               val step = (kmMin - kMin) / nSamplesTail
               (1 to nSamplesTail).map(i => kMin + (i - 1) * step).toList
