@@ -1,9 +1,9 @@
 package lib.api
 
 import lib.dtos
+import lib.quantities.Tenor
 
 import scala.math.Ordering.Implicits.*
-import lib.quantities.Tenor
 
 enum MarketError(msg: String) extends lib.Error(msg):
 

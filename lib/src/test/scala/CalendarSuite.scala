@@ -24,7 +24,9 @@ class CalendarSuite extends munit.FunSuite:
     )
 
     assertEquals(
-      calendar.addBusinessPeriod(d"2025-12-24", Tenor.fromDays(1))(using BusinessDayConvention.Following),
+      calendar.addBusinessPeriod(d"2025-12-24", Tenor.fromDays(1))(using
+        BusinessDayConvention.Following
+      ),
       d"2025-12-26"
     )
 

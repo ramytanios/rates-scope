@@ -3,6 +3,7 @@ package lib.dtos
 import cats.Show
 import io.circe.*
 import io.circe.syntax.*
+
 import scala.util.Try
 
 case class Tenor(length: Int, unit: Tenor.Unit)

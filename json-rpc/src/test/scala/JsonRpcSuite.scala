@@ -40,8 +40,8 @@ class JsonRpcSuite extends CatsEffectSuite:
         assertIOBoolean(isErrorIO)
 
     for
-    _ <- testPriceIO
-    _ <- testSamplingIO
-    _ <- testArbitrageIO
-    _ <- testInvalidMethodIO
+      _ <- testPriceIO
+      _ <- testSamplingIO
+      _ <- testArbitrageIO
+      _ <- testInvalidMethodIO
     yield ()

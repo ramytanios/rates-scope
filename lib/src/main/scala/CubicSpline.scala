@@ -20,8 +20,6 @@ object CubicSpline:
     require(m == ys.length, "xs and ys size mismatch")
     require(m > 3, "need at least 3 points")
 
-    val n = m - 1 // n intervals, n + 1 points
-
     val xMin = xs.head
     val xMax = xs.last
 
@@ -32,10 +30,10 @@ object CubicSpline:
       override def apply(x: Double): Double =
         if x <= xMin then
           val d = this.fstDerivative(xMin)
-          d * (x - xMin) + ys(0)
+          d * (x - xMin) + ys.head
         else if x >= xMax then
           val d = this.fstDerivative(xMax)
-          d * (x - xMax) + ys(n)
+          d * (x - xMax) + ys.last
         else spline.value(x)
 
       override def fstDerivative(x: Double): Double =
