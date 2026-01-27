@@ -27,7 +27,7 @@ class JsonRpcSuite extends CatsEffectSuite:
 
     val testPriceIO = testMethodIsSuccess("price.json", "price")
 
-    val testSamplingIO = testMethodIsSuccess("sampling.json", "volsampling")
+    val testSamplingIO = testMethodIsSuccess("sampling.json", "vol-sampling")
 
     val testArbitrageIO = testMethodIsSuccess("arbitrage.json", "arbitrage")
 
