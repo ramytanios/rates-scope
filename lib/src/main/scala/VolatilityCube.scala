@@ -29,7 +29,7 @@ object VolatilityCube:
         new VolatilitySkew:
 
           def impl(k: Double)(f: VolatilitySkew => Double => Double) =
-            val m = forwards(tenor)(t) - k
+            val m = k - forwards(tenor)(t)
             if tenor < tenorMin then f(surfaces.head(1)(t))(forwards(tenorMin)(t) - m)
             else if tenor > tenorMax then f(surfaces.last(1)(t))(forwards(tenorMax)(t) - m)
             else

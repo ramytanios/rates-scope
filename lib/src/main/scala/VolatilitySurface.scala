@@ -44,7 +44,7 @@ object VolatilitySurface:
 
         def apply(k: Double): Double =
 
-          val m = forward(t) - k
+          val m = k - forward(t)
 
           val I = (k: Int) =>
             sqrt:
@@ -55,7 +55,7 @@ object VolatilitySurface:
               )
 
           if t < tMin || skews.size == 1 then
-            skews.head(1).value(forward(tMin) - m)
+            skews.head(1).value(forward(tMin) + m)
           else if t > tMax then I(n - 1)
           else
             skews.searchBy(_(0))(t) match
@@ -64,7 +64,7 @@ object VolatilitySurface:
 
         def fstDerivative(k: Double): Double =
 
-          val m = forward(t) - k
+          val m = k - forward(t)
 
           val I = (k: Int) =>
             L(
@@ -88,7 +88,7 @@ object VolatilitySurface:
 
         def sndDerivative(k: Double): Double =
 
-          val m = forward(t) - k
+          val m = k - forward(t)
 
           val I = (k: Int) =>
             val a = L(

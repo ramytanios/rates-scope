@@ -84,16 +84,14 @@ class Api[T: lib.DateLike](val market: Market[T]):
           val ksMiddle = (1 to nSamplesMiddle).map(i => cdfInvN(i / (nSamplesMiddle + 1.0)))
           val ksRight = ksMiddle.lastOption.flatMap: kmMax =>
             ksQuoted.lastOption.map: kqMax =>
-              val kMax0 = if kmMax >= kqMax then kmMax
-              else Iterator.iterate(kmMax + atmStdv)(_ + atmStdv).find(_ >= kqMax).get
+              val kMax0 = Iterator.iterate(kmMax)(_ + atmStdv).find(_ >= kqMax).get
               val kMax = kMax0 + nStdvsTail * atmStdv
               val step = (kMax - kmMax) / nSamplesTail
               if step == 0.0 then Nil else (1 to nSamplesTail).map(i => kmMax + i * step).toList
           .orEmpty
           val ksLeft = ksMiddle.headOption.flatMap: kmMin =>
             ksQuoted.headOption.map: kqMin =>
-              val kMin0 = if kmMin <= kqMin then kmMin
-              else Iterator.iterate(kmMin - atmStdv)(_ - atmStdv).find(_ <= kqMin).get
+              val kMin0 = Iterator.iterate(kmMin)(_ - atmStdv).find(_ <= kqMin).get
               val kMin = kMin0 - nStdvsTail * atmStdv
               val step = (kmMin - kMin) / nSamplesTail
               if step == 0.0 then Nil else (1 to nSamplesTail).map(i => kMin + (i - 1) * step).toList
