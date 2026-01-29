@@ -1,6 +1,6 @@
 # 📈 Rates Scope
 
-Interest rates derivaitves pricing library.
+Interest rates derivatives pricing library.
 
 **🚧 Work in Progress**
 

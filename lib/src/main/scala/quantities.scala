@@ -85,7 +85,7 @@ object quantities:
       def toYearFraction: YearFraction = t.unit match
         case Unit.Day   => t.length / 365.0
         case Unit.Week  => t.length * 7 / 365.0
-        case Unit.Month => t.length * 30.0 / 365.0
+        case Unit.Month => t.length * 1 / 12.0
         case Unit.Year  => t.length
 
     given Ordering[Tenor] = Ordering.by(_.toYearFraction)
