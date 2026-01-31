@@ -43,6 +43,10 @@ object CDFInverter:
       val cdfs = strikes.map(cdfImplied)
       (strikes -> cdfs).asRight[Arbitrage]
 
+    def uniformTail(kMin: Double, kMax: Double): IndexedSeq[Double] =
+      val step = (kMax - kMin) / params.nTail
+      if step == 0.0 then IndexedSeq.empty[Double] else (0 to params.nTail).map(i => kMin + i * step)
+
     def leftStrikes(kL: Double) =
       if cdfImplied(kL) <= params.cdfThreshold then
         (IndexedSeq.empty[Double], IndexedSeq.empty).asRight[Arbitrage]
@@ -63,8 +67,7 @@ object CDFInverter:
             val putAtm = bachelier.price(dtos.OptionType.Put, fwd, fwd, dt, vol(fwd), 1.0)
             Either.raiseUnless(put <= params.relPriceThreshold * putAtm)(Arbitrage.LeftAsymptotic)
               .as:
-                val step = (kMax - kMin) / params.nTail
-                val strikes = (0 to params.nTail).map(i => kMin + i * step)
+                val strikes = uniformTail(kMin, kMax)
                 val cdfs = strikes.map(cdfImplied)
                 strikes.reverse -> cdfs.reverse
 
@@ -90,8 +93,7 @@ object CDFInverter:
               call <= params.relPriceThreshold * callAtm
             )(Arbitrage.RightAsymptotic)
               .as:
-                val step = (kMax - kMin) / params.nTail
-                val strikes = (0 to params.nTail).map(i => kMin + i * step)
+                val strikes = uniformTail(kMin, kMax)
                 val cdfs = strikes.map(cdfImplied)
                 strikes -> cdfs
 
