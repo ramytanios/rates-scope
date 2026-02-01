@@ -25,10 +25,6 @@ lazy val V = new {
   val `munit-cats-effect` = "2.0.0-M3"
   val `cats-effect` = "3.5.4"
   val `cats-time` = "0.5.1"
-  val `scala-java-time` = "2.5.0"
-  val `ff4s-shoelace` = "0.0.1"
-  val `ff4s-heroicons` = "0.0.1"
-  val `ff4s-canvas` = "0.0.1"
   val `log-4cats` = "2.7.0"
   val `commons-math` = "3.6.1"
 }
