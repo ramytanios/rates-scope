@@ -14,7 +14,7 @@ import org.http4s.server.middleware.Logger
 import org.typelevel.log4cats.*
 import org.typelevel.log4cats.syntax.*
 
-object Main extends IOApp.Simple:
+object MainHttp extends IOApp.Simple:
 
   case class HttpServerException(msg: String) extends RuntimeException(msg)
 
