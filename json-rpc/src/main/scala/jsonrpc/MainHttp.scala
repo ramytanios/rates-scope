@@ -14,7 +14,13 @@ import org.http4s.server.middleware.Logger
 import org.typelevel.log4cats.*
 import org.typelevel.log4cats.syntax.*
 
-object Main extends IOApp.Simple:
+object MainHttp extends IOApp.Simple:
+
+  case class Settings(
+      host: String = "localhost",
+      port: Int = 8090,
+      maxConnections: Int = 1024
+  )
 
   case class HttpServerException(msg: String) extends RuntimeException(msg)
 
@@ -22,8 +28,7 @@ object Main extends IOApp.Simple:
 
     given LoggerFactory[IO] = slf4j.Slf4jFactory.create[IO]
 
-    val host = "localhost"
-    val port = 8090
+    val settings = Settings()
 
     val app = HttpRoutes.of[IO]:
       case request @ POST -> Root / "rpc" =>
@@ -40,17 +45,17 @@ object Main extends IOApp.Simple:
     for
       given Logger[IO] <- LoggerFactory[IO].create
       host <- Host
-        .fromString(host)
-        .liftTo[IO](HttpServerException(s"Invalid host $host"))
+        .fromString(settings.host)
+        .liftTo[IO](HttpServerException(s"Invalid host ${settings.host}"))
       port <- Port
-        .fromInt(port)
-        .liftTo[IO](HttpServerException(s"Invalid port $port"))
+        .fromInt(settings.port)
+        .liftTo[IO](HttpServerException(s"Invalid port ${settings.port}"))
       _ <- EmberServerBuilder
         .default[IO]
         .withHost(host)
         .withPort(port)
         .withHttpApp(httpApp)
-        .withMaxConnections(1024)
+        .withMaxConnections(settings.maxConnections)
         .build
         .evalTap(_ => info"Server listening on port $port")
         .use(_ => IO.never)
