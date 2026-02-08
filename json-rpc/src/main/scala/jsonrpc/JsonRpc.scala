@@ -41,5 +41,8 @@ object JsonRpc:
   def error(code: ErrorCode, message: String): Response =
     Response(jsonrpc, None, Some(Error(code.code, message, None)), None)
 
+  def error(code: ErrorCode, message: String, id: String): Response =
+    Response(jsonrpc, None, Some(Error(code.code, message, None)), Some(id))
+
   def success(result: Json, id: String): Response =
     Response(jsonrpc, Some(result), None, Some(id))
