@@ -52,11 +52,11 @@ object Handler:
       f: P => Either[lib.Error, Json]
   ): JsonRpc.Response =
     r.params.fold(
-      JsonRpc.error(JsonRpc.ErrorCode.InvalidParams, "missing params")
+      JsonRpc.error(JsonRpc.ErrorCode.InvalidParams, "missing params", r.id)
     )(_.as[P].fold(
-      th => JsonRpc.error(JsonRpc.ErrorCode.InvalidParams, th.getMessage),
+      th => JsonRpc.error(JsonRpc.ErrorCode.InvalidParams, th.getMessage, r.id),
       f(_).fold(
-        th => JsonRpc.error(JsonRpc.ErrorCode.InternalError, th.getMessage),
+        th => JsonRpc.error(JsonRpc.ErrorCode.InternalError, th.getMessage, r.id),
         js => JsonRpc.success(js, r.id)
       )
     ))
@@ -132,4 +132,5 @@ object Handler:
             )
         )
 
-      case other => JsonRpc.error(JsonRpc.ErrorCode.MethodNotFound, s"method $other not found")
+      case other =>
+        JsonRpc.error(JsonRpc.ErrorCode.MethodNotFound, s"method $other not found", request.id)

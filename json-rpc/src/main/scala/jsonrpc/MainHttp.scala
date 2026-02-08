@@ -35,7 +35,7 @@ object MainHttp extends IOApp.Simple:
         request.as[JsonRpc.Request].attempt.flatMap:
           case Left(th) => Ok(JsonRpc.error(JsonRpc.ErrorCode.ParseError, th.getMessage))
           case Right(req) => IO(Handler(req)).flatMap(Ok(_)).handleErrorWith(th =>
-              Ok(JsonRpc.error(JsonRpc.ErrorCode.InternalError, th.getMessage))
+              Ok(JsonRpc.error(JsonRpc.ErrorCode.InternalError, th.getMessage, req.id))
             )
 
     val appWithLogging =
