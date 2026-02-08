@@ -6,7 +6,7 @@ Interest rates derivatives pricing library.
 
 ## JSON-RPC API
 
-The `json-rpc/` module provides HTTP API access to the pricing library via JSON-RPC. It exposes four main methods:
+The `json-rpc/` module exposes four main methods:
 
 - **`price`** - Price caplets, swaptions, and backward-looking caplets
 - **`arbitrage`** - Check volatility arbitrage for specific tenor/expiry
