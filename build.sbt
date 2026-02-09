@@ -22,6 +22,7 @@ lazy val V = new {
   val monocle = "3.3.0"
   val logback = "1.5.7"
   val munit = "1.2.1"
+  val unixsocket = "0.38.24"
   val `munit-cats-effect` = "2.0.0-M3"
   val `cats-effect` = "3.5.4"
   val `cats-time` = "0.5.1"
@@ -58,12 +59,15 @@ lazy val lib = project.in(file("lib")).settings(
 
 lazy val `json-rpc` = project
   .in(file("json-rpc"))
-  .enablePlugins(JavaAppPackaging)
+  .enablePlugins(JavaAppPackaging, NativeImagePlugin)
   .settings(
     fork := true,
+    Compile / mainClass := Some("jsonrpc.MainUnixSocket"),
+    nativeImageVersion := "22.2.0",
     libraryDependencies ++=
       Seq(
         "ch.qos.logback" % "logback-classic" % V.logback,
+        "com.github.jnr" % "jnr-unixsocket" % V.unixsocket,
         "io.circe" %% "circe-core" % V.circe,
         "io.circe" %% "circe-generic" % V.circe,
         "io.circe" %% "circe-literal" % V.circe,

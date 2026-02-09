@@ -23,3 +23,5 @@ clean:
 deps:
     sbt dependencyUpdates
 
+grep-graal:
+  cs java --jvm-index cs --available | grep -i graalvm
