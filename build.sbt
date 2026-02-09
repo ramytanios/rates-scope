@@ -23,6 +23,7 @@ lazy val V = new {
   val logback = "1.5.7"
   val munit = "1.2.1"
   val unixsocket = "0.38.24"
+  val decline = "2.5.0"
   val `munit-cats-effect` = "2.0.0-M3"
   val `cats-effect` = "3.5.4"
   val `cats-time` = "0.5.1"
@@ -87,6 +88,8 @@ lazy val `json-rpc` = project
         "org.http4s" %% "http4s-dsl" % V.http4s,
         "org.http4s" %% "http4s-circe" % V.http4s,
         "org.http4s" %% "http4s-ember-server" % V.http4s,
+        "com.monovore" %% "decline" % V.decline,
+        "com.monovore" %% "decline-effect" % V.decline,
         "org.typelevel" %% "munit-cats-effect" % V.`munit-cats-effect` % Test
       ),
     scalacOptions -= "-Xfatal-warnings"

@@ -8,16 +8,40 @@ import fs2.io.net.unixsocket.*
 import fs2.text
 import io.circe.parser.*
 import io.circe.syntax.*
+import cats.syntax.all.*
 import org.typelevel.log4cats.*
 
 import java.util.UUID
+import com.monovore.decline.effect.CommandIOApp
+import com.monovore.decline.Opts
 
-object MainUnixSocket extends IOApp.Simple:
+object MainUnixSocket extends CommandIOApp("rates-scope", "Rates jRPC"):
 
-  case class Settings(
-      socketPath: Path = Path("/tmp/rates-scope.sock"),
-      clientsConcurrency: Int = 16,
-      requestsConcurrency: Int = 256
+  override def main: Opts[IO[ExitCode]] =
+    cliArgs.map: cli =>
+      slf4j.Slf4jFactory.create[IO].create.flatMap(
+        impl(cli, _)
+      ).handleError(_ => ExitCode.Error).as(ExitCode.Success)
+
+  private val socketPath: Opts[Path] =
+    Opts.option[String]("socket-path", "Socket path").map(Path.apply)
+      .withDefault(Path("/tmp/rates-scope.sock"))
+
+  private val clientsConcurrency: Opts[Int] =
+    Opts.option[Int]("clients-concurrency", "Clients concurrency")
+      .withDefault(16)
+
+  private val requestsConcurrency: Opts[Int] =
+    Opts.option[Int]("requests-concurrency", "Requests concurrency")
+      .withDefault(256)
+
+  private val cliArgs: Opts[CliArgs] =
+    (socketPath, clientsConcurrency, requestsConcurrency).mapN(CliArgs.apply)
+
+  final case class CliArgs(
+      socketPath: Path,
+      clientsConcurrency: Int,
+      requestsConcurrency: Int
   )
 
   val EOL = "\n"
@@ -31,7 +55,7 @@ object MainUnixSocket extends IOApp.Simple:
   def handleConnection(
       uuid: UUID,
       conn: Socket[IO],
-      settings: Settings,
+      cli: CliArgs,
       L: Logger[IO]
   ): IO[Unit] =
     L.info(s"new client connection $uuid") *>
@@ -42,7 +66,7 @@ object MainUnixSocket extends IOApp.Simple:
         .filter(_.nonEmpty)
         .evalTap(line => L.debug(s"received line $line"))
         .map(decode[JsonRpc.Request](_))
-        .parEvalMap(settings.requestsConcurrency):
+        .parEvalMap(cli.requestsConcurrency):
           case Left(th)       => IO.pure(JsonRpc.error(JsonRpc.ErrorCode.ParseError, th.getMessage))
           case Right(request) => IO.pure(Handler(request))
         .map(_.asJson.noSpaces ++ EOL)
@@ -57,16 +81,13 @@ object MainUnixSocket extends IOApp.Simple:
           case Outcome.Errored(e)   => L.warn(s"reads $uuid: errored, $e")
           case Outcome.Canceled()   => L.warn(s"reads $uuid: canceled")
 
-  def impl(settings: Settings, L: Logger[IO]): IO[Unit] =
-    L.info(s"listening on socket ${settings.socketPath}") *>
-      UnixSockets[IO].server(UnixSocketAddress(settings.socketPath.toString))
+  def impl(cli: CliArgs, L: Logger[IO]): IO[Unit] =
+    L.info(s"listening on socket ${cli.socketPath}") *>
+      UnixSockets[IO].server(UnixSocketAddress(cli.socketPath.toString))
         .map: socket =>
           fs2.Stream.eval(IO.randomUUID)
-            .evalMap(handleConnection(_, socket, settings, L))
-        .parJoin(settings.clientsConcurrency)
+            .evalMap(handleConnection(_, socket, cli, L))
+        .parJoin(cli.clientsConcurrency)
         .compile
         .drain
-        .guarantee(cleanup(settings.socketPath))
-
-  override def run: IO[Unit] =
-    slf4j.Slf4jFactory.create[IO].create.flatMap(impl(Settings(), _))
+        .guarantee(cleanup(cli.socketPath))
