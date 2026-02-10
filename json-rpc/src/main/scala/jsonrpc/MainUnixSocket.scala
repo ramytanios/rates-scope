@@ -44,14 +44,21 @@ object MainUnixSocket extends CommandIOApp("rates-scope", "Rates jRPC"):
 
   val EOL = "\n"
 
-  def info(text: String): IO[Unit] = IO.println(AnsiColor.CYAN ++ text ++ AnsiColor.RESET)
+  def info(text: String): IO[Unit] = IO.println(
+    s"${"[INFO]".bold.colored(AnsiColor.CYAN)} $text"
+  )
 
-  def warn(text: String): IO[Unit] = IO.println(AnsiColor.YELLOW ++ text ++ AnsiColor.RESET)
+  def warn(text: String): IO[Unit] = IO.println(
+    s"${"[WARN]".bold.colored(AnsiColor.YELLOW)} $text"
+  )
 
-  def error(text: String): IO[Unit] = IO.println(AnsiColor.RED ++ text ++ AnsiColor.RED)
+  def error(text: String): IO[Unit] = IO.println(
+    s"${"[ERROR]".bold.colored(AnsiColor.RED)} $text"
+  )
 
   extension (text: String)
     def bold: String = AnsiColor.BOLD ++ text ++ AnsiColor.RESET
+    def colored(color: String): String = color ++ text ++ AnsiColor.RESET
 
   /**
    * Assumes each client guarantees each JSON-RPC request

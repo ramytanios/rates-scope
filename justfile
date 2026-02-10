@@ -28,3 +28,6 @@ grep-graal:
 
 native-image:
   sbt 'json-rpc/nativeImage'
+
+test-rpc:
+  jq -c . rpc.json | socat - UNIX-CONNECT:/tmp/rates-scope.sock
