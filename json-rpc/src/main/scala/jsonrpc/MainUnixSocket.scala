@@ -18,7 +18,7 @@ object MainUnixSocket extends CommandIOApp("rates-scope", "Rates jRPC"):
 
   override def main: Opts[IO[ExitCode]] = cliArgs.map: args =>
     impl(args).handleErrorWith(th =>
-      warn(s"exiting app with error $th").as(ExitCode.Error)
+      warn(s"Exiting app with error $th").as(ExitCode.Error)
     ).as(ExitCode.Success)
 
   private val socketPath: Opts[Path] =
@@ -50,12 +50,15 @@ object MainUnixSocket extends CommandIOApp("rates-scope", "Rates jRPC"):
 
   def error(text: String): IO[Unit] = IO.println(AnsiColor.RED ++ text ++ AnsiColor.RED)
 
+  extension (text: String)
+    def bold: String = AnsiColor.BOLD ++ text ++ AnsiColor.RESET
+
   /**
    * Assumes each client guarantees each JSON-RPC request
    * is newline-delimited and contains no newlines inside the JSON.
    */
   def handleConnection(uuid: UUID, conn: Socket[IO], cli: CliArgs): IO[Unit] =
-    info(s"new client connection $uuid") *>
+    info(s"New client connection ${uuid.toString().bold}") *>
       conn
         .reads
         .through(text.utf8.decode)
@@ -63,11 +66,11 @@ object MainUnixSocket extends CommandIOApp("rates-scope", "Rates jRPC"):
         .filter(_.nonEmpty)
         .map(decode[JsonRpc.Request](_))
         .parEvalMap(cli.requestsConcurrency):
-          case Left(th) => error(s"failed to decode message: $th") *> IO.pure(
+          case Left(th) => error(s"Failed to decode message: $th") *> IO.pure(
               JsonRpc.error(JsonRpc.ErrorCode.ParseError, th.getMessage)
             )
           case Right(request) =>
-            info(s"received request with id=${request.id}, method=${request.method}") *> IO.pure(
+            info(s"Received request with id=${request.id}, method=${request.method}") *> IO.pure(
               Handler(request)
             )
         .map(_.asJson.noSpaces ++ EOL)
@@ -75,14 +78,14 @@ object MainUnixSocket extends CommandIOApp("rates-scope", "Rates jRPC"):
         .through(conn.writes)
         .compile
         .drain
-        .handleErrorWith(th => warn(s"connection $uuid handler failed: $th"))
+        .handleErrorWith(th => warn(s"Connection $uuid handler failed: $th"))
         .guaranteeCase:
-          case Outcome.Succeeded(_) => info(s"reads $uuid: succeeded/EOF")
-          case Outcome.Errored(e)   => warn(s"reads $uuid: errored, $e")
-          case Outcome.Canceled()   => warn(s"reads $uuid: canceled")
+          case Outcome.Succeeded(_) => info(s"Reads $uuid: succeeded/EOF")
+          case Outcome.Errored(e)   => warn(s"Reads $uuid: errored, $e")
+          case Outcome.Canceled()   => warn(s"Reads $uuid: canceled")
 
   def impl(cli: CliArgs): IO[Unit] =
-    info(s"listening on socket ${cli.socketPath}") *>
+    info(s"Listening on socket ${cli.socketPath.toString.bold}") *>
       UnixSockets[IO].server(
         UnixSocketAddress(cli.socketPath.toString),
         deleteIfExists = true,
