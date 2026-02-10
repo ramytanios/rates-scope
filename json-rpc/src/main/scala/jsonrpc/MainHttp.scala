@@ -11,8 +11,6 @@ import org.http4s.dsl.io.*
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
 import org.http4s.server.middleware.Logger
-import org.typelevel.log4cats.*
-import org.typelevel.log4cats.syntax.*
 
 object MainHttp extends IOApp.Simple:
 
@@ -25,8 +23,6 @@ object MainHttp extends IOApp.Simple:
   case class HttpServerException(msg: String) extends RuntimeException(msg)
 
   override def run: IO[Unit] =
-
-    given LoggerFactory[IO] = slf4j.Slf4jFactory.create[IO]
 
     val settings = Settings()
 
@@ -43,7 +39,6 @@ object MainHttp extends IOApp.Simple:
     val httpApp = Router("/" -> appWithLogging).orNotFound
 
     for
-      given Logger[IO] <- LoggerFactory[IO].create
       host <- Host
         .fromString(settings.host)
         .liftTo[IO](HttpServerException(s"Invalid host ${settings.host}"))
@@ -57,6 +52,6 @@ object MainHttp extends IOApp.Simple:
         .withHttpApp(httpApp)
         .withMaxConnections(settings.maxConnections)
         .build
-        .evalTap(_ => info"Server listening on port $port")
+        .evalTap(_ => IO.println("Server listening on port $port"))
         .use(_ => IO.never)
     yield ()

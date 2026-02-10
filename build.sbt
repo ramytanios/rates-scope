@@ -20,7 +20,7 @@ lazy val V = new {
   val ff4s = "0.26.1"
   val http4s = "0.23.27"
   val monocle = "3.3.0"
-  val logback = "1.5.7"
+  val logback = "1.5.16"
   val munit = "1.2.1"
   val unixsocket = "0.38.24"
   val decline = "2.5.0"
@@ -64,11 +64,21 @@ lazy val `json-rpc` = project
   .settings(
     fork := true,
     Compile / mainClass := Some("jsonrpc.MainUnixSocket"),
-    nativeImageVersion := "22.2.0",
+    nativeImageJvm := "graalvm-java17",
+    nativeImageVersion := "22.3.1",
+    nativeImageOptions ++= Seq(
+      "--verbose",
+      "--native-image-info",
+      "--no-fallback",
+      "--initialize-at-build-time=scala.runtime.Statics$$VM",
+      "--initialize-at-build-time=scala.Symbol",
+      "--initialize-at-build-time=scala.Symbol$$",
+      "-H:-CheckToolchain",
+      "-H:+ReportExceptionStackTraces",
+      "-H:-UseServiceLoaderFeature",
+    ),
     libraryDependencies ++=
       Seq(
-        "ch.qos.logback" % "logback-classic" % V.logback,
-        "com.github.jnr" % "jnr-unixsocket" % V.unixsocket,
         "io.circe" %% "circe-core" % V.circe,
         "io.circe" %% "circe-generic" % V.circe,
         "io.circe" %% "circe-literal" % V.circe,
@@ -82,8 +92,6 @@ lazy val `json-rpc` = project
         "org.typelevel" %% "cats-effect-std" % V.`cats-effect`,
         "org.typelevel" %% "cats-time" % V.`cats-time`,
         "org.typelevel" %% "literally" % V.literally,
-        "org.typelevel" %% "log4cats-core" % V.`log-4cats`,
-        "org.typelevel" %% "log4cats-slf4j" % V.`log-4cats`,
         "org.apache.commons" % "commons-math3" % V.`commons-math`,
         "org.http4s" %% "http4s-dsl" % V.http4s,
         "org.http4s" %% "http4s-circe" % V.http4s,

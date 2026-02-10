@@ -25,3 +25,6 @@ deps:
 
 grep-graal:
   cs java --jvm-index cs --available | grep -i graalvm
+
+native-image:
+  sbt 'json-rpc/nativeImage'
