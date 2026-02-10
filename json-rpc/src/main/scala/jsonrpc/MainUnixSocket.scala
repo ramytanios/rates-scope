@@ -12,12 +12,14 @@ import io.circe.parser.*
 import io.circe.syntax.*
 
 import java.util.UUID
+import scala.io.AnsiColor
 
 object MainUnixSocket extends CommandIOApp("rates-scope", "Rates jRPC"):
 
-  override def main: Opts[IO[ExitCode]] =
-    cliArgs.map: cli =>
-      impl(cli).handleError(_ => ExitCode.Error).as(ExitCode.Success)
+  override def main: Opts[IO[ExitCode]] = cliArgs.map: args =>
+    impl(args).handleErrorWith(th =>
+      warn(s"exiting app with error $th").as(ExitCode.Error)
+    ).as(ExitCode.Success)
 
   private val socketPath: Opts[Path] =
     Opts.option[String]("socket-path", "Socket path").map(Path.apply)
@@ -42,12 +44,18 @@ object MainUnixSocket extends CommandIOApp("rates-scope", "Rates jRPC"):
 
   val EOL = "\n"
 
+  def info(text: String): IO[Unit] = IO.println(AnsiColor.CYAN ++ text ++ AnsiColor.RESET)
+
+  def warn(text: String): IO[Unit] = IO.println(AnsiColor.YELLOW ++ text ++ AnsiColor.RESET)
+
+  def error(text: String): IO[Unit] = IO.println(AnsiColor.RED ++ text ++ AnsiColor.RED)
+
   /**
    * Assumes each client guarantees each JSON-RPC request
    * is newline-delimited and contains no newlines inside the JSON.
    */
   def handleConnection(uuid: UUID, conn: Socket[IO], cli: CliArgs): IO[Unit] =
-    IO.println(s"new client connection $uuid") *>
+    info(s"new client connection $uuid") *>
       conn
         .reads
         .through(text.utf8.decode)
@@ -55,29 +63,35 @@ object MainUnixSocket extends CommandIOApp("rates-scope", "Rates jRPC"):
         .filter(_.nonEmpty)
         .map(decode[JsonRpc.Request](_))
         .parEvalMap(cli.requestsConcurrency):
-          case Left(th)       => IO.pure(JsonRpc.error(JsonRpc.ErrorCode.ParseError, th.getMessage))
-          case Right(request) => IO.pure(Handler(request))
+          case Left(th) => error(s"failed to decode message: $th") *> IO.pure(
+              JsonRpc.error(JsonRpc.ErrorCode.ParseError, th.getMessage)
+            )
+          case Right(request) =>
+            info(s"received request with id=${request.id}, method=${request.method}") *> IO.pure(
+              Handler(request)
+            )
         .map(_.asJson.noSpaces ++ EOL)
         .through(text.utf8.encode)
         .through(conn.writes)
         .compile
         .drain
-        .handleErrorWith(th => IO.println(s"connection $uuid handler failed: $th"))
+        .handleErrorWith(th => warn(s"connection $uuid handler failed: $th"))
         .guaranteeCase:
-          case Outcome.Succeeded(_) => IO.println(s"reads $uuid: succeeded/EOF")
-          case Outcome.Errored(e)   => IO.println(s"reads $uuid: errored, $e")
-          case Outcome.Canceled()   => IO.println(s"reads $uuid: canceled")
+          case Outcome.Succeeded(_) => info(s"reads $uuid: succeeded/EOF")
+          case Outcome.Errored(e)   => warn(s"reads $uuid: errored, $e")
+          case Outcome.Canceled()   => warn(s"reads $uuid: canceled")
 
   def impl(cli: CliArgs): IO[Unit] =
-    IO.println(s"listening on socket ${cli.socketPath}") *>
+    info(s"listening on socket ${cli.socketPath}") *>
       UnixSockets[IO].server(
         UnixSocketAddress(cli.socketPath.toString),
         deleteIfExists = true,
         deleteOnClose = true
       )
-        .map: socket =>
+        .map(socket =>
           fs2.Stream.eval(IO.randomUUID)
             .evalMap(handleConnection(_, socket, cli))
+        )
         .parJoin(cli.clientsConcurrency)
         .compile
         .drain
