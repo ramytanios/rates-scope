@@ -17,9 +17,9 @@ import scala.io.AnsiColor
 object MainUnixSocket extends CommandIOApp("rates-scope", "Rates jRPC"):
 
   override def main: Opts[IO[ExitCode]] = cliArgs.map: args =>
-    impl(args).handleErrorWith(th =>
+    impl(args).as(ExitCode.Success).handleErrorWith(th =>
       warn(s"Exiting app with error $th").as(ExitCode.Error)
-    ).as(ExitCode.Success)
+    )
 
   private val socketPath: Opts[Path] =
     Opts.option[String]("socket-path", "Socket path").map(Path.apply)
