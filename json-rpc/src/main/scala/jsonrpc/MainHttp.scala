@@ -52,6 +52,6 @@ object MainHttp extends IOApp.Simple:
         .withHttpApp(httpApp)
         .withMaxConnections(settings.maxConnections)
         .build
-        .evalTap(_ => IO.println("Server listening on port $port"))
+        .evalTap(_ => info("Server listening on port $port"))
         .use(_ => IO.never)
     yield ()
