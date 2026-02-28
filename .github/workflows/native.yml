@@ -18,10 +18,10 @@ jobs:
           # Replace "example" with the name your binary
           - os: macos-13
             uploaded_filename: rates-lib-x86_64-apple-darwin
-            local_path: json-rpc/target/native-image/rates-lib
+            local_path: json-rpc/target/native-image/json-rpc
           - os: ubuntu-latest
             uploaded_filename: rates-lib-x86_64-pc-linux
-            local_path: json-rpc/target/native-image/rates-lib
+            local_path: json-rpc/target/native-image/json-rpc
     env:
       # define Java options for both official sbt and sbt-extras
       JAVA_OPTS: -Xms2048M -Xmx2048M -Xss6M -XX:ReservedCodeCacheSize=256M -Dfile.encoding=UTF-8
