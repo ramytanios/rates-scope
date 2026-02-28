@@ -16,7 +16,7 @@ jobs:
         os: [macos-13, ubuntu-latest]
         include:
           # Replace "example" with the name your binary
-          - os: macos-13
+          - os: macos-latest
             uploaded_filename: rates-lib-x86_64-apple-darwin
             local_path: json-rpc/target/native-image/json-rpc
           - os: ubuntu-latest
