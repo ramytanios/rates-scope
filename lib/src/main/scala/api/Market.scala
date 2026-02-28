@@ -10,7 +10,7 @@ enum MarketError(msg: String) extends lib.Error(msg):
   case MissingRate(name: dtos.RateId)
       extends MarketError(s"missing rate $name")
 
-  case MissingYieldCurve(ccy: dtos.Currency, name: String)
+  case MissingYieldCurve(ccy: dtos.Currency, name: dtos.CurveId)
       extends MarketError(s"missing curve $name in ccy $ccy")
 
   case MissingFixingOf(underlying: dtos.RateId)

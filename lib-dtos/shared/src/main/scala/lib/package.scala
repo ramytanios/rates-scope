@@ -29,3 +29,9 @@ package object dtos:
 
   type CalendarId = CalendarId.Type
   object CalendarId extends OTAsKey[String](Option.apply)
+
+  type CurveId = CurveId.Type
+  object CurveId extends OTAsKey[String](Option.apply)
+
+  type Moneyness = Moneyness.Type
+  object Moneyness extends OT[Double]

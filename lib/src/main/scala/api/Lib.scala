@@ -41,7 +41,7 @@ class Lib[T: lib.DateLike](market: Market[T]):
               expiry -> lib.Lazy:
                 val (ms, vs0) = skew.unzip
                 val fwd = rate.forward(expiry)
-                val ks = ms.map(fwd + _)
+                val ks = ms.map(fwd + _.value)
                 val vs1 = vs0.map(volUnit.fromUnit)
                 lib.VolatilitySkew(ks.toIndexedSeq, vs1.toIndexedSeq)
           val sortedSkews = skews.sortBy(_(0))(using lib.syntax.given_Ordering_T)

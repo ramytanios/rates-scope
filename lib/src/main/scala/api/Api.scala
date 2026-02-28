@@ -69,7 +69,7 @@ class Api[T: lib.DateLike](val market: Market[T]):
           val volSkew = volCube(tenor)(expiryT)
           val ksQuoted =
             market.volSurface(currency, tenor).toOption.flatMap(_.surface.get(expiry))
-              .map(_.skew.unzip._1.map(_ + fwd)).orEmpty.toList
+              .map(_.skew.unzip._1.map(_.value + fwd)).orEmpty.toList
           val vsQuoted = ksQuoted.map(volSkew andThen volInUnit)
           val impliedPdf = bachelier.impliedDensity(
             fwd,

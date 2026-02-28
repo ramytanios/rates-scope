@@ -13,7 +13,7 @@ object VolUnit:
 enum VolUnit derives ConfiguredEnumCodec:
   case BpPerYear
 
-case class VolatiltySkew(skew: Seq[(Double, Double)]) derives Codec
+case class VolatiltySkew(skew: Seq[(Moneyness, Double)]) derives Codec
 
 case class VolatilitySurface(surface: Map[Tenor, VolatiltySkew]) derives Codec
 
