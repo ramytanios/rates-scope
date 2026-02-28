@@ -30,9 +30,9 @@ lazy val V = new {
 }
 
 lazy val root =
-  (project in file(".")).aggregate(lib, `json-rpc`, `lib-dtos`.jvm, `lib-dtos`.js)
+  (project in file(".")).aggregate(lib, `json-rpc`, `lib-dtos`)
 
-lazy val `lib-dtos` = crossProject(JSPlatform, JVMPlatform)
+lazy val `lib-dtos` = project
   .in(file("lib-dtos"))
   .settings(
     scalacOptions -= "-Xfatal-warnings",
@@ -54,11 +54,11 @@ lazy val lib = project.in(file("lib")).settings(
     "org.scalameta" %% "munit" % V.munit % Test
   ),
   scalacOptions -= "-Xfatal-warnings"
-).dependsOn(`lib-dtos`.jvm)
+).dependsOn(`lib-dtos`)
 
 lazy val `json-rpc` = project
   .in(file("json-rpc"))
-  .enablePlugins(JavaAppPackaging, NativeImagePlugin)
+  .enablePlugins(NativeImagePlugin)
   .settings(
     fork := true,
     Compile / mainClass := Some("jsonrpc.MainUnixSocket"),
@@ -74,7 +74,7 @@ lazy val `json-rpc` = project
       "--install-exit-handlers",
       "-H:-CheckToolchain",
       "-H:+ReportExceptionStackTraces",
-      "-H:-UseServiceLoaderFeature",
+      "-H:-UseServiceLoaderFeature"
     ),
     libraryDependencies ++=
       Seq(
@@ -101,4 +101,4 @@ lazy val `json-rpc` = project
       ),
     scalacOptions -= "-Xfatal-warnings"
   )
-  .dependsOn(lib, `lib-dtos`.jvm)
+  .dependsOn(lib, `lib-dtos`)
