@@ -95,17 +95,20 @@ object Handler:
           request,
           params =>
             val market = Market[LocalDate](params.tRef, params.market, params.static)
-            market.volCube(params.currency).flatMap: volCube =>
-              val tenors = volCube.cube.keysIterator.toList
-              val expiries = volCube.cube.values.flatMap(_.surface.keysIterator).toList.distinct
-              val api = new Api(market)
-              tenors.flatTraverse: tenor =>
-                expiries.traverse: expiry =>
-                  api.arbitrageCheck(params.currency, tenor, expiry).map((tenor, expiry, _))
-              .map: matrix =>
-                JsonObject("matrix" -> matrix.map((te, ex, ar) =>
-                  (te, ex, arbitrageToJson(ar)).asJson
-                ).asJson).toJson
+            market.volCube(params.currency).flatMap:
+              case dtos.Volatility.Cube(cube, _, _) =>
+                val tenors = cube.keysIterator.toList
+                val expiries = cube.values.flatMap(_.surface.keysIterator).toList.distinct
+                val api = new Api(market)
+                tenors.flatTraverse: tenor =>
+                  expiries.traverse: expiry =>
+                    api.arbitrageCheck(params.currency, tenor, expiry).map((tenor, expiry, _))
+                .map: matrix =>
+                  JsonObject("matrix" -> matrix.map((te, ex, ar) =>
+                    (te, ex, arbitrageToJson(ar)).asJson
+                  ).asJson).toJson
+              case dtos.Volatility.Flat(_, _) =>
+                lib.Error.Generic("arbitrage matrix does not support flat cube").asLeft
         )
 
       case "vol-sampling" => impl[VolSamplingParams](

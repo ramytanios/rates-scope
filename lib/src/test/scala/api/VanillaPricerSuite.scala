@@ -62,9 +62,8 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
             dtos.YieldCurve.ContinuousCompounding(0.02)
         ),
       fixingsByRate = Map.empty,
-      volConventions = Map(dtos.Currency.USD -> volConventions),
       volatilities = Map(
-        dtos.Currency.USD -> dtos.VolatilityCube(
+        dtos.Currency.USD -> dtos.Volatility.Cube(
           Map(
             dtos.Tenor.`3M` -> dtos.VolatilitySurface(
               Map(
@@ -84,7 +83,8 @@ class VanillaPricerSuite extends munit.FunSuite with EitherSyntax:
               )
             )
           ),
-          VolUnit.BpPerYear
+          VolUnit.BpPerYear,
+          volConventions
         )
       ),
       calendars = Map(calendarId -> dtos.Calendar[LocalDate](Nil))

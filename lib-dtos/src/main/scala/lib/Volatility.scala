@@ -1,11 +1,9 @@
 package lib.dtos
 
 import io.circe.*
-import io.circe.Codec
-import io.circe.Decoder
-import io.circe.Encoder
 import io.circe.derivation.*
 import io.circe.derivation.Configuration
+import io.circe.derivation.ConfiguredCodec
 
 object VolUnit:
   given Configuration = Configuration.default
@@ -16,8 +14,6 @@ enum VolUnit derives ConfiguredEnumCodec:
 case class VolatiltySkew(skew: Seq[(Moneyness, Double)]) derives Codec
 
 case class VolatilitySurface(surface: Map[Tenor, VolatiltySkew]) derives Codec
-
-case class VolatilityCube(cube: Map[Tenor, VolatilitySurface], unit: VolUnit) derives Codec
 
 case class VolatilityMarketConventions(
     boundaryTenor: Tenor,
@@ -48,3 +44,19 @@ object VolatilityMarketConventions:
       direction: Direction,
       discountCurve: Curve
   ) derives Codec
+
+object Volatility:
+  given Configuration = Configuration.default.withDiscriminator("type")
+  given Codec[Volatility] = Codec.AsObject.derivedConfigured
+
+enum Volatility:
+
+  def unit: VolUnit
+
+  case Cube(
+      cube: Map[Tenor, VolatilitySurface],
+      unit: VolUnit,
+      conventions: VolatilityMarketConventions
+  ) extends Volatility
+
+  case Flat(vol: Double, unit: VolUnit) extends Volatility

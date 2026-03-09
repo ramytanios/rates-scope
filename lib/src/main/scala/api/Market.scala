@@ -1,9 +1,6 @@
 package lib.api
 
 import lib.dtos
-import lib.quantities.Tenor
-
-import scala.math.Ordering.Implicits.*
 
 enum MarketError(msg: String) extends lib.Error(msg):
 
@@ -19,14 +16,11 @@ enum MarketError(msg: String) extends lib.Error(msg):
   case MissingFixingAt[T](underlying: dtos.RateId, at: T)
       extends MarketError(s"missing fixing of $underlying at $at")
 
-  case MissingVolatilityCube(currency: dtos.Currency)
+  case MissingVolatility(currency: dtos.Currency)
       extends MarketError(s"missing vol cube of currency $currency")
 
   case MissingVolatilitySurface(currency: dtos.Currency, tenor: dtos.Tenor)
       extends MarketError(s"missing vol surface in currency $currency and tenor $tenor")
-
-  case MissingVolatilityConventions(currency: dtos.Currency, tenor: dtos.Tenor)
-      extends MarketError(s"missing vol conventions in currency $currency and tenor $tenor")
 
   case MissingCalendar(name: dtos.CalendarId) extends MarketError(s"missing calendar $name")
 
@@ -40,15 +34,7 @@ trait Market[T]:
 
   def fixings(rate: dtos.RateId): Either[MarketError, Seq[dtos.Fixing[T]]]
 
-  def volatilityConventions(
-      currency: dtos.Currency,
-      tenor: dtos.Tenor
-  ): Either[
-    MarketError,
-    lib.dtos.VolatilityMarketConventions.Libor | lib.dtos.VolatilityMarketConventions.SwapRate
-  ]
-
-  def volCube(currency: dtos.Currency): Either[MarketError, dtos.VolatilityCube]
+  def volCube(currency: dtos.Currency): Either[MarketError, dtos.Volatility]
 
   def volSurface(
       currency: dtos.Currency,
@@ -71,7 +57,6 @@ object Market:
         market.curves.map((name, curve) => dtos.Curve(ccy, name) -> curve)
       ).toMap,
       fixingsByRate = marketByCcy.values.map(_.fixings).reduce(_ ++ _),
-      volConventions = marketByCcy.view.mapValues(market => market.volConventions).toMap,
       volatilities = marketByCcy.view.mapValues(_.volatility).toMap,
       calendars = static.calendars
     )
@@ -81,8 +66,7 @@ object Market:
       rates: Map[dtos.RateId, dtos.Underlying],
       curves: Map[dtos.Curve, dtos.YieldCurve[T]],
       fixingsByRate: Map[dtos.RateId, Seq[dtos.Fixing[T]]],
-      volConventions: Map[dtos.Currency, dtos.VolatilityMarketConventions],
-      volatilities: Map[dtos.Currency, dtos.VolatilityCube],
+      volatilities: Map[dtos.Currency, dtos.Volatility],
       calendars: Map[dtos.CalendarId, dtos.Calendar[T]]
   ): Market[T] = new Market[T]:
 
@@ -99,29 +83,17 @@ object Market:
     def fixings(rate: dtos.RateId): Either[MarketError, Seq[dtos.Fixing[T]]] =
       fixingsByRate.get(rate).toRight(MissingFixingOf(rate))
 
-    def volatilityConventions(
-        currency: dtos.Currency,
-        tenor: dtos.Tenor
-    ): Either[
-      MarketError,
-      lib.dtos.VolatilityMarketConventions.Libor | lib.dtos.VolatilityMarketConventions.SwapRate
-    ] =
-      volConventions.get(currency).map(volConventions =>
-        val boundary: Tenor = volConventions.boundaryTenor
-        if boundary >= tenor then volConventions.liborRate
-        else volConventions.swapRate
-      )
-        .toRight(MissingVolatilityConventions(currency, tenor))
-
-    def volCube(currency: dtos.Currency): Either[MarketError, dtos.VolatilityCube] =
-      volatilities.get(currency).toRight(MissingVolatilityCube(currency))
+    def volCube(currency: dtos.Currency): Either[MarketError, dtos.Volatility] =
+      volatilities.get(currency).toRight(MissingVolatility(currency))
 
     def volSurface(
         currency: dtos.Currency,
         tenor: dtos.Tenor
     ): Either[MarketError, dtos.VolatilitySurface] =
-      volatilities.get(currency).map(_.cube(tenor))
-        .toRight(MissingVolatilitySurface(currency, tenor))
+      volatilities.get(currency).flatMap:
+        case dtos.Volatility.Cube(cube, _, _) => cube.get(tenor)
+        case dtos.Volatility.Flat(_, _)       => None
+      .toRight(MissingVolatilitySurface(currency, tenor))
 
     def calendar(name: dtos.CalendarId): Either[MarketError, dtos.Calendar[T]] =
       calendars.get(name).toRight(MissingCalendar(name))

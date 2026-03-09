@@ -40,7 +40,37 @@
       },
       "fixings": {},
       "volatility": {
+        "type": "Cube",
         "unit": "BpPerYear",
+        "conventions": {
+          "boundaryTenor": "10Y",
+          "liborRate": {
+            "currency": "USD",
+            "spotLag": 2,
+            "dayCounter": "Act360",
+            "calendar": "NO_HOLIDAYS",
+            "resetCurve": {
+              "currency": "USD",
+              "name": "SINGLE_CURVE"
+            },
+            "bdConvention": "ModifiedFollowing"
+          },
+          "swapRate": {
+            "spotLag": 2,
+            "paymentDelay": 0,
+            "fixedPeriod": "3M",
+            "floatingRate": "LIBOR_RATE",
+            "fixedDayCounter": "Act360",
+            "calendar": "NO_HOLIDAYS",
+            "bdConvention": "ModifiedFollowing",
+            "stub": "Short",
+            "direction": "Backward",
+            "discountCurve": {
+              "currency": "USD",
+              "name": "SINGLE_CURVE"
+            }
+          }
+        },
         "cube": {
           "3M": {
             "surface": {
@@ -85,35 +115,6 @@
                 ]
               }
             }
-          }
-        }
-      },
-      "volConventions": {
-        "boundaryTenor": "10Y",
-        "liborRate": {
-          "currency": "USD",
-          "spotLag": 2,
-          "dayCounter": "Act360",
-          "calendar": "NO_HOLIDAYS",
-          "resetCurve": {
-            "currency": "USD",
-            "name": "SINGLE_CURVE"
-          },
-          "bdConvention": "ModifiedFollowing"
-        },
-        "swapRate": {
-          "spotLag": 2,
-          "paymentDelay": 0,
-          "fixedPeriod": "3M",
-          "floatingRate": "LIBOR_RATE",
-          "fixedDayCounter": "Act360",
-          "calendar": "NO_HOLIDAYS",
-          "bdConvention": "ModifiedFollowing",
-          "stub": "Short",
-          "direction": "Backward",
-          "discountCurve": {
-            "currency": "USD",
-            "name": "SINGLE_CURVE"
           }
         }
       }

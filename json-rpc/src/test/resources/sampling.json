@@ -25,7 +25,37 @@
       },
       "fixings": {},
       "volatility": {
+        "type": "Cube",
         "unit": "BpPerYear",
+        "conventions": {
+          "liborRate": {
+            "currency": "EUR",
+            "spotLag": 0,
+            "dayCounter": "Act360",
+            "calendar": "world",
+            "resetCurve": {
+              "name": "ESTR",
+              "currency": "EUR"
+            },
+            "bdConvention": "Following"
+          },
+          "swapRate": {
+            "spotLag": 2,
+            "paymentDelay": 2,
+            "fixedPeriod": "12M",
+            "floatingRate": "ESTR12M",
+            "fixedDayCounter": "Act360",
+            "calendar": "world",
+            "bdConvention": "ModifiedFollowing",
+            "stub": "Long",
+            "direction": "Backward",
+            "discountCurve": {
+              "name": "ESTR",
+              "currency": "EUR"
+            }
+          },
+          "boundaryTenor": "1Y"
+        },
         "cube": {
           "3M": {
             "surface": {
@@ -21992,35 +22022,6 @@
             }
           }
         }
-      },
-      "volConventions": {
-        "liborRate": {
-          "currency": "EUR",
-          "spotLag": 0,
-          "dayCounter": "Act360",
-          "calendar": "world",
-          "resetCurve": {
-            "name": "ESTR",
-            "currency": "EUR"
-          },
-          "bdConvention": "Following"
-        },
-        "swapRate": {
-          "spotLag": 2,
-          "paymentDelay": 2,
-          "fixedPeriod": "12M",
-          "floatingRate": "ESTR12M",
-          "fixedDayCounter": "Act360",
-          "calendar": "world",
-          "bdConvention": "ModifiedFollowing",
-          "stub": "Long",
-          "direction": "Backward",
-          "discountCurve": {
-            "name": "ESTR",
-            "currency": "EUR"
-          }
-        },
-        "boundaryTenor": "1Y"
       }
     }
   },

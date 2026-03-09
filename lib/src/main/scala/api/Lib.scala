@@ -4,6 +4,7 @@ import cats.syntax.all.*
 import lib.dtos
 import lib.quantities.*
 import lib.quantities.Tenor.toYearFraction
+import scala.math.Ordering.Implicits.*
 
 class Lib[T: lib.DateLike](market: Market[T]):
 
@@ -31,42 +32,54 @@ class Lib[T: lib.DateLike](market: Market[T]):
       currency: dtos.Currency,
       tenor: lib.quantities.Tenor
   ): Either[lib.Error, lib.VolatilitySurface[T]] =
-    market.volCube(currency).map(_.unit).flatMap: volUnit =>
-      market.volSurface(currency, tenor).flatMap: surface =>
-        buildVolConventions(currency, tenor).map: rate =>
-          val skews = surface.surface.toList.map:
-            case (expTenor, dtos.VolatiltySkew(skew)) =>
-              val expiry =
-                rate.calendar.addBusinessPeriod(market.t, expTenor)(using rate.bdConvention)
-              expiry -> lib.Lazy:
-                val (ms, vs0) = skew.unzip
-                val fwd = rate.forward(expiry)
-                val ks = ms.map(fwd + _.value)
-                val vs1 = vs0.map(volUnit.fromUnit)
-                lib.VolatilitySkew(ks.toIndexedSeq, vs1.toIndexedSeq)
-          val sortedSkews = skews.sortBy(_(0))(using lib.syntax.given_Ordering_T)
-          lib.VolatilitySurface(market.t, rate.forward, sortedSkews.toIndexedSeq)
+    market.volCube(currency).flatMap:
+      case dtos.Volatility.Cube(cube, unit, conventions) =>
+        market.volSurface(currency, tenor).flatMap: surface =>
+          buildVolConventions(conventions, tenor).map: rate =>
+            val skews = surface.surface.toList.map:
+              case (expTenor, dtos.VolatiltySkew(skew)) =>
+                val expiry =
+                  rate.calendar.addBusinessPeriod(market.t, expTenor)(using rate.bdConvention)
+                expiry -> lib.Lazy:
+                  val (ms, vs0) = skew.unzip
+                  val fwd = rate.forward(expiry)
+                  val ks = ms.map(fwd + _.value)
+                  val vs1 = vs0.map(unit.fromUnit)
+                  lib.VolatilitySkew(ks.toIndexedSeq, vs1.toIndexedSeq)
+            val sortedSkews = skews.sortBy(_(0))(using lib.syntax.given_Ordering_T)
+            lib.VolatilitySurface[T](market.t, rate.forward, sortedSkews.toIndexedSeq)
+      case dtos.Volatility.Flat(vol, unit) =>
+        lib.VolatilitySurface.flat[T](unit.fromUnit(vol)).asRight[lib.Error]
 
   def buildVolCube(currency: dtos.Currency): Either[lib.Error, lib.VolatilityCube[T]] =
-    market.volCube(currency).flatMap: volCube =>
-      val surfaces = volCube.cube.toList.traverse: (tenor, _) =>
-        buildVolSurface(currency, tenor).tupleLeft(tenor)
-      .map(_.toIndexedSeq)
-      val forwards = volCube.cube.keys.map(t => (t: Tenor)).toList.traverse: tenor =>
-        buildVolConventions(currency, tenor).map(_.forward).tupleLeft(tenor)
-      .map(_.toMap)
-      (surfaces, forwards).tupled.map: (surfaces, forwards) =>
-        val sortedSurfaces = surfaces.sortBy((t, _) => t.toYearFraction.value)
-          .map((t, e) => (t: Tenor) -> e)
-        lib.VolatilityCube[T](sortedSurfaces, forwards)
+    market.volCube(currency).flatMap:
+      case dtos.Volatility.Cube(cube, unit, conventions) =>
+        val surfaces = cube.toList.traverse: (tenor, _) =>
+          buildVolSurface(currency, tenor).tupleLeft(tenor)
+        .map(_.toIndexedSeq)
+        val forwards = cube.keys.map(t => (t: Tenor)).toList.traverse: tenor =>
+          buildVolConventions(conventions, tenor).map(_.forward).tupleLeft(tenor)
+        .map(_.toMap)
+        (surfaces, forwards).tupled.map: (surfaces, forwards) =>
+          val sortedSurfaces = surfaces.sortBy((t, _) => t.toYearFraction.value)
+            .map((t, e) => (t: Tenor) -> e)
+          lib.VolatilityCube[T](sortedSurfaces, forwards)
+      case dtos.Volatility.Flat(vol, unit) =>
+        lib.VolatilityCube.flat[T](unit.fromUnit(vol)).asRight[lib.Error]
+
+  def buildVolConventions(volConventions: dtos.VolatilityMarketConventions, tenor: Tenor) =
+    if (volConventions.boundaryTenor: Tenor) >= tenor then
+      toLibor(volConventions.liborRate, tenor)
+    else toSwapRate(volConventions.swapRate, tenor)
 
   def buildVolConventions(
       currency: dtos.Currency,
       tenor: Tenor
   ): Either[lib.Error, lib.Underlying[T]] =
-    market.volatilityConventions(currency, tenor).flatMap:
-      case libor: dtos.VolatilityMarketConventions.Libor   => toLibor(libor, tenor)
-      case swap: dtos.VolatilityMarketConventions.SwapRate => toSwapRate(swap, tenor)
+    market.volCube(currency).flatMap:
+      case dtos.Volatility.Cube(_, _, conventions) => buildVolConventions(conventions, tenor)
+      case dtos.Volatility.Flat(_, _) =>
+        Left(lib.Error.Generic(s"vol is flat, no convetions available"))
 
   private def toLibor(libor: dtos.VolatilityMarketConventions.Libor, tenor: Tenor) =
     buildYieldCurve(libor.resetCurve).flatMap: resetCurve =>
