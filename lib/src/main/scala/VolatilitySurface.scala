@@ -23,8 +23,6 @@ object VolatilitySurface:
       s"pillar maturities must be strictly increasing, got ${ts.mkString(",")}"
     )
 
-    val n = skews.length
-
     val tMin = skews.head(0)
     val tMax = skews.last(0)
 
@@ -54,9 +52,8 @@ object VolatilitySurface:
                 m
               )
 
-          if t < tMin || skews.size == 1 then
-            skews.head(1).value(forward(tMin) + m)
-          else if t > tMax then I(n - 1)
+          if t < tMin || skews.size == 1 then skews.head(1).value(forward(tMin) + m)
+          else if t > tMax then skews.last(1).value(forward(tMax) + m)
           else
             skews.searchBy(_(0))(t) match
               case BinarySearch.Found(i)        => skews(i)(1).value(k)
@@ -78,9 +75,8 @@ object VolatilitySurface:
                 m
               )
 
-          if t < tMin || skews.size == 1 then
-            skews.head(1).value.fstDerivative(forward(tMin) - m)
-          else if t > tMax then I(n - 1)
+          if t < tMin || skews.size == 1 then skews.head(1).value.fstDerivative(forward(tMin) + m)
+          else if t > tMax then skews.last(1).value.fstDerivative(forward(tMax) + m)
           else
             skews.searchBy(_(0))(t) match
               case BinarySearch.Found(i)        => skews(i)(1).value.fstDerivative(k)
@@ -108,9 +104,8 @@ object VolatilitySurface:
             )
             a / 2.0 / sqrt(c) - pow(b, 2) / 4.0 / c / sqrt(c)
 
-          if t < tMin || skews.size == 1 then
-            skews.head(1).value.sndDerivative(forward(tMin) - m)
-          else if t > tMax then I(n - 1)
+          if t < tMin || skews.size == 1 then skews.head(1).value.sndDerivative(forward(tMin) + m)
+          else if t > tMax then skews.last(1).value.sndDerivative(forward(tMax) + m)
           else
             skews.searchBy(_(0))(t) match
               case BinarySearch.Found(i)        => skews(i)(1).value.sndDerivative(k)
